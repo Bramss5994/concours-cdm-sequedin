@@ -65,6 +65,67 @@ function Home() {
         ))}
       </section>
 
+      <section className="container mx-auto px-4 py-12">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-center text-2xl font-bold sm:text-3xl">Barème des points</h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground">Pour chaque match, tes points sont attribués automatiquement à la fin de la rencontre.</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <Card className="border-primary/40 bg-primary/5">
+              <CardContent className="p-5 text-center">
+                <div className="text-3xl font-extrabold text-primary">3 pts</div>
+                <div className="mt-1 font-semibold">Score exact</div>
+                <p className="mt-1 text-xs text-muted-foreground">Sauf le 0-0 (compte comme match nul prédit)</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5 text-center">
+                <div className="text-3xl font-extrabold">2 pts</div>
+                <div className="mt-1 font-semibold">Bon vainqueur</div>
+                <p className="mt-1 text-xs text-muted-foreground">Tu trouves le gagnant mais pas le score exact</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5 text-center">
+                <div className="text-3xl font-extrabold">1 pt</div>
+                <div className="mt-1 font-semibold">Match nul prédit</div>
+                <p className="mt-1 text-xs text-muted-foreground">Tu pronostiques un nul et le match finit nul</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl">
+          <h2 className="flex items-center justify-center gap-2 text-center text-2xl font-bold sm:text-3xl"><Gift className="h-7 w-7 text-primary" /> Les lots en chèques cadeaux</h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground">À l'issue de la finale, les 3 meilleurs pronostiqueurs du dépôt remportent :</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <Card className="border-yellow-500/50 bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/40 dark:to-amber-900/30">
+              <CardContent className="p-5 text-center">
+                <Trophy className="mx-auto h-8 w-8 text-yellow-600" />
+                <div className="mt-2 text-sm font-bold uppercase tracking-wide text-yellow-700 dark:text-yellow-400">1<sup>er</sup></div>
+                <div className="mt-1 text-3xl font-extrabold">100 €</div>
+                <p className="mt-1 text-xs text-muted-foreground">en chèques cadeaux</p>
+              </CardContent>
+            </Card>
+            <Card className="border-slate-400/50 bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-900/40 dark:to-slate-800/40">
+              <CardContent className="p-5 text-center">
+                <Medal className="mx-auto h-8 w-8 text-slate-500" />
+                <div className="mt-2 text-sm font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">2<sup>e</sup></div>
+                <div className="mt-1 text-3xl font-extrabold">70 €</div>
+                <p className="mt-1 text-xs text-muted-foreground">en chèques cadeaux</p>
+              </CardContent>
+            </Card>
+            <Card className="border-orange-700/40 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20">
+              <CardContent className="p-5 text-center">
+                <Award className="mx-auto h-8 w-8 text-orange-700" />
+                <div className="mt-2 text-sm font-bold uppercase tracking-wide text-orange-800 dark:text-orange-400">3<sup>e</sup></div>
+                <div className="mt-1 text-3xl font-extrabold">40 €</div>
+                <p className="mt-1 text-xs text-muted-foreground">en chèques cadeaux</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       <section className="border-t bg-muted/30">
         <div className="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-3">
           <div>
