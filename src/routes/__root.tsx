@@ -6,6 +6,12 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Nav } from "@/components/Nav";
 import { Toaster } from "@/components/ui/sonner";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+
+function RealtimeBridge() {
+  useRealtimeSync();
+  return null;
+}
 
 function NotFoundComponent() {
   return (
@@ -75,6 +81,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <RealtimeBridge />
         <div className="flex min-h-screen flex-col">
           <Nav />
           <main className="flex-1"><Outlet /></main>
