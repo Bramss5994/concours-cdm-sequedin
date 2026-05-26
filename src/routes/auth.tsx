@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage });
 
-// Build a deterministic pseudo-email from prénom + nom so Supabase Auth
+// Build a deterministic pseudo-email from prénom + numéro de paie so Supabase Auth
 // (which requires an email) accepts the account without the user typing one.
 function slug(s: string) {
   return s
@@ -23,19 +23,19 @@ function slug(s: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
-function buildEmail(prenom: string, nom: string) {
-  return `${slug(prenom)}.${slug(nom)}@sequedin.local`;
+function buildEmail(prenom: string, numPaie: string) {
+  return `${slug(prenom)}.${slug(numPaie)}@sequedin.local`;
 }
 
 const nameSchema = z.object({
   prenom: z.string().trim().min(1, "Prénom requis").max(50),
-  nom: z.string().trim().min(1, "Nom requis").max(50),
+  numPaie: z.string().trim().min(1, "N° de paie requis").max(50),
   password: z.string().min(8, "8 caractères minimum").max(72),
 });
 
 const loginSchema = z.object({
   prenom: z.string().trim().min(1, "Prénom requis").max(50),
-  nom: z.string().trim().min(1, "Nom requis").max(50),
+  numPaie: z.string().trim().min(1, "N° de paie requis").max(50),
   password: z.string().min(1, "Mot de passe requis"),
 });
 
@@ -63,7 +63,7 @@ function AuthPage() {
         </CardContent>
       </Card>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Aucune adresse e-mail n'est demandée. Utilise ton prénom et ton nom pour te connecter.
+        Aucune adresse e-mail n'est demandée. Utilise ton prénom et ton numéro de paie pour te connecter.
       </p>
     </div>
   );
