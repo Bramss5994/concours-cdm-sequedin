@@ -60,6 +60,10 @@ function Home() {
         </div>
       </section>
 
+      <div className="bg-background border-b py-2 text-center">
+        <p className="text-sm font-medium text-muted-foreground">Kéolis Lille Ilévia - Dépôt de Sequedin</p>
+      </div>
+
       <section className="container mx-auto grid gap-4 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { icon: Users, t: "Entre collègues", d: "Réservé au personnel du dépôt de Sequedin." },
