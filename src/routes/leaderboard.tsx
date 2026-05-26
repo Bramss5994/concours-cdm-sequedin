@@ -40,7 +40,7 @@ function Leaderboard() {
     const stats = new Map<string, { user_id: string; name: string; pts: number; exact: number; good: number; }>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.nom}`.trim() || "Anonyme", pts: 0, exact: 0, good: 0 });
+      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", pts: 0, exact: 0, good: 0 });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);

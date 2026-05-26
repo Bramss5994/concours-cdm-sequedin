@@ -152,7 +152,7 @@ function AdminUsers() {
             <tbody>
               {users.map((u: any) => (
                 <tr key={u.id} className="border-t">
-                  <td className="px-3 py-2">{u.prenom} {u.nom}</td>
+                  <td className="px-3 py-2">{u.prenom} {u.num_paie}</td>
                   <td className="px-3 py-2">{u.email}</td>
                   <td className="px-3 py-2 text-center"><Switch checked={u.active} onCheckedChange={(v) => toggleActive(u.id, v)} /></td>
                   <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
