@@ -28,8 +28,11 @@ function Home() {
               alt="Logo Pronostics Coupe du Monde 2026"
               width={160}
               height={160}
-              className="mx-auto mb-6 h-32 w-auto drop-shadow-2xl sm:h-40"
+              className="mx-auto mb-4 h-28 w-auto drop-shadow-2xl sm:h-36"
             />
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur">
+              <Trophy className="h-4 w-4" /> Kéolis Lille Ilévia - Dépôt de Sequedin
+            </div>
             <h1 className="text-balance text-4xl font-extrabold tracking-tight drop-shadow-lg sm:text-6xl">
               Pronostics Coupe du Monde <span className="text-accent-foreground bg-accent rounded-md px-2">2026</span>
             </h1>
@@ -59,10 +62,6 @@ function Home() {
           </div>
         </div>
       </section>
-
-      <div className="bg-background border-b py-2 text-center">
-        <p className="text-sm font-medium text-muted-foreground">Kéolis Lille Ilévia - Dépôt de Sequedin</p>
-      </div>
 
       <section className="container mx-auto grid gap-4 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         {[
