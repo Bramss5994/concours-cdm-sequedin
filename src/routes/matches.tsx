@@ -27,18 +27,20 @@ type Match = {
 type Prediction = { match_id: string; score_a: number; score_b: number; points: number };
 
 const STAGES: { value: string; label: string }[] = [
+  { value: "calendar", label: "Calendrier" },
   { value: "group", label: "Phase de groupes" },
-  { value: "r32", label: "32es" },
-  { value: "r16", label: "8es" },
-  { value: "qf", label: "Quarts" },
-  { value: "sf", label: "Demi-finales" },
-  { value: "third", label: "3e place" },
-  { value: "final", label: "Finale" },
+  { value: "ko", label: "Phase finale" },
 ];
+
+const KO_STAGES = ["r32", "r16", "qf", "sf", "third", "final"];
+const KO_LABEL: Record<string, string> = {
+  r32: "16es de finale", r16: "8es de finale", qf: "Quarts de finale",
+  sf: "Demi-finales", third: "Match pour la 3e place", final: "Finale",
+};
 
 function MatchesPage() {
   const { user, loading } = useAuth();
-  const [stage, setStage] = useState("group");
+  const [stage, setStage] = useState("calendar");
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["matches"],
@@ -64,14 +66,12 @@ function MatchesPage() {
 
   const predByMatch = useMemo(() => Object.fromEntries(predictions.map((p) => [p.match_id, p])), [predictions]);
 
-  const filtered = matches.filter((m) => m.stage === stage);
-
   if (loading) return null;
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold sm:text-3xl">Matchs & pronostics</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Saisis tes scores. Les pronos se ferment automatiquement 1h avant chaque match.</p>
+      <h1 className="text-2xl font-bold sm:text-3xl">Coupe du Monde 2026 — Calendrier & pronostics</h1>
+      <p className="mt-1 text-sm text-muted-foreground">104 matchs • 16 villes hôtes • Canada · Mexique · États-Unis. Pronostics fermés 1h avant chaque match.</p>
 
       {!user && (
         <Card className="mt-4 border-primary/30 bg-primary/5">
@@ -89,18 +89,58 @@ function MatchesPage() {
           ))}
         </TabsList>
 
-        {STAGES.map((s) => (
-          <TabsContent key={s.value} value={s.value} className="mt-4">
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Chargement...</p>
-            ) : s.value === "group" ? (
-              <GroupedMatches matches={filtered} predByMatch={predByMatch} canPredict={!!user} />
-            ) : (
-              <MatchList matches={filtered} predByMatch={predByMatch} canPredict={!!user} />
-            )}
-          </TabsContent>
-        ))}
+        <TabsContent value="calendar" className="mt-4">
+          {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+            : <CalendarView matches={matches} predByMatch={predByMatch} canPredict={!!user} />}
+        </TabsContent>
+
+        <TabsContent value="group" className="mt-4">
+          {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+            : <GroupedMatches matches={matches.filter(m => m.stage === "group")} predByMatch={predByMatch} canPredict={!!user} />}
+        </TabsContent>
+
+        <TabsContent value="ko" className="mt-4 space-y-8">
+          {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+            : KO_STAGES.map((st) => {
+              const list = matches.filter(m => m.stage === st);
+              if (!list.length) return null;
+              return (
+                <section key={st}>
+                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><Trophy className="h-5 w-5 text-primary" />{KO_LABEL[st]}</h2>
+                  <MatchList matches={list} predByMatch={predByMatch} canPredict={!!user} />
+                </section>
+              );
+            })}
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
+  const byDate = useMemo(() => {
+    const map = new Map<string, Match[]>();
+    for (const m of matches) {
+      const key = new Date(m.kickoff_at).toISOString().slice(0, 10);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(m);
+    }
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [matches]);
+
+  return (
+    <div className="space-y-6">
+      {byDate.map(([day, list]) => {
+        const label = new Date(day + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        return (
+          <section key={day}>
+            <h3 className="mb-2 border-b pb-1 text-sm font-bold uppercase tracking-wide text-muted-foreground">{label}</h3>
+            <div className="grid gap-3 md:grid-cols-2">
+              {list.map((m) => <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />)}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
