@@ -10,8 +10,8 @@ export const Route = createFileRoute("/leaderboard")({ component: Leaderboard })
 
 const STAGES = [
   { value: "all", label: "Général" },
-  { value: "group", label: "Groupes" },
-  { value: "r32", label: "32es" },
+  { value: "group", label: "Phase de groupes" },
+  { value: "r32", label: "16es" },
   { value: "r16", label: "8es" },
   { value: "qf", label: "Quarts" },
   { value: "sf", label: "Demis" },
