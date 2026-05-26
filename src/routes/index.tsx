@@ -134,7 +134,7 @@ function Home() {
           </div>
           <ol className="md:col-span-2 space-y-4">
             {[
-              ["1. Inscris-toi", "Avec ton email professionnel et un mot de passe."],
+              ["1. Inscris-toi", "Inscris-toi avec ton numéro de paie et ton prénom, et crée ton mot de passe !"],
               ["2. Pronostique", "Saisis le score que tu prévois pour chaque match avant H-1."],
               ["3. Suis le classement", "Tes points sont calculés automatiquement après chaque match."],
             ].map(([t, d]) => (
