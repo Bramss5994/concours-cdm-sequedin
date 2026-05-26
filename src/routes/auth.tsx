@@ -138,7 +138,7 @@ function SignupForm() {
       </div>
       <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retiens-le bien, il n'y a pas de récupération par e-mail.</p></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Création..." : "Créer mon compte"}</Button>
-      <Link to="/" className="hidden" aria-hidden /> {/* keep Link import used elsewhere */}
+      
     </form>
   );
 }
