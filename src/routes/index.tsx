@@ -26,7 +26,7 @@ function Home() {
               <Trophy className="h-4 w-4" /> Kéolis Lille Ilévia - Dépôt de Sequedin
             </div>
             <h1 className="text-balance text-4xl font-extrabold tracking-tight drop-shadow-lg sm:text-6xl">
-              Concours dépôt de <span className="text-accent-foreground bg-accent rounded-md px-2">Sequedin</span>
+              Concours dépôt de <span className="text-accent-foreground px-2">Sequedin</span>
             </h1>
             <p className="mt-6 text-lg text-white/90 drop-shadow sm:text-xl">
               Pronostiquez tous les matchs de la Coupe du Monde, défiez vos collègues du dépôt et grimpez au classement.
