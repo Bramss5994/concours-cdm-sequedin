@@ -45,19 +45,7 @@ function Home() {
                 <Button asChild size="lg" variant="secondary">
                   <Link to="/matches"><Calendar className="h-5 w-5" /> Faire mes pronostics</Link>
                 </Button>
-              ) : (
-                <>
-                  <Button asChild size="lg" variant="secondary">
-                    <Link to="/auth">S'inscrire</Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
-                    <Link to="/auth">Se connecter</Link>
-                  </Button>
-                </>
-              )}
-              <Button asChild size="lg" variant="outline" className="bg-white/10 text-white border-white/30 hover:bg-white/20">
-                <Link to="/leaderboard"><BarChart3 className="h-5 w-5" /> Voir le classement</Link>
-              </Button>
+              ) : null}
             </div>
           </div>
         </div>
