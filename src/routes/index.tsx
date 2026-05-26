@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import wcBanner from "@/assets/wc-banner.jpg";
-import wcLogo from "@/assets/wc-logo.png";
 
 export const Route = createFileRoute("/")({ component: Home });
 
