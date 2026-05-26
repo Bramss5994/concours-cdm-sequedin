@@ -51,7 +51,7 @@ function Home() {
           { icon: Users, t: "Entre collègues", d: "Réservé au personnel du dépôt de Sequedin." },
           { icon: Calendar, t: "Tous les matchs", d: "Phase de groupes + 32es, 8es, quarts, demis, finale." },
           { icon: Lock, t: "Clôture à H-1", d: "Les pronos se ferment automatiquement 1h avant le coup d'envoi." },
-          { icon: BarChart3, t: "Classement live", d: "Score exact = 3 pts, bon vainqueur = 2 pts." },
+          { icon: BarChart3, t: "Classement live", d: "Score exact = 3 pts, bon vainqueur = 2 pts, match nul prédit = 1 pt." },
         ].map((c) => (
           <Card key={c.t}>
             <CardContent className="flex flex-col gap-2 p-5">
