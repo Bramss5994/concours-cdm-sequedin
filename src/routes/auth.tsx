@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,15 +12,30 @@ import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({ component: AuthPage });
 
-const signupSchema = z.object({
+// Build a deterministic pseudo-email from prénom + nom so Supabase Auth
+// (which requires an email) accepts the account without the user typing one.
+function slug(s: string) {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+function buildEmail(prenom: string, nom: string) {
+  return `${slug(prenom)}.${slug(nom)}@sequedin.local`;
+}
+
+const nameSchema = z.object({
   prenom: z.string().trim().min(1, "Prénom requis").max(50),
   nom: z.string().trim().min(1, "Nom requis").max(50),
-  email: z.string().trim().email("Email invalide").max(255),
   password: z.string().min(8, "8 caractères minimum").max(72),
 });
 
 const loginSchema = z.object({
-  email: z.string().trim().email("Email invalide"),
+  prenom: z.string().trim().min(1, "Prénom requis").max(50),
+  nom: z.string().trim().min(1, "Nom requis").max(50),
   password: z.string().min(1, "Mot de passe requis"),
 });
 
@@ -45,11 +60,11 @@ function AuthPage() {
             <TabsContent value="login"><LoginForm /></TabsContent>
             <TabsContent value="signup"><SignupForm /></TabsContent>
           </Tabs>
-          <div className="mt-4 text-center text-sm">
-            <Link to="/reset-password" className="text-primary hover:underline">Mot de passe oublié ?</Link>
-          </div>
         </CardContent>
       </Card>
+      <p className="mt-3 text-center text-xs text-muted-foreground">
+        Aucune adresse e-mail n'est demandée. Utilise ton prénom et ton nom pour te connecter.
+      </p>
     </div>
   );
 }
@@ -63,16 +78,20 @@ function LoginForm() {
       onSubmit={async (e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const parsed = loginSchema.safeParse({ email: fd.get("email"), password: fd.get("password") });
+        const parsed = loginSchema.safeParse(Object.fromEntries(fd));
         if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
         setBusy(true);
-        const { error } = await supabase.auth.signInWithPassword(parsed.data);
+        const email = buildEmail(parsed.data.prenom, parsed.data.nom);
+        const { error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
         setBusy(false);
-        if (error) toast.error(error.message);
+        if (error) toast.error("Identifiants invalides");
         else { toast.success("Bienvenue !"); router.navigate({ to: "/matches" }); }
       }}
     >
-      <div className="space-y-1.5"><Label>Email</Label><Input name="email" type="email" required autoComplete="email" /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5"><Label>Prénom</Label><Input name="prenom" required maxLength={50} autoComplete="given-name" /></div>
+        <div className="space-y-1.5"><Label>Nom</Label><Input name="nom" required maxLength={50} autoComplete="family-name" /></div>
+      </div>
       <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required autoComplete="current-password" /></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Connexion..." : "Se connecter"}</Button>
     </form>
@@ -80,6 +99,7 @@ function LoginForm() {
 }
 
 function SignupForm() {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   return (
     <form
@@ -87,29 +107,38 @@ function SignupForm() {
       onSubmit={async (e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const parsed = signupSchema.safeParse(Object.fromEntries(fd));
+        const parsed = nameSchema.safeParse(Object.fromEntries(fd));
         if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
         setBusy(true);
+        const email = buildEmail(parsed.data.prenom, parsed.data.nom);
         const { error } = await supabase.auth.signUp({
-          email: parsed.data.email,
+          email,
           password: parsed.data.password,
           options: {
             emailRedirectTo: window.location.origin,
             data: { prenom: parsed.data.prenom, nom: parsed.data.nom },
           },
         });
+        if (error) {
+          setBusy(false);
+          toast.error(error.message.includes("registered") ? "Ce prénom/nom est déjà utilisé." : error.message);
+          return;
+        }
+        // Auto-confirm is enabled, so we can sign in immediately
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
         setBusy(false);
-        if (error) toast.error(error.message);
-        else toast.success("Compte créé. Vérifie ta boîte mail pour confirmer ton email.");
+        if (signInError) { toast.success("Compte créé. Connecte-toi."); return; }
+        toast.success("Compte créé !");
+        router.navigate({ to: "/matches" });
       }}
     >
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5"><Label>Prénom</Label><Input name="prenom" required maxLength={50} /></div>
-        <div className="space-y-1.5"><Label>Nom</Label><Input name="nom" required maxLength={50} /></div>
+        <div className="space-y-1.5"><Label>Prénom</Label><Input name="prenom" required maxLength={50} autoComplete="given-name" /></div>
+        <div className="space-y-1.5"><Label>Nom</Label><Input name="nom" required maxLength={50} autoComplete="family-name" /></div>
       </div>
-      <div className="space-y-1.5"><Label>Email professionnel</Label><Input name="email" type="email" required autoComplete="email" /></div>
-      <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum.</p></div>
+      <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retiens-le bien, il n'y a pas de récupération par e-mail.</p></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Création..." : "Créer mon compte"}</Button>
+      
     </form>
   );
 }
