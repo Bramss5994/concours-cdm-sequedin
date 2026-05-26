@@ -47,7 +47,7 @@ function AdminResults() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("*, team_a:team_a_id(code,name), team_b:team_b_id(code,name)")
+        .select("*, team_a:teams!matches_team_a_id_fkey(code,name), team_b:teams!matches_team_b_id_fkey(code,name)")
         .order("kickoff_at");
       if (error) throw error;
       return data as any[];

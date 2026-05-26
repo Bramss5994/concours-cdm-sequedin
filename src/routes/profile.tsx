@@ -20,7 +20,7 @@ function Profile() {
       const [{ data: profile }, { data: preds }, { data: matches }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle(),
         supabase.from("predictions").select("*").eq("user_id", user!.id),
-        supabase.from("matches").select("id, kickoff_at, stage, finished, score_a, score_b, team_a:team_a_id(code,name), team_b:team_b_id(code,name), team_a_placeholder, team_b_placeholder").order("kickoff_at"),
+        supabase.from("matches").select("id, kickoff_at, stage, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(code,name), team_b:teams!matches_team_b_id_fkey(code,name), team_a_placeholder, team_b_placeholder").order("kickoff_at"),
       ]);
       return { profile, preds: preds || [], matches: matches || [] };
     },

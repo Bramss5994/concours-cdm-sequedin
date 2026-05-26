@@ -45,10 +45,10 @@ function MatchesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("*, team_a:team_a_id(id,code,name,group_letter), team_b:team_b_id(id,code,name,group_letter)")
+        .select("*, team_a:teams!matches_team_a_id_fkey(id,code,name,group_letter), team_b:teams!matches_team_b_id_fkey(id,code,name,group_letter)")
         .order("kickoff_at");
       if (error) throw error;
-      return data as Match[];
+      return data as unknown as Match[];
     },
   });
 

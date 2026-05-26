@@ -34,9 +34,9 @@ function Leaderboard() {
   });
 
   const board = useMemo(() => {
-    if (!("profiles" in rows)) return [];
     const r = rows as any;
-    const matchById = new Map(r.matches.map((m: any) => [m.id, m]));
+    if (!r || !r.profiles) return [];
+    const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
     const stats = new Map<string, { user_id: string; name: string; pts: number; exact: number; good: number; }>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
