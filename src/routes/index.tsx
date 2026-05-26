@@ -23,13 +23,6 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-blue-900/85" />
         <div className="relative container mx-auto px-4 py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
-            <img
-              src={wcLogo}
-              alt="Logo Pronostics Coupe du Monde 2026"
-              width={160}
-              height={160}
-              className="mx-auto mb-4 h-28 w-auto drop-shadow-2xl sm:h-36"
-            />
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur">
               <Trophy className="h-4 w-4" /> Kéolis Lille Ilévia - Dépôt de Sequedin
             </div>
