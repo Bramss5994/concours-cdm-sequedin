@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import wcBanner from "@/assets/wc-banner.jpg";
+import wcLogo from "@/assets/wc-logo.png";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -10,16 +12,31 @@ function Home() {
   const { user } = useAuth();
   return (
     <div>
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-blue-700 text-primary-foreground">
-        <div className="container mx-auto px-4 py-16 sm:py-24">
+      <section className="relative overflow-hidden text-primary-foreground">
+        <img
+          src={wcBanner}
+          alt="Coupe du Monde 2026"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-blue-900/85" />
+        <div className="relative container mx-auto px-4 py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
+            <img
+              src={wcLogo}
+              alt="Logo Pronostics Coupe du Monde 2026"
+              width={160}
+              height={160}
+              className="mx-auto mb-6 h-32 w-auto drop-shadow-2xl sm:h-40"
+            />
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur">
               <Trophy className="h-4 w-4" /> Dépôt de Sequedin · Keolis / Ilévia
             </div>
-            <h1 className="text-balance text-4xl font-extrabold tracking-tight sm:text-6xl">
+            <h1 className="text-balance text-4xl font-extrabold tracking-tight drop-shadow-lg sm:text-6xl">
               Pronostics Coupe du Monde <span className="text-accent-foreground bg-accent rounded-md px-2">2026</span>
             </h1>
-            <p className="mt-6 text-lg text-white/90 sm:text-xl">
+            <p className="mt-6 text-lg text-white/90 drop-shadow sm:text-xl">
               Pronostiquez tous les matchs de la Coupe du Monde, défiez vos collègues du dépôt et grimpez au classement.
               Ambiance conviviale garantie ! ⚽
             </p>
