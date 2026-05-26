@@ -6,6 +6,12 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth";
 import { Nav } from "@/components/Nav";
 import { Toaster } from "@/components/ui/sonner";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+
+function RealtimeBridge() {
+  useRealtimeSync();
+  return null;
+}
 
 function NotFoundComponent() {
   return (
