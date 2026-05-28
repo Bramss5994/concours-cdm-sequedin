@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import wcBanner from "@/assets/wc-banner.jpg";
+import wcBanner from "@/assets/affiche-sequedin.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
