@@ -1,6 +1,5 @@
 export type Channel = { name: string; color: string };
 
-const TF1: Channel = { name: "TF1", color: "bg-blue-600 text-white" };
 const M6: Channel = { name: "M6", color: "bg-fuchsia-600 text-white" };
 const BEIN: Channel = { name: "beIN Sports", color: "bg-red-600 text-white" };
 
@@ -28,30 +27,30 @@ export function getChannels(match: {
   const b = match.team_b?.code ?? null;
   const involvesFrance = a === "fr" || b === "fr";
 
-  // Finale, petite finale, demi-finales, quarts : TF1 + M6 + beIN
+  // Finale, petite finale, demi-finales, quarts : M6 + beIN
   if (["final", "third", "sf", "qf"].includes(match.stage)) {
-    return [TF1, M6, BEIN];
+    return [M6, BEIN];
   }
 
-  // 8es de finale : TF1 + M6 + beIN
+  // 8es de finale : M6 + beIN
   if (match.stage === "r16") {
-    return [TF1, M6, BEIN];
+    return [M6, BEIN];
   }
 
-  // 16es de finale : TF1 si la France joue, sinon M6, + beIN
+  // 16es de finale : M6 + beIN (tous diffusés par M6)
   if (match.stage === "r32") {
-    return [involvesFrance ? TF1 : M6, BEIN];
+    return [M6, BEIN];
   }
 
   // Phase de groupes
-  // Matchs de la France : diffusion partagée TF1 + M6 + beIN
-  if (involvesFrance) return [TF1, M6, BEIN];
+  // Matchs de la France : M6 + beIN
+  if (involvesFrance) return [M6, BEIN];
 
   // Affiches confirmées sur M6
   if (M6_GROUP_MATCHES.has(pairKey(a, b))) {
     return [M6, BEIN];
   }
 
-  // Autres matchs de poules : TF1 + beIN
-  return [TF1, BEIN];
+  // Autres matchs de poules : seulement beIN (non diffusés par M6)
+  return [BEIN];
 }
