@@ -149,6 +149,7 @@ export type Database = {
           active: boolean
           created_at: string
           email: string
+          favorite_team_id: string | null
           id: string
           num_paie: string
           prenom: string
@@ -157,6 +158,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           email: string
+          favorite_team_id?: string | null
           id: string
           num_paie?: string
           prenom?: string
@@ -165,11 +167,20 @@ export type Database = {
           active?: boolean
           created_at?: string
           email?: string
+          favorite_team_id?: string | null
           id?: string
           num_paie?: string
           prenom?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_favorite_team_id_fkey"
+            columns: ["favorite_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teams: {
         Row: {

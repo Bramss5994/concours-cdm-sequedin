@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatFR } from "@/lib/time";
+import { FavoriteTeamPicker } from "@/components/FavoriteTeamPicker";
 
 export const Route = createFileRoute("/profile")({ component: Profile });
 
@@ -56,6 +57,10 @@ function Profile() {
           <Stat label="Taux de réussite" value={`${stats.rate}%`} />
         </div>
       )}
+
+      <div className="mt-6">
+        <FavoriteTeamPicker />
+      </div>
 
       <h2 className="mt-8 text-xl font-bold">Mes pronostics</h2>
       <div className="mt-3 overflow-x-auto rounded-md border bg-card">
