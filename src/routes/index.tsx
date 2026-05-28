@@ -39,12 +39,12 @@ function Home() {
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="relative container mx-auto grid items-center gap-10 px-4 py-20 sm:py-28 lg:grid-cols-[1.4fr_1fr]">
+        <div className="relative container mx-auto grid items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-[1.4fr_1fr]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-white"
+            className="order-2 text-center text-white lg:order-1 lg:text-left"
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-amber-300 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_2px_rgba(251,191,36,0.8)]" />
@@ -54,21 +54,21 @@ function Home() {
               Concours de pronostics
             </p>
             <h1 className="mt-2 font-black uppercase leading-[0.95] tracking-tight">
-              <span className="block text-5xl sm:text-6xl lg:text-7xl text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+              <span className="block text-4xl sm:text-6xl lg:text-7xl text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
                 Coupe
               </span>
-              <span className="block text-5xl sm:text-6xl lg:text-7xl bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(217,165,40,0.35)]">
+              <span className="block text-4xl sm:text-6xl lg:text-7xl bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(217,165,40,0.35)]">
                 du Monde
               </span>
-              <span className="block text-5xl sm:text-6xl lg:text-7xl text-white">
+              <span className="block text-4xl sm:text-6xl lg:text-7xl text-white">
                 2026
               </span>
             </h1>
-            <div className="mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)]" />
-            <p className="mt-6 max-w-xl text-base text-white/75 sm:text-lg">
+            <div className="mx-auto mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)] lg:mx-0" />
+            <p className="mx-auto mt-6 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
               Pronostique chaque match, grimpe au classement et joue ta place sur le podium du dépôt.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               {user ? (
                 <Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_8px_30px_rgba(220,38,38,0.45)] hover:from-red-500 hover:to-red-400">
                   <Link to="/matches">Voir les matchs</Link>
@@ -89,13 +89,13 @@ function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative hidden justify-self-center lg:flex"
+            className="relative order-1 flex justify-self-center lg:order-2"
           >
             <div className="absolute -inset-10 rounded-full bg-amber-400/20 blur-3xl" />
             <img
               src={logoConcours}
               alt="Logo CDM Pronos — Keolis Lille Ilévia"
-              className="relative h-96 w-96 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.45)]"
+              className="relative h-64 w-64 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.45)] sm:h-80 sm:w-80 lg:h-[28rem] lg:w-[28rem]"
             />
           </motion.div>
         </div>
