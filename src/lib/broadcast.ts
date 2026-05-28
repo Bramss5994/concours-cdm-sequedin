@@ -4,25 +4,54 @@ const TF1: Channel = { name: "TF1", color: "bg-blue-600 text-white" };
 const M6: Channel = { name: "M6", color: "bg-fuchsia-600 text-white" };
 const BEIN: Channel = { name: "beIN Sports", color: "bg-red-600 text-white" };
 
+// Affiches de poules confirmées sur M6 (liste officielle partielle)
+// Paires de codes équipes (ordre indifférent)
+const M6_GROUP_MATCHES: ReadonlySet<string> = new Set([
+  "mx|za", // Match d'ouverture
+  "cz|za",
+  "ba|ca",
+  "ch|qa",
+  "ba|ch",
+  "br|ma",
+]);
+
+function pairKey(a?: string | null, b?: string | null): string {
+  return [a ?? "", b ?? ""].sort().join("|");
+}
+
 export function getChannels(match: {
   stage: string;
   team_a?: { code?: string | null } | null;
   team_b?: { code?: string | null } | null;
 }): Channel[] {
-  const codes = [match.team_a?.code, match.team_b?.code];
-  const involvesFrance = codes.includes("fr");
+  const a = match.team_a?.code ?? null;
+  const b = match.team_b?.code ?? null;
+  const involvesFrance = a === "fr" || b === "fr";
 
-  // Finale, 3e place, demies, quarts, 8es : TF1 + beIN
-  if (["final", "third", "sf", "qf", "r16"].includes(match.stage)) {
-    return [TF1, BEIN];
+  // Finale, petite finale, demi-finales, quarts : TF1 + M6 + beIN
+  if (["final", "third", "sf", "qf"].includes(match.stage)) {
+    return [TF1, M6, BEIN];
   }
 
-  // 16es : France sur TF1, sinon M6
+  // 8es de finale : TF1 + M6 + beIN
+  if (match.stage === "r16") {
+    return [TF1, M6, BEIN];
+  }
+
+  // 16es de finale : TF1 si la France joue, sinon M6, + beIN
   if (match.stage === "r32") {
     return [involvesFrance ? TF1 : M6, BEIN];
   }
 
   // Phase de groupes
-  if (involvesFrance) return [TF1, BEIN];
-  return [M6, BEIN];
+  // Matchs de la France : diffusion partagée TF1 + M6 + beIN
+  if (involvesFrance) return [TF1, M6, BEIN];
+
+  // Affiches confirmées sur M6
+  if (M6_GROUP_MATCHES.has(pairKey(a, b))) {
+    return [M6, BEIN];
+  }
+
+  // Autres matchs de poules : TF1 + beIN
+  return [TF1, BEIN];
 }
