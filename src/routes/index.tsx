@@ -8,7 +8,7 @@ import wcBanner from "@/assets/wc-banner.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: (i = 1) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5, ease: "easeOut" } }),
+  visible: (i = 1) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5 } }),
 };
 
 const staggerContainer = {
