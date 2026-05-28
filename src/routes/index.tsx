@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import logoConcours from "@/assets/logo-concours.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
