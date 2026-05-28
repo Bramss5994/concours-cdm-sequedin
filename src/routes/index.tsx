@@ -30,7 +30,8 @@ function Home() {
           height={1080}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-blue-900/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
         <div className="relative container mx-auto px-4 py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <motion.div
