@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import wcBanner from "@/assets/affiche-sequedin.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -22,15 +21,84 @@ function Home() {
   const { user } = useAuth();
   return (
     <div>
-      <section className="relative overflow-hidden bg-background">
-        <div className="container mx-auto px-4 py-6">
-          <img
-            src={wcBanner}
-            alt="Concours de pronostics Coupe du Monde 2026 — Dépôt de Sequedin"
-            className="mx-auto w-full max-w-4xl rounded-lg shadow-2xl"
-          />
+      <section className="relative overflow-hidden bg-[#0a0a0f]">
+        {/* Stadium ambient lighting */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(217,165,40,0.18),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(200,30,30,0.22),transparent_50%)]" />
+        {/* Crowd-light specks */}
+        <div
+          className="absolute inset-0 opacity-40 mix-blend-screen"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 12% 22%, rgba(255,210,120,0.5) 0 1px, transparent 2px), radial-gradient(circle at 78% 30%, rgba(255,230,160,0.4) 0 1px, transparent 2px), radial-gradient(circle at 32% 70%, rgba(255,180,80,0.35) 0 1px, transparent 2px), radial-gradient(circle at 88% 78%, rgba(255,220,140,0.45) 0 1px, transparent 2px), radial-gradient(circle at 55% 18%, rgba(255,200,100,0.3) 0 1px, transparent 2px)",
+            backgroundSize: "320px 320px",
+          }}
+        />
+        {/* Pitch-line glow at the bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+
+        <div className="relative container mx-auto grid items-center gap-10 px-4 py-20 sm:py-28 lg:grid-cols-[1.4fr_1fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-white"
+          >
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-amber-300 backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_2px_rgba(251,191,36,0.8)]" />
+              Dépôt de Sequedin
+            </div>
+            <p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/80">
+              Concours de pronostics
+            </p>
+            <h1 className="mt-2 font-black uppercase leading-[0.95] tracking-tight">
+              <span className="block text-5xl sm:text-6xl lg:text-7xl text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+                Coupe
+              </span>
+              <span className="block text-5xl sm:text-6xl lg:text-7xl bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(217,165,40,0.35)]">
+                du Monde
+              </span>
+              <span className="block text-5xl sm:text-6xl lg:text-7xl text-white">
+                2026
+              </span>
+            </h1>
+            <div className="mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)]" />
+            <p className="mt-6 max-w-xl text-base text-white/75 sm:text-lg">
+              Pronostique chaque match, grimpe au classement et joue ta place sur le podium du dépôt.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {user ? (
+                <Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_8px_30px_rgba(220,38,38,0.45)] hover:from-red-500 hover:to-red-400">
+                  <Link to="/matches">Voir les matchs</Link>
+                </Button>
+              ) : (
+                <Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_8px_30px_rgba(220,38,38,0.45)] hover:from-red-500 hover:to-red-400">
+                  <Link to="/auth">Rejoindre le concours</Link>
+                </Button>
+              )}
+              <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/5 text-white backdrop-blur hover:bg-white/10">
+                <Link to="/leaderboard">Classement</Link>
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Trophy mark */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative hidden justify-self-center lg:flex"
+          >
+            <div className="absolute -inset-8 rounded-full bg-amber-400/20 blur-3xl" />
+            <div className="relative flex h-56 w-56 items-center justify-center rounded-full border border-amber-300/30 bg-gradient-to-b from-amber-300/10 to-transparent backdrop-blur">
+              <Trophy
+                className="h-32 w-32 text-amber-300 drop-shadow-[0_8px_24px_rgba(217,165,40,0.6)]"
+                strokeWidth={1.4}
+              />
+            </div>
+          </motion.div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       <motion.section
