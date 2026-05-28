@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,16 @@ import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 1) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.4 } }),
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
 
 type Team = { id: string; code: string; name: string; group_letter: string | null };
 type Match = {
@@ -70,49 +81,77 @@ function MatchesPage() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold sm:text-3xl">Coupe du Monde 2026 — Calendrier & pronostics</h1>
-      <p className="mt-1 text-sm text-muted-foreground">104 matchs • 16 villes hôtes • Canada · Mexique · États-Unis. Pronostics fermés 1h avant chaque match.</p>
+      <motion.h1
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-2xl font-bold sm:text-3xl"
+      >Coupe du Monde 2026 — Calendrier & pronostics</motion.h1>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="mt-1 text-sm text-muted-foreground"
+      >104 matchs • 16 villes hôtes • Canada · Mexique · États-Unis. Pronostics fermés 1h avant chaque match.</motion.p>
 
       {!user && (
-        <Card className="mt-4 border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center justify-between gap-3 p-4">
-            <p className="text-sm">Connecte-toi pour pronostiquer.</p>
-            <Button asChild size="sm"><Link to="/auth">Se connecter</Link></Button>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <Card className="mt-4 border-primary/30 bg-primary/5">
+            <CardContent className="flex items-center justify-between gap-3 p-4">
+              <p className="text-sm">Connecte-toi pour pronostiquer.</p>
+              <Button asChild size="sm"><Link to="/auth">Se connecter</Link></Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
-      <Tabs value={stage} onValueChange={setStage} className="mt-6">
-        <TabsList className="flex h-auto flex-wrap justify-start">
-          {STAGES.map((s) => (
-            <TabsTrigger key={s.value} value={s.value}>{s.label}</TabsTrigger>
-          ))}
-        </TabsList>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
+      >
+        <Tabs value={stage} onValueChange={setStage} className="mt-6">
+          <TabsList className="flex h-auto flex-wrap justify-start">
+            {STAGES.map((s) => (
+              <TabsTrigger key={s.value} value={s.value}>{s.label}</TabsTrigger>
+            ))}
+          </TabsList>
 
-        <TabsContent value="calendar" className="mt-4">
-          {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
-            : <CalendarView matches={matches} predByMatch={predByMatch} canPredict={!!user} />}
-        </TabsContent>
+          <TabsContent value="calendar" className="mt-4">
+            {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+              : <CalendarView matches={matches} predByMatch={predByMatch} canPredict={!!user} />}
+          </TabsContent>
 
-        <TabsContent value="group" className="mt-4">
-          {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
-            : <GroupedMatches matches={matches.filter(m => m.stage === "group")} predByMatch={predByMatch} canPredict={!!user} />}
-        </TabsContent>
+          <TabsContent value="group" className="mt-4">
+            {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+              : <GroupedMatches matches={matches.filter(m => m.stage === "group")} predByMatch={predByMatch} canPredict={!!user} />}
+          </TabsContent>
 
-        <TabsContent value="ko" className="mt-4 space-y-8">
-          {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
-            : KO_STAGES.map((st) => {
-              const list = matches.filter(m => m.stage === st);
-              if (!list.length) return null;
-              return (
-                <section key={st}>
-                  <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><Trophy className="h-5 w-5 text-primary" />{KO_LABEL[st]}</h2>
-                  <MatchList matches={list} predByMatch={predByMatch} canPredict={!!user} />
-                </section>
-              );
-            })}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="ko" className="mt-4 space-y-8">
+            {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+              : KO_STAGES.map((st) => {
+                const list = matches.filter(m => m.stage === st);
+                if (!list.length) return null;
+                return (
+                  <motion.section
+                    key={st}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><Trophy className="h-5 w-5 text-primary" />{KO_LABEL[st]}</h2>
+                    <MatchList matches={list} predByMatch={predByMatch} canPredict={!!user} />
+                  </motion.section>
+                );
+              })}
+          </TabsContent>
+        </Tabs>
+      </motion.div>
     </div>
   );
 }
@@ -133,12 +172,28 @@ function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; 
       {byDate.map(([day, list]) => {
         const label = new Date(day + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
         return (
-          <section key={day}>
+          <motion.section
+            key={day}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.4 }}
+          >
             <h3 className="mb-2 border-b pb-1 text-sm font-bold uppercase tracking-wide text-muted-foreground">{label}</h3>
-            <div className="grid gap-3 md:grid-cols-2">
-              {list.map((m) => <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />)}
-            </div>
-          </section>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+              variants={staggerContainer}
+              className="grid gap-3 md:grid-cols-2"
+            >
+              {list.map((m, i) => (
+                <motion.div key={m.id} variants={fadeUp} custom={i}>
+                  <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.section>
         );
       })}
     </div>
@@ -155,22 +210,35 @@ function GroupedMatches({ matches, predByMatch, canPredict }: { matches: Match[]
   return (
     <div className="space-y-6">
       {letters.map((g) => (
-        <section key={g}>
+        <motion.section
+          key={g}
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.4 }}
+        >
           <h2 className="mb-2 flex items-center gap-2 text-lg font-bold"><Trophy className="h-5 w-5 text-primary" /> Groupe {g}</h2>
           <GroupTable matches={groups[g]} />
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {groups[g].map((m) => (
-              <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={staggerContainer}
+            className="mt-3 grid gap-3 md:grid-cols-2"
+          >
+            {groups[g].map((m, i) => (
+              <motion.div key={m.id} variants={fadeUp} custom={i}>
+                <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+              </motion.div>
             ))}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
       ))}
     </div>
   );
 }
 
 function GroupTable({ matches }: { matches: Match[] }) {
-  // Build standings from finished matches
   const teams = new Map<string, { code: string; name: string; pts: number; j: number; bp: number; bc: number; }>();
   for (const m of matches) {
     for (const t of [m.team_a, m.team_b]) if (t && !teams.has(t.id)) teams.set(t.id, { code: t.code, name: t.name, pts: 0, j: 0, bp: 0, bc: 0 });
@@ -193,7 +261,7 @@ function GroupTable({ matches }: { matches: Match[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.code} className="border-t">
+            <tr key={r.code} className="border-t transition-colors hover:bg-muted/40">
               <td className="px-2 py-1.5 flex items-center gap-2">
                 <img src={`https://flagcdn.com/w40/${r.code}.png`} alt="" className="h-4 w-6 rounded-sm object-cover" />{r.name}
               </td>
@@ -212,9 +280,19 @@ function GroupTable({ matches }: { matches: Match[] }) {
 
 function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {matches.map((m) => <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />)}
-    </div>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.1 }}
+      variants={staggerContainer}
+      className="grid gap-3 md:grid-cols-2"
+    >
+      {matches.map((m, i) => (
+        <motion.div key={m.id} variants={fadeUp} custom={i}>
+          <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+        </motion.div>
+      ))}
+    </motion.div>
   );
 }
 
@@ -247,7 +325,7 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
   const codeB = match.team_b?.code;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-md">
       <CardContent className="p-4">
         <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">{formatFR(match.kickoff_at)}</span>
@@ -271,7 +349,12 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
         </div>
 
         {match.finished && match.score_a != null && match.score_b != null && (
-          <div className="mt-3 rounded-md bg-muted px-3 py-1.5 text-center text-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mt-3 rounded-md bg-muted px-3 py-1.5 text-center text-sm"
+          >
             <span className="text-muted-foreground">Résultat officiel : </span>
             <span className="font-bold">{match.score_a} - {match.score_b}</span>
             {prediction && (
@@ -279,7 +362,7 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
                 {prediction.points} pt{prediction.points > 1 ? "s" : ""}
               </Badge>
             )}
-          </div>
+          </motion.div>
         )}
 
         <div className="mt-3 flex items-center justify-between gap-2">
