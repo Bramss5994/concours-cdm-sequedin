@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_num_paie_unique ON public.profiles (num_paie) WHERE num_paie <> '';
