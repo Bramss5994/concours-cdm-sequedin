@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Lock, CheckCircle2, MapPin, Trophy } from "lucide-react";
 import { flagSrcSet } from "@/lib/flag";
 import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
+import { getChannels } from "@/lib/broadcast";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
@@ -331,6 +332,14 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
           <span className="flex items-center gap-1">{formatFR(match.kickoff_at)}</span>
           {match.stadium && <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3" />{match.stadium}</span>}
         </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Diffusion</span>
+          {getChannels(match).map((c) => (
+            <span key={c.name} className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${c.color}`}>{c.name}</span>
+          ))}
+        </div>
+
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className="flex items-center gap-2 justify-end text-right">
