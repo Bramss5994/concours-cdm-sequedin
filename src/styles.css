@@ -34,27 +34,27 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.99 0.005 240);
-  --foreground: oklch(0.18 0.05 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.05 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.05 250);
-  --primary: oklch(0.45 0.18 255);            /* bleu Keolis */
+  --background: oklch(0.16 0.02 250);
+  --foreground: oklch(0.98 0.01 90);
+  --card: oklch(0.21 0.025 250);
+  --card-foreground: oklch(0.98 0.01 90);
+  --popover: oklch(0.21 0.025 250);
+  --popover-foreground: oklch(0.98 0.01 90);
+  --primary: oklch(0.62 0.22 27);            /* rouge stade */
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.25 0.05 250);
-  --muted: oklch(0.96 0.01 240);
-  --muted-foreground: oklch(0.5 0.03 250);
-  --accent: oklch(0.95 0.04 150);             /* touche verte */
-  --accent-foreground: oklch(0.28 0.1 150);
-  --success: oklch(0.62 0.16 150);
-  --success-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.58 0.22 27);
+  --secondary: oklch(0.28 0.03 250);
+  --secondary-foreground: oklch(0.98 0.01 90);
+  --muted: oklch(0.26 0.025 250);
+  --muted-foreground: oklch(0.75 0.02 90);
+  --accent: oklch(0.78 0.16 85);             /* or / gold trophée */
+  --accent-foreground: oklch(0.2 0.04 60);
+  --success: oklch(0.65 0.16 150);
+  --success-foreground: oklch(0.15 0.04 250);
+  --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.92 0.01 240);
-  --input: oklch(0.92 0.01 240);
-  --ring: oklch(0.45 0.18 255);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.16 85);
 }
 
 .dark {
