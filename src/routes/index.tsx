@@ -22,19 +22,15 @@ function Home() {
   const { user } = useAuth();
   return (
     <div>
-      <section className="relative overflow-hidden text-primary-foreground">
-        <img
-          src={wcBanner}
-          alt="Coupe du Monde 2026"
-          width={1920}
-          height={1080}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
-        <div className="relative container mx-auto px-4 py-16 sm:py-24">
-          <div className="mx-auto max-w-3xl text-center" />
+      <section className="relative overflow-hidden bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <img
+            src={wcBanner}
+            alt="Concours de pronostics Coupe du Monde 2026 — Dépôt de Sequedin"
+            className="mx-auto w-full max-w-4xl rounded-lg shadow-2xl"
+          />
         </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       <motion.section
