@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import wcBanner from "@/assets/wc-banner.jpg";
+import wcBanner from "@/assets/affiche-sequedin.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -30,7 +30,8 @@ function Home() {
           height={1080}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-blue-900/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
         <div className="relative container mx-auto px-4 py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <motion.div
@@ -47,7 +48,9 @@ function Home() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="text-balance text-4xl font-extrabold tracking-tight drop-shadow-lg sm:text-6xl"
             >
-              Concours dépôt de <span className="text-accent-foreground px-2">Sequedin</span>
+              <span className="block text-sm font-medium uppercase tracking-[0.3em] text-amber-300/90">Concours de pronostics</span>
+              <span className="mt-3 block">Coupe du Monde <span className="bg-gradient-to-b from-amber-300 to-amber-600 bg-clip-text text-transparent">2026</span></span>
+              <span className="mt-3 block text-xl font-medium text-white/80 sm:text-2xl">Dépôt de Sequedin</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
