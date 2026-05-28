@@ -33,47 +33,7 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/90" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
         <div className="relative container mx-auto px-4 py-16 sm:py-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <motion.div
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur"
-            >
-              <Trophy className="h-4 w-4" /> Kéolis Lille Ilévia - Dépôt de Sequedin
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              className="text-balance text-4xl font-extrabold tracking-tight drop-shadow-lg sm:text-6xl"
-            >
-              <span className="block text-sm font-medium uppercase tracking-[0.3em] text-amber-300/90">Concours de pronostics</span>
-              <span className="mt-3 block">Coupe du Monde <span className="bg-gradient-to-b from-amber-300 to-amber-600 bg-clip-text text-transparent">2026</span></span>
-              <span className="mt-3 block text-xl font-medium text-white/80 sm:text-2xl">Dépôt de Sequedin</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-6 text-lg text-white/90 drop-shadow sm:text-xl"
-            >
-              Pronostiquez tous les matchs de la Coupe du Monde, défiez vos collègues du dépôt et grimpez au classement.
-              Ambiance conviviale garantie ! ⚽
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.45 }}
-              className="mt-8 flex flex-wrap justify-center gap-3"
-            >
-              {user ? (
-                <Button asChild size="lg" variant="secondary">
-                  <Link to="/matches"><Calendar className="h-5 w-5" /> Faire mes pronostics</Link>
-                </Button>
-              ) : null}
-            </motion.div>
-          </div>
+          <div className="mx-auto max-w-3xl text-center" />
         </div>
       </section>
 
