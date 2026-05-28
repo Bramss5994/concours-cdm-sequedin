@@ -48,7 +48,9 @@ function Home() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="text-balance text-4xl font-extrabold tracking-tight drop-shadow-lg sm:text-6xl"
             >
-              Concours dépôt de <span className="text-accent-foreground px-2">Sequedin</span>
+              <span className="block text-sm font-medium uppercase tracking-[0.3em] text-amber-300/90">Concours de pronostics</span>
+              <span className="mt-3 block">Coupe du Monde <span className="bg-gradient-to-b from-amber-300 to-amber-600 bg-clip-text text-transparent">2026</span></span>
+              <span className="mt-3 block text-xl font-medium text-white/80 sm:text-2xl">Dépôt de Sequedin</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 16 }}
