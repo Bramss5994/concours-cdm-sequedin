@@ -84,7 +84,7 @@ function Home() {
             </div>
           </motion.div>
 
-          {/* Trophy mark */}
+          {/* Logo concours */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -92,12 +92,11 @@ function Home() {
             className="relative hidden justify-self-center lg:flex"
           >
             <div className="absolute -inset-8 rounded-full bg-amber-400/20 blur-3xl" />
-            <div className="relative flex h-56 w-56 items-center justify-center rounded-full border border-amber-300/30 bg-gradient-to-b from-amber-300/10 to-transparent backdrop-blur">
-              <Trophy
-                className="h-32 w-32 text-amber-300 drop-shadow-[0_8px_24px_rgba(217,165,40,0.6)]"
-                strokeWidth={1.4}
-              />
-            </div>
+            <img
+              src={logoConcours}
+              alt="Logo CDM Pronos — Keolis Lille Ilévia"
+              className="relative h-72 w-72 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.45)]"
+            />
           </motion.div>
         </div>
       </section>
