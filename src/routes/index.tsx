@@ -179,14 +179,14 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             className="flex items-center justify-center gap-2 text-center text-2xl font-bold sm:text-3xl"
-          ><Gift className="h-7 w-7 text-primary" /> Les lots en chèques cadeaux</motion.h2>
+          ><Gift className="h-7 w-7 text-primary" /> Les lots</motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >À l'issue de la finale, les 3 meilleurs pronostiqueurs du dépôt remportent :</motion.p>
+          >À l'issue de la finale, les 3 meilleurs pronostiqueurs du dépôt sont récompensés :</motion.p>
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -195,17 +195,16 @@ function Home() {
             className="mt-6 grid gap-3 sm:grid-cols-3"
           >
             {[
-              { cls: "border-yellow-500/50 bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/40 dark:to-amber-900/30", icon: Trophy, iconColor: "text-yellow-600", rank: "1er", rankColor: "text-yellow-700 dark:text-yellow-400", amount: "100 €" },
-              { cls: "border-slate-400/50 bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-900/40 dark:to-slate-800/40", icon: Medal, iconColor: "text-slate-500", rank: "2e", rankColor: "text-slate-600 dark:text-slate-300", amount: "70 €" },
-              { cls: "border-orange-700/40 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20", icon: Award, iconColor: "text-orange-700", rank: "3e", rankColor: "text-orange-800 dark:text-orange-400", amount: "40 €" },
+              { cls: "border-yellow-500/50 bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/40 dark:to-amber-900/30", icon: Trophy, iconColor: "text-yellow-600", rank: "1er", rankColor: "text-yellow-700 dark:text-yellow-400", prize: "Restaurant offert" },
+              { cls: "border-slate-400/50 bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-900/40 dark:to-slate-800/40", icon: Medal, iconColor: "text-slate-500", rank: "2e", rankColor: "text-slate-600 dark:text-slate-300", prize: "Restaurant offert" },
+              { cls: "border-orange-700/40 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20", icon: Award, iconColor: "text-orange-700", rank: "3e", rankColor: "text-orange-800 dark:text-orange-400", prize: "Restaurant offert" },
             ].map((c) => (
               <motion.div key={c.rank} variants={fadeUp}>
                 <Card className={`h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${c.cls}`}>
                   <CardContent className="p-5 text-center">
                     <c.icon className={`mx-auto h-8 w-8 ${c.iconColor}`} />
                     <div className={`mt-2 text-sm font-bold uppercase tracking-wide ${c.rankColor}`}>{c.rank}</div>
-                    <div className="mt-1 text-3xl font-extrabold">{c.amount}</div>
-                    <p className="mt-1 text-xs text-muted-foreground">en chèques cadeaux</p>
+                    <div className="mt-1 text-xl font-extrabold">{c.prize}</div>
                   </CardContent>
                 </Card>
               </motion.div>
