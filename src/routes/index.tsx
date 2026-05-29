@@ -115,7 +115,7 @@ function Home() {
           { icon: Users, t: "Entre collègues", d: "Réservé au personnel du dépôt de Sequedin." },
           { icon: Calendar, t: "Tous les matchs", d: "Phase de groupes (A à L) + 16es, 8es, quarts, demi-finales, match pour la 3e place et finale." },
           { icon: Lock, t: "Clôture à H-1", d: "Les pronos se ferment automatiquement 1h avant le coup d'envoi." },
-          { icon: BarChart3, t: "Classement live", d: "Score exact = 3 pts, bon vainqueur = 2 pts, match nul prédit = 1 pt." },
+          { icon: BarChart3, t: "Classement live", d: "Score exact = 3 pts, Vainqueur = 2 pts, match nul prédit = 1 pt." },
         ].map((c) => (
           <motion.div key={c.t} variants={fadeUp}>
             <Card className="h-full transition-shadow duration-300 hover:shadow-lg hover:-translate-y-1">
@@ -156,7 +156,7 @@ function Home() {
           >
             {[
               { cls: "border-primary/40 bg-primary/5", pts: "3 pts", t: "Score exact", desc: "Sauf le 0-0 (compte comme match nul prédit)" },
-              { cls: "", pts: "2 pts", t: "Bon vainqueur", desc: "Tu trouves le gagnant mais pas le score exact" },
+              { cls: "", pts: "2 pts", t: "Vainqueur", desc: "Tu trouves le gagnant mais pas le score exact" },
               { cls: "", pts: "1 pt", t: "Match nul prédit", desc: "Tu pronostiques un nul et le match finit nul" },
             ].map((c, i) => (
               <motion.div key={c.t} variants={fadeUp} custom={i}>
