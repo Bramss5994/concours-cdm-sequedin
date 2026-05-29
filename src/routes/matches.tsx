@@ -360,6 +360,24 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
           </div>
         </div>
 
+        {live && live.isLive && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mt-3 flex items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm"
+          >
+            <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-destructive">
+              <Radio className="h-3 w-3 animate-pulse" /> Live
+              {live.elapsed != null && <span className="font-mono">{live.elapsed}'</span>}
+              <span className="font-normal normal-case text-muted-foreground">· {live.statusLabel}</span>
+            </span>
+            <span className="font-bold tabular-nums">
+              {live.scoreHome ?? 0} - {live.scoreAway ?? 0}
+            </span>
+          </motion.div>
+        )}
+
         {match.finished && match.score_a != null && match.score_b != null && (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
