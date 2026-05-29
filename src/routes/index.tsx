@@ -211,7 +211,7 @@ function Home() {
                     <span className="text-xs font-bold uppercase text-orange-800 dark:text-orange-400">3e</span>
                   </div>
                 </div>
-                <div className="mt-4 text-xl font-extrabold">Restaurant offert</div>
+                <div className="mt-4 text-2xl font-extrabold text-foreground">Restaurant offert</div>
                 <p className="mt-1 text-sm text-muted-foreground">pour le podium complet</p>
               </CardContent>
             </Card>
