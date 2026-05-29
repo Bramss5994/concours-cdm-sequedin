@@ -195,18 +195,18 @@ function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-6"
           >
-            <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-amber-100 via-orange-100 to-amber-100 dark:from-amber-950/50 dark:via-orange-950/40 dark:to-amber-950/50">
+            <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-amber-100 via-orange-100 to-yellow-100 dark:from-amber-950/50 dark:via-orange-950/40 dark:to-amber-950/50 animate-gradient hover-lift">
               <CardContent className="p-6 text-center">
                 <div className="flex items-center justify-center gap-3">
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 animate-bounce-in" style={{ animationDelay: "0.2s" }}>
                     <Medal className="h-7 w-7 text-slate-500 dark:text-slate-300" />
                     <span className="text-xs font-bold uppercase text-slate-700 dark:text-slate-200">2e</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <Trophy className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
+                  <div className="flex flex-col items-center gap-1 animate-bounce-in" style={{ animationDelay: "0s" }}>
+                    <Trophy className="h-10 w-10 text-yellow-600 dark:text-yellow-400 animate-float" />
                     <span className="text-xs font-bold uppercase text-yellow-800 dark:text-yellow-300">1er</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 animate-bounce-in" style={{ animationDelay: "0.4s" }}>
                     <Award className="h-7 w-7 text-orange-700 dark:text-orange-400" />
                     <span className="text-xs font-bold uppercase text-orange-900 dark:text-orange-300">3e</span>
                   </div>
