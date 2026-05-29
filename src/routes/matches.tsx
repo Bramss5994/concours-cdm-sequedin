@@ -301,6 +301,8 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
 function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { byKickoff } = useLiveScores();
+  const live: LiveFixture | undefined = byKickoff[kickoffKeyFromISO(match.kickoff_at)];
   const locked = isLocked(match.kickoff_at);
   const [scoreA, setScoreA] = useState<string>(prediction ? String(prediction.score_a) : "");
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
