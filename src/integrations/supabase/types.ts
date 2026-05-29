@@ -240,6 +240,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_own_email: { Args: never; Returns: string }
+      get_public_profiles: {
+        Args: never
+        Returns: {
+          active: boolean
+          id: string
+          num_paie: string
+          prenom: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
