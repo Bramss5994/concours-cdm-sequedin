@@ -33,8 +33,8 @@ function Profile() {
     if (!data) return null;
     // Join predictions with matches and keep only finished ones, sorted chronologically
     const joined = data.preds
-      .map((p: any) => ({ p, m: data.matches.find((m: any) => m.id === p.match_id) }))
-      .filter((x) => x.m && x.m.finished)
+      .map((p: any) => ({ p, m: data.matches.find((m: any) => m.id === p.match_id) as any }))
+      .filter((x): x is { p: any; m: any } => !!x.m && x.m.finished)
       .sort((a, b) => new Date(a.m.kickoff_at).getTime() - new Date(b.m.kickoff_at).getTime());
 
     const finished = joined.length;
