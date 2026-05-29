@@ -172,7 +172,7 @@ function Home() {
           </motion.div>
         </div>
 
-        <div className="mx-auto mt-12 max-w-4xl">
+        <div className="mx-auto mt-12 max-w-xl">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -187,28 +187,34 @@ function Home() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
           >À l'issue de la finale, les 3 meilleurs pronostiqueurs du dépôt sont récompensés :</motion.p>
+
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={staggerContainer}
-            className="mt-6 grid gap-3 sm:grid-cols-3"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-6"
           >
-            {[
-              { cls: "border-yellow-500/50 bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950/40 dark:to-amber-900/30", icon: Trophy, iconColor: "text-yellow-600", rank: "1er", rankColor: "text-yellow-700 dark:text-yellow-400", prize: "Restaurant offert" },
-              { cls: "border-slate-400/50 bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-900/40 dark:to-slate-800/40", icon: Medal, iconColor: "text-slate-500", rank: "2e", rankColor: "text-slate-600 dark:text-slate-300", prize: "Restaurant offert" },
-              { cls: "border-orange-700/40 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/20", icon: Award, iconColor: "text-orange-700", rank: "3e", rankColor: "text-orange-800 dark:text-orange-400", prize: "Restaurant offert" },
-            ].map((c) => (
-              <motion.div key={c.rank} variants={fadeUp}>
-                <Card className={`h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${c.cls}`}>
-                  <CardContent className="p-5 text-center">
-                    <c.icon className={`mx-auto h-8 w-8 ${c.iconColor}`} />
-                    <div className={`mt-2 text-sm font-bold uppercase tracking-wide ${c.rankColor}`}>{c.rank}</div>
-                    <div className="mt-1 text-xl font-extrabold">{c.prize}</div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+            <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-amber-50/80 via-orange-50/60 to-amber-50/80 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-amber-950/30">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="flex flex-col items-center gap-1">
+                    <Medal className="h-7 w-7 text-slate-400" />
+                    <span className="text-xs font-bold uppercase text-slate-500">2e</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Trophy className="h-10 w-10 text-yellow-600" />
+                    <span className="text-xs font-bold uppercase text-yellow-700 dark:text-yellow-400">1er</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <Award className="h-7 w-7 text-orange-700" />
+                    <span className="text-xs font-bold uppercase text-orange-800 dark:text-orange-400">3e</span>
+                  </div>
+                </div>
+                <div className="mt-4 text-xl font-extrabold">Restaurant offert</div>
+                <p className="mt-1 text-sm text-muted-foreground">pour le podium complet</p>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
       </section>
