@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Lock, CheckCircle2, MapPin, Trophy } from "lucide-react";
+import { Lock, CheckCircle2, MapPin, Trophy, Radio } from "lucide-react";
 import { flagSrcSet } from "@/lib/flag";
 import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
 import { getChannels } from "@/lib/broadcast";
+import { useLiveScores, kickoffKeyFromISO, type LiveFixture } from "@/hooks/use-live-scores";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
@@ -300,6 +301,8 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
 function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { byKickoff } = useLiveScores();
+  const live: LiveFixture | undefined = byKickoff[kickoffKeyFromISO(match.kickoff_at)];
   const locked = isLocked(match.kickoff_at);
   const [scoreA, setScoreA] = useState<string>(prediction ? String(prediction.score_a) : "");
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
@@ -356,6 +359,24 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
             <span className="font-semibold truncate">{nameB}</span>
           </div>
         </div>
+
+        {live && live.isLive && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="mt-3 flex items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm"
+          >
+            <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-destructive">
+              <Radio className="h-3 w-3 animate-pulse" /> Live
+              {live.elapsed != null && <span className="font-mono">{live.elapsed}'</span>}
+              <span className="font-normal normal-case text-muted-foreground">· {live.statusLabel}</span>
+            </span>
+            <span className="font-bold tabular-nums">
+              {live.scoreHome ?? 0} - {live.scoreAway ?? 0}
+            </span>
+          </motion.div>
+        )}
 
         {match.finished && match.score_a != null && match.score_b != null && (
           <motion.div
