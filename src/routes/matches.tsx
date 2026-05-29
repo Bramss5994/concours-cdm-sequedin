@@ -373,7 +373,9 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
               <span className="font-normal normal-case text-muted-foreground">· {live.statusLabel}</span>
             </span>
             <span className="font-bold tabular-nums">
-              {live.scoreHome ?? 0} - {live.scoreAway ?? 0}
+              {live.scoreHome != null && live.scoreAway != null
+                ? `${live.scoreHome} - ${live.scoreAway}`
+                : "Score en cours"}
             </span>
           </motion.div>
         )}
