@@ -22,8 +22,8 @@ export function Nav() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
           <span className="text-xl">⚽</span>
-          <span className="hidden sm:inline">Pronos CDM 2026 · Sequedin</span>
-          <span className="sm:hidden">Pronos CDM</span>
+          <span className="hidden sm:inline">Inter-Dépôts CDM 2026</span>
+          <span className="sm:hidden">Inter-Dépôts CDM</span>
         </Link>
 
         <nav className="hidden gap-1 md:flex">
