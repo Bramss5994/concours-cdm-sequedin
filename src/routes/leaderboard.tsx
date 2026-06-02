@@ -83,6 +83,16 @@ function Leaderboard() {
     return [...stats.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.good - a.good);
   }, [rows, stage, depotFilter]);
 
+  const myRank = useMemo(() => {
+    if (!user) return null;
+    const idx = board.findIndex((r) => r.user_id === user.id);
+    if (idx === -1) return null;
+    return { rank: idx + 1, total: board.length, ...board[idx] };
+  }, [board, user]);
+
+  const depotScopeLabel =
+    depotFilter === "all" ? "tous dépôts confondus" : `dépôt ${DEPOT_LABEL[depotFilter] || depotFilter}`;
+
   return (
     <div className="container mx-auto px-4 py-6">
       <motion.h1
