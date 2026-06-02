@@ -55,11 +55,6 @@ function Home() {
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/80">
               Concours de pronostics
             </p>
-            <img
-              src={fifaWc2026.url}
-              alt="FIFA World Cup 2026 — United States · Canada · México"
-              className="mx-auto mt-2 h-40 w-auto object-contain drop-shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:h-56 lg:mx-0 lg:h-64"
-            />
 
             <div className="mx-auto mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)] lg:mx-0" />
             <p className="mx-auto mt-6 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
@@ -81,20 +76,21 @@ function Home() {
             </div>
           </motion.div>
 
-          {/* Logo concours */}
+          {/* Logo coupe du monde */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative order-1 flex justify-self-center lg:order-2"
           >
-            <div className="absolute -inset-10 rounded-full bg-emerald-400/20 blur-3xl" />
+            <div className="absolute -inset-10 rounded-full bg-amber-400/20 blur-3xl" />
             <img
-              src={logoConcours}
-              alt="Inter-Dépôts CDM 2026 — Keolis Lille Ilévia"
-              className="relative h-64 w-64 object-contain drop-shadow-[0_12px_40px_rgba(16,94,82,0.55)] sm:h-80 sm:w-80 lg:h-[28rem] lg:w-[28rem]"
+              src={fifaWc2026.url}
+              alt="Concours Inter-Dépôts Coupe du Monde 2026"
+              className="relative h-64 w-64 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.55)] sm:h-80 sm:w-80 lg:h-[28rem] lg:w-[28rem]"
             />
           </motion.div>
+
         </div>
       </section>
 
