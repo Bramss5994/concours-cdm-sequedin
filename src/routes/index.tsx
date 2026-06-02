@@ -112,7 +112,7 @@ function Home() {
         className="container mx-auto grid gap-4 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4"
       >
         {[
-          { icon: Users, t: "Entre collègues", d: "Réservé au personnel du dépôt de Sequedin." },
+          { icon: Users, t: "Entre collègues", d: "Ouvert au personnel des dépôts Sequedin, Faidherbe, Wattrelos et PC Bus." },
           { icon: Calendar, t: "Tous les matchs", d: "Phase de groupes (A à L) + 16es, 8es, quarts, demi-finales, match pour la 3e place et finale." },
           { icon: Lock, t: "Clôture à H-1", d: "Les pronos se ferment automatiquement 1h avant le coup d'envoi." },
           { icon: BarChart3, t: "Classement live", d: "Score exact = 3 pts, Vainqueur = 2 pts, match nul prédit = 1 pt." },
