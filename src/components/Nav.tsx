@@ -22,8 +22,8 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
-          <span className="text-xl">⚽</span>
-          <span>Pronostics CDM 2026</span>
+          <img src={logoIlevia.url} alt="Keolis Lille Ilévia" className="h-8 w-auto" />
+          <span className="hidden sm:inline">Pronostics CDM 2026</span>
         </Link>
 
         <nav className="hidden gap-1 md:flex">
