@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import logoConcours from "@/assets/logo-inter-depots.png";
+import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
