@@ -149,7 +149,7 @@ function SignupForm() {
       </div>
       <div className="space-y-1.5">
         <Label>Dépôt / Unité</Label>
-        <Select value={depot} onValueChange={(v) => setDepot(v as DepotValue)}>
+        <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
           <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
           <SelectContent>
             {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
