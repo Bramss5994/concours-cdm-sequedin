@@ -148,6 +148,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          depot: Database["public"]["Enums"]["depot"]
           email: string
           favorite_team_id: string | null
           id: string
@@ -157,6 +158,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          depot?: Database["public"]["Enums"]["depot"]
           email: string
           favorite_team_id?: string | null
           id: string
@@ -166,6 +168,7 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          depot?: Database["public"]["Enums"]["depot"]
           email?: string
           favorite_team_id?: string | null
           id?: string
@@ -245,6 +248,7 @@ export type Database = {
         Args: never
         Returns: {
           active: boolean
+          depot: Database["public"]["Enums"]["depot"]
           id: string
           num_paie: string
           prenom: string
@@ -264,6 +268,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      depot: "sequedin" | "faidherbe" | "wattrelos" | "pc_bus"
       match_stage: "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final"
     }
     CompositeTypes: {
@@ -393,6 +398,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      depot: ["sequedin", "faidherbe", "wattrelos", "pc_bus"],
       match_stage: ["group", "r32", "r16", "qf", "sf", "third", "final"],
     },
   },

@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({ component: Leaderboard });
@@ -19,6 +21,17 @@ const STAGES = [
   { value: "final", label: "Finale" },
 ];
 
+const DEPOTS: { value: string; label: string }[] = [
+  { value: "all", label: "Tous les dépôts" },
+  { value: "sequedin", label: "Sequedin" },
+  { value: "faidherbe", label: "Faidherbe" },
+  { value: "wattrelos", label: "Wattrelos" },
+  { value: "pc_bus", label: "PC Bus" },
+];
+const DEPOT_LABEL: Record<string, string> = {
+  sequedin: "Sequedin", faidherbe: "Faidherbe", wattrelos: "Wattrelos", pc_bus: "PC Bus",
+};
+
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   visible: (i = 1) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.4 } }),
@@ -31,6 +44,7 @@ const staggerContainer = {
 
 function Leaderboard() {
   const [stage, setStage] = useState("all");
+  const [depotFilter, setDepotFilter] = useState("all");
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
@@ -48,10 +62,11 @@ function Leaderboard() {
     const r = rows as any;
     if (!r || !r.profiles) return [];
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
-    const stats = new Map<string, { user_id: string; name: string; pts: number; exact: number; good: number; }>();
+    const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; }>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", pts: 0, exact: 0, good: 0 });
+      if (depotFilter !== "all" && p.depot !== depotFilter) continue;
+      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: 0, exact: 0, good: 0 });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);
@@ -64,7 +79,7 @@ function Leaderboard() {
       if (pred.good_winner) s.good++;
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.good - a.good);
-  }, [rows, stage]);
+  }, [rows, stage, depotFilter]);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -79,7 +94,22 @@ function Leaderboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="mt-1 text-sm text-muted-foreground"
-      >Dépôt de Sequedin · mis à jour après chaque match.</motion.p>
+      >Dépôts Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+        className="mt-4 flex flex-wrap items-center gap-2"
+      >
+        <span className="text-xs uppercase text-muted-foreground">Filtrer par dépôt</span>
+        <Select value={depotFilter} onValueChange={setDepotFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -111,6 +141,7 @@ function Leaderboard() {
                     <tr>
                       <th className="px-3 py-2 text-left">#</th>
                       <th className="px-3 py-2 text-left">Participant</th>
+                      <th className="px-3 py-2 text-left">Dépôt</th>
                       <th className="px-3 py-2 text-right">Points</th>
                       <th className="px-3 py-2 text-right">Scores exacts</th>
                       <th className="px-3 py-2 text-right">Bons vainqueurs</th>
@@ -132,6 +163,7 @@ function Leaderboard() {
                           {i === 0 ? <Trophy className="inline h-4 w-4 text-yellow-500" /> : i < 3 ? <Medal className="inline h-4 w-4 text-muted-foreground" /> : null} {i + 1}
                         </td>
                         <td className="px-3 py-2">{r.name}</td>
+                        <td className="px-3 py-2"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>
                         <td className="px-3 py-2 text-right font-bold">{r.pts}</td>
                         <td className="px-3 py-2 text-right">{r.exact}</td>
                         <td className="px-3 py-2 text-right">{r.good}</td>
