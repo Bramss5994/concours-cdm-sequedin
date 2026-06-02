@@ -166,7 +166,7 @@ function Leaderboard() {
           className="mt-4"
         >
           <Badge variant="secondary" className="text-xs">
-            Classement du dépôt {DEPOT_LABEL[depotFilter] || depotFilter}
+            Classement de l'unité {DEPOT_LABEL[depotFilter] || depotFilter}
           </Badge>
         </motion.div>
       )}
