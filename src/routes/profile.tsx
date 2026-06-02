@@ -21,12 +21,38 @@ function Profile() {
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const [{ data: profile }, { data: preds }, { data: matches }] = await Promise.all([
+      const [{ data: profile }, { data: preds }, { data: matches }, { data: teams }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle(),
         supabase.from("predictions").select("*").eq("user_id", user!.id),
-        supabase.from("matches").select("id, kickoff_at, stage, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(code,name), team_b:teams!matches_team_b_id_fkey(code,name), team_a_placeholder, team_b_placeholder").order("kickoff_at"),
+        supabase.from("matches").select("id, kickoff_at, stage, group_letter, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(code,name), team_b:teams!matches_team_b_id_fkey(code,name), team_a_placeholder, team_b_placeholder").order("kickoff_at"),
+        supabase.from("teams").select("id, code, name"),
       ]);
-      return { profile, preds: preds || [], matches: matches || [] };
+      return { profile, preds: preds || [], matches: matches || [], teams: teams || [] };
+    },
+  });
+
+  // Unité comparison: average points per user in the same unit (depot)
+  const { data: unitStats } = useQuery({
+    queryKey: ["unit-stats", data?.profile?.depot],
+    enabled: !!data?.profile?.depot,
+    queryFn: async () => {
+      const { data: profiles } = await supabase.rpc("get_public_profiles");
+      const sameUnit = (profiles || []).filter((p: any) => p.depot === data!.profile!.depot && p.active);
+      const ids = sameUnit.map((p: any) => p.id);
+      if (!ids.length) return { avg: 0, rank: null as number | null, total: 0 };
+      const { data: preds } = await supabase
+        .from("predictions")
+        .select("user_id, points")
+        .in("user_id", ids);
+      const totals = new Map<string, number>();
+      for (const id of ids) totals.set(id, 0);
+      for (const p of preds || []) totals.set(p.user_id, (totals.get(p.user_id) || 0) + (p.points || 0));
+      const values = [...totals.values()];
+      const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
+      const myPts = totals.get(user!.id) || 0;
+      const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1]);
+      const rank = sorted.findIndex(([id]) => id === user!.id) + 1 || null;
+      return { avg, myPts, rank, total: ids.length };
     },
   });
 
