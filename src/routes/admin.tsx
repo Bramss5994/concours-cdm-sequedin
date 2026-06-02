@@ -105,6 +105,7 @@ function AdminResults() {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
 
