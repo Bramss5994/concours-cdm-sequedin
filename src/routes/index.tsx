@@ -9,6 +9,7 @@ import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import logoFaidherbe from "@/assets/logo-faidherbe.png.asset.json";
 import logoWattrelos from "@/assets/logo-wattrelos.png.asset.json";
+import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
@@ -124,7 +125,7 @@ function Home() {
               { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
               { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
               { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url },
-              { value: "pc_bus", label: "PC Bus" },
+              { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url },
             ].map((d) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
