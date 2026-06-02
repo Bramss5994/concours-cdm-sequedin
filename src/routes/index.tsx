@@ -131,7 +131,9 @@ function Home() {
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
                   <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
                     {d.logo ? (
-                      <img src={d.logo} alt={d.label} className={`w-auto object-contain ${d.value === "pc_bus" ? "h-[28rem]" : "h-64"}`} />
+                      <div className="flex h-64 w-full items-center justify-center">
+                        <img src={d.logo} alt={d.label} className="max-h-full max-w-full object-contain" />
+                      </div>
                     ) : (
                       <>
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
