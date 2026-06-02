@@ -60,7 +60,37 @@ function AdminResults() {
     else { toast.success("Résultat enregistré, points recalculés"); qc.invalidateQueries(); }
   }
 
+  const [syncing, setSyncing] = useState(false);
+  async function syncNow() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/public/hooks/sync-scores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: "{}",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.error || `HTTP ${res.status}`);
+      toast.success(`Synchro OK — ${json.updated} match(s) mis à jour`);
+      qc.invalidateQueries();
+    } catch (e: any) {
+      toast.error(`Synchro échouée : ${e.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   return (
+    <>
+      <div className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+        <div className="text-sm">
+          <p className="font-semibold">Agent IA — mise à jour automatique des scores</p>
+          <p className="text-xs text-muted-foreground">Synchronise les scores depuis API-Football toutes les 15 min. Tu peux aussi déclencher manuellement.</p>
+        </div>
+        <Button size="sm" onClick={syncNow} disabled={syncing}>
+          {syncing ? "Synchro…" : "Synchroniser maintenant"}
+        </Button>
+      </div>
     <Card className="mt-4">
       <CardContent className="p-0">
         <div className="overflow-x-auto">
