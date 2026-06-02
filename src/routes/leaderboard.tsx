@@ -107,7 +107,7 @@ function Leaderboard() {
   }, [board, user]);
 
   const depotScopeLabel =
-    depotFilter === "all" ? "tous dépôts confondus" : `dépôt ${DEPOT_LABEL[depotFilter] || depotFilter}`;
+    !isAdmin || depotFilter !== "all" ? `unité ${DEPOT_LABEL[depotFilter] || depotFilter}` : "toutes unités";
 
   if (!user) {
     return (
@@ -121,7 +121,7 @@ function Leaderboard() {
           <Trophy className="mx-auto h-10 w-10 text-muted-foreground" />
           <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Classement réservé aux participants</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pour consulter le classement, tu dois d'abord t'inscrire à ton unité (Sequedin, Faidherbe, Wattrelos ou PC Bus).
+            Pour consulter le classement, tu dois d'abord t'inscrire à ton unité.
           </p>
         </motion.div>
       </div>
@@ -141,7 +141,7 @@ function Leaderboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="mt-1 text-sm text-muted-foreground"
-      >Unités Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
+      >{isAdmin ? "Toutes les unités — mis à jour après chaque match." : `Unité ${DEPOT_LABEL[depotFilter] || depotFilter} — mis à jour après chaque match.`}</motion.p>
 
       {isAdmin ? (
         <motion.div
@@ -166,7 +166,7 @@ function Leaderboard() {
           className="mt-4"
         >
           <Badge variant="secondary" className="text-xs">
-            Classement du dépôt {DEPOT_LABEL[depotFilter] || depotFilter}
+            Classement de l'unité {DEPOT_LABEL[depotFilter] || depotFilter}
           </Badge>
         </motion.div>
       )}
@@ -190,7 +190,7 @@ function Leaderboard() {
                   </div>
                 ) : (
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans ce dépôt."}
+                    {isAdmin && depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans cette unité."}
                   </div>
                 )}
               </div>
@@ -245,7 +245,7 @@ function Leaderboard() {
                     <tr>
                       <th className="px-3 py-2 text-left">#</th>
                       <th className="px-3 py-2 text-left">Participant</th>
-                      <th className="px-3 py-2 text-left">Dépôt</th>
+                      {isAdmin && <th className="px-3 py-2 text-left">Unité</th>}
                       <th className="px-3 py-2 text-right">Points</th>
                       <th className="px-3 py-2 text-right">Scores exacts</th>
                       <th className="px-3 py-2 text-right">Bons vainqueurs</th>
@@ -267,7 +267,7 @@ function Leaderboard() {
                           {i === 0 ? <Trophy className="inline h-4 w-4 text-yellow-500" /> : i < 3 ? <Medal className="inline h-4 w-4 text-muted-foreground" /> : null} {i + 1}
                         </td>
                         <td className="px-3 py-2">{r.name}</td>
-                        <td className="px-3 py-2"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>
+                        {isAdmin && <td className="px-3 py-2"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
                         <td className="px-3 py-2 text-right font-bold">{r.pts}</td>
                         <td className="px-3 py-2 text-right">{r.exact}</td>
                         <td className="px-3 py-2 text-right">{r.good}</td>
