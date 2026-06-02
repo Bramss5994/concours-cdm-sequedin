@@ -190,7 +190,7 @@ function Leaderboard() {
                   </div>
                 ) : (
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans ce dépôt."}
+                    {isAdmin && depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans cette unité."}
                   </div>
                 )}
               </div>
