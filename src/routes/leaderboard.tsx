@@ -107,7 +107,7 @@ function Leaderboard() {
   }, [board, user]);
 
   const depotScopeLabel =
-    depotFilter === "all" ? "tous dépôts confondus" : `dépôt ${DEPOT_LABEL[depotFilter] || depotFilter}`;
+    !isAdmin || depotFilter !== "all" ? `unité ${DEPOT_LABEL[depotFilter] || depotFilter}` : "toutes unités";
 
   if (!user) {
     return (
