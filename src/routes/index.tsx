@@ -123,7 +123,7 @@ function Home() {
             {[
               { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
               { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
-              { value: "wattrelos", label: "Wattrelos" },
+              { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url },
               { value: "pc_bus", label: "PC Bus" },
             ].map((d) => (
               <motion.div key={d.value} variants={fadeUp}>
