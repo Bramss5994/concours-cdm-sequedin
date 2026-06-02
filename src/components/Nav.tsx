@@ -22,7 +22,7 @@ export function Nav() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
           <span className="text-xl">⚽</span>
-          <span>Inter-Dépôts</span>
+          <span>Pronostics CDM 2026</span>
         </Link>
 
         <nav className="hidden gap-1 md:flex">
