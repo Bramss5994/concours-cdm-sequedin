@@ -44,9 +44,24 @@ const staggerContainer = {
 };
 
 function Leaderboard() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [stage, setStage] = useState("all");
-  const [depotFilter, setDepotFilter] = useState("all");
+  const [depotFilter, setDepotFilter] = useState<string>("all");
+
+  // Récupère le dépôt de l'utilisateur connecté
+  const { data: myDepot } = useQuery({
+    queryKey: ["my-depot", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("depot").eq("id", user!.id).maybeSingle();
+      return (data?.depot as string | undefined) ?? null;
+    },
+  });
+
+  // Verrouille le filtre sur le dépôt de l'utilisateur (sauf admin)
+  useEffect(() => {
+    if (!isAdmin && myDepot) setDepotFilter(myDepot);
+  }, [isAdmin, myDepot]);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
@@ -59,6 +74,7 @@ function Leaderboard() {
       return { profiles: profiles || [], predictions: predictions || [], matches: matches || [] };
     },
   });
+
 
   const board = useMemo(() => {
     const r = rows as any;
