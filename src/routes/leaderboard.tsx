@@ -94,7 +94,22 @@ function Leaderboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="mt-1 text-sm text-muted-foreground"
-      >Dépôt de Sequedin · mis à jour après chaque match.</motion.p>
+      >Dépôts Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
+
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+        className="mt-4 flex flex-wrap items-center gap-2"
+      >
+        <span className="text-xs uppercase text-muted-foreground">Filtrer par dépôt</span>
+        <Select value={depotFilter} onValueChange={setDepotFilter}>
+          <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
