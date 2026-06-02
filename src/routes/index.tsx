@@ -260,7 +260,7 @@ function Home() {
                   </div>
                 </div>
                 <div className="mt-4 text-2xl font-extrabold text-amber-950 dark:text-amber-50">Restaurant offert</div>
-                <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">pour le podium complet</p>
+                <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">pour le podium complet de chaque unité</p>
               </CardContent>
             </Card>
           </motion.div>
