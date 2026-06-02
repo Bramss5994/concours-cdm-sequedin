@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "asset_id": "9136a45d-3bad-4c42-a819-7d28906cdc2b",
+  "asset_id": "4d505f3e-a318-44dc-85e4-96ed642f648b",
   "project_id": "1fcfbbcb-a9aa-45f6-845c-6fcd62e57ce5",
-  "url": "/__l5e/assets-v1/9136a45d-3bad-4c42-a819-7d28906cdc2b/logo-sequedin.avif",
-  "r2_key": "a/v1/1fcfbbcb-a9aa-45f6-845c-6fcd62e57ce5/9136a45d-3bad-4c42-a819-7d28906cdc2b/logo-sequedin.avif",
-  "original_filename": "logo-sequedin.avif",
-  "size": 10871,
-  "content_type": "image/avif",
-  "created_at": "2026-06-02T23:08:42Z"
+  "url": "/__l5e/assets-v1/4d505f3e-a318-44dc-85e4-96ed642f648b/logo-sequedin.png",
+  "r2_key": "a/v1/1fcfbbcb-a9aa-45f6-845c-6fcd62e57ce5/4d505f3e-a318-44dc-85e4-96ed642f648b/logo-sequedin.png",
+  "original_filename": "logo-sequedin.png",
+  "size": 93797,
+  "content_type": "image/png",
+  "created_at": "2026-06-02T23:14:16Z"
 }
