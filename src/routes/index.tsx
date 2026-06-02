@@ -9,6 +9,7 @@ import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import logoFaidherbe from "@/assets/logo-faidherbe.png.asset.json";
 import logoWattrelos from "@/assets/logo-wattrelos.png.asset.json";
+import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
