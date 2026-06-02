@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -44,9 +44,24 @@ const staggerContainer = {
 };
 
 function Leaderboard() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [stage, setStage] = useState("all");
-  const [depotFilter, setDepotFilter] = useState("all");
+  const [depotFilter, setDepotFilter] = useState<string>("all");
+
+  // Récupère le dépôt de l'utilisateur connecté
+  const { data: myDepot } = useQuery({
+    queryKey: ["my-depot", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("depot").eq("id", user!.id).maybeSingle();
+      return (data?.depot as string | undefined) ?? null;
+    },
+  });
+
+  // Verrouille le filtre sur le dépôt de l'utilisateur (sauf admin)
+  useEffect(() => {
+    if (!isAdmin && myDepot) setDepotFilter(myDepot);
+  }, [isAdmin, myDepot]);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
@@ -59,6 +74,7 @@ function Leaderboard() {
       return { profiles: profiles || [], predictions: predictions || [], matches: matches || [] };
     },
   });
+
 
   const board = useMemo(() => {
     const r = rows as any;
@@ -108,20 +124,34 @@ function Leaderboard() {
         className="mt-1 text-sm text-muted-foreground"
       >Dépôts Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-        className="mt-4 flex flex-wrap items-center gap-2"
-      >
-        <span className="text-xs uppercase text-muted-foreground">Filtrer par dépôt</span>
-        <Select value={depotFilter} onValueChange={setDepotFilter}>
-          <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </motion.div>
+      {isAdmin ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="mt-4 flex flex-wrap items-center gap-2"
+        >
+          <span className="text-xs uppercase text-muted-foreground">Filtrer par dépôt (admin)</span>
+          <Select value={depotFilter} onValueChange={setDepotFilter}>
+            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="mt-4"
+        >
+          <Badge variant="secondary" className="text-xs">
+            Classement du dépôt {DEPOT_LABEL[depotFilter] || depotFilter}
+          </Badge>
+        </motion.div>
+      )}
+
 
       {user && (
         <motion.div
