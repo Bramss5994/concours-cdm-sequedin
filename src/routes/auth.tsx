@@ -59,6 +59,9 @@ const loginSchema = z.object({
 function AuthPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { depot: depotParam, tab } = Route.useSearch();
+  const lockedDepot = DEPOTS.find((d) => d.value === depotParam)?.value as DepotValue | undefined;
+  const lockedDepotLabel = DEPOTS.find((d) => d.value === depotParam)?.label;
 
   useEffect(() => {
     if (!loading && user) router.navigate({ to: "/matches" });
@@ -67,15 +70,22 @@ function AuthPage() {
   return (
     <div className="container mx-auto max-w-md px-4 py-10">
       <Card>
-        <CardHeader><CardTitle className="text-2xl">Inter-Dépôts CDM 2026</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-2xl">Inter-Dépôts CDM 2026</CardTitle>
+          {lockedDepotLabel && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connecte-toi pour pronostiquer avec ton dépôt.
+            </p>
+          )}
+        </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
+          <Tabs defaultValue={lockedDepot ? "signup" : tab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
             <TabsContent value="login"><LoginForm /></TabsContent>
-            <TabsContent value="signup"><SignupForm /></TabsContent>
+            <TabsContent value="signup"><SignupForm lockedDepot={lockedDepot} /></TabsContent>
           </Tabs>
         </CardContent>
       </Card>
@@ -85,6 +95,7 @@ function AuthPage() {
     </div>
   );
 }
+
 
 function LoginForm() {
   const router = useRouter();
