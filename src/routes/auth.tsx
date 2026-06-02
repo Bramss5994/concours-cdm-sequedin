@@ -168,13 +168,22 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
       </div>
       <div className="space-y-1.5">
         <Label>Dépôt / Unité</Label>
-        <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
-          <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
-          <SelectContent>
-            {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {lockedDepot ? (
+          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            <span className="font-medium">{DEPOTS.find((d) => d.value === lockedDepot)?.label}</span>
+            <span className="text-xs text-muted-foreground">(verrouillé par le lien d'inscription)</span>
+          </div>
+        ) : (
+          <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
+            <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
+            <SelectContent>
+              {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
       </div>
+
       <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retiens-le bien, il n'y a pas de récupération par e-mail.</p></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Création..." : "Créer mon compte"}</Button>
       
