@@ -10,6 +10,7 @@ import { formatFR } from "@/lib/time";
 import { FavoriteTeamPicker } from "@/components/FavoriteTeamPicker";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { BadgesGrid } from "@/components/BadgesGrid";
 
 export const Route = createFileRoute("/profile")({ component: Profile });
 
@@ -161,6 +162,18 @@ function Profile() {
               </CardContent>
             </Card>
           )}
+
+          <div className="mt-3">
+            <BadgesGrid
+              ctx={{
+                joined: data!.preds
+                  .map((p: any) => ({ p, m: data!.matches.find((m: any) => m.id === p.match_id) as any }))
+                  .filter((x: any) => !!x.m && x.m.finished)
+                  .sort((a: any, b: any) => new Date(a.m.kickoff_at).getTime() - new Date(b.m.kickoff_at).getTime()),
+                totalPredictions: data!.preds.length,
+              }}
+            />
+          </div>
         </>
       )}
 
