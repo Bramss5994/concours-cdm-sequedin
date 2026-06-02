@@ -126,10 +126,11 @@ function LoginForm() {
   );
 }
 
-function SignupForm() {
+function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [depot, setDepot] = useState<DepotValue | "">("");
+  const [depot, setDepot] = useState<DepotValue | "">(lockedDepot ?? "");
+
   return (
     <form
       className="mt-4 space-y-3"
