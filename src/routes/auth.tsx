@@ -19,7 +19,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/auth")({ component: AuthPage });
+export const Route = createFileRoute("/auth")({
+  component: AuthPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    depot: typeof search.depot === "string" ? (search.depot as string) : undefined,
+    tab: search.tab === "signup" ? "signup" : "login",
+  }),
+});
+
 
 // Build a deterministic pseudo-email from prénom + numéro de paie so Supabase Auth
 // (which requires an email) accepts the account without the user typing one.
