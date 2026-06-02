@@ -170,33 +170,96 @@ function Profile() {
             <Stat label="Pronostics joués" value={`${stats.finished}/${stats.total}`} />
             <Stat label="Taux de réussite" value={`${stats.rate}%`} />
             <Stat label="Moyenne / match" value={stats.avg} />
-            <Stat label="Scores exacts" value={stats.exact} />
-            <Stat label="Bons vainqueurs" value={stats.good} />
+            <Stat label="Scores exacts" value={`${stats.exact} (${stats.exactRate}%)`} />
+            <Stat label="Bons vainqueurs" value={`${stats.good} (${stats.goodRate}%)`} />
             <Stat label="Meilleure série" value={stats.bestStreak} />
             <Stat label="Série en cours" value={stats.currentStreak} />
           </div>
 
-          {stats.bestMatch && stats.bestMatch.pts > 0 && (
+          {/* Comparaison vs unité */}
+          {unitStats && unitStats.total > 1 && (
             <Card className="mt-3">
               <CardContent className="p-4">
-                <div className="text-xs uppercase text-muted-foreground">Meilleur pronostic</div>
-                <div className="mt-1 flex items-center justify-between">
-                  <div className="font-semibold">{stats.bestMatch.label}</div>
-                  <Badge>{stats.bestMatch.pts} pts</Badge>
+                <div className="flex items-center justify-between gap-2 text-xs uppercase text-muted-foreground">
+                  <span>Comparaison vs ton unité</span>
+                  {unitStats.rank && (
+                    <Badge variant="secondary">
+                      {unitStats.rank}<sup>{unitStats.rank === 1 ? "er" : "e"}</sup> / {unitStats.total}
+                    </Badge>
+                  )}
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <div className="text-2xl font-bold">{stats.pts}</div>
+                    <div className="text-xs text-muted-foreground">Mes points</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-muted-foreground">{unitStats.avg.toFixed(1)}</div>
+                    <div className="text-xs text-muted-foreground">Moyenne unité</div>
+                  </div>
+                  <div>
+                    <div className={`text-2xl font-bold ${stats.pts >= unitStats.avg ? "text-success" : "text-destructive"}`}>
+                      {stats.pts >= unitStats.avg ? "+" : ""}{(stats.pts - unitStats.avg).toFixed(1)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Écart</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {stats.evolution.length > 0 && (
+          {/* Équipe fétiche */}
+          {favoriteTeam && (
+            <Card className="mt-3">
+              <CardContent className="flex items-center gap-3 p-4">
+                <img src={`https://flagcdn.com/w80/${favoriteTeam.code}.png`} alt={favoriteTeam.name} className="h-10 w-14 rounded-sm object-cover ring-1 ring-border" />
+                <div>
+                  <div className="text-xs uppercase text-muted-foreground">Équipe fétiche</div>
+                  <div className="font-semibold">{favoriteTeam.name}</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {stats.bestMatch && stats.bestMatch.pts > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-xs uppercase text-muted-foreground">🏆 Meilleur pronostic</div>
+                  <div className="mt-1 font-semibold">{stats.bestMatch.label}</div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Pronostic <b>{stats.bestMatch.pred}</b> · Réel <b>{stats.bestMatch.real}</b></span>
+                    <Badge>{stats.bestMatch.pts} pts</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {stats.worstMatch && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-xs uppercase text-muted-foreground">💩 Pire pronostic</div>
+                  <div className="mt-1 font-semibold">{stats.worstMatch.label}</div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Pronostic <b>{stats.worstMatch.pred}</b> · Réel <b>{stats.worstMatch.real}</b></span>
+                    <Badge variant="outline">{stats.worstMatch.gap} d'écart</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {evolutionWithAvg.length > 0 && (
             <Card className="mt-3">
               <CardContent className="p-4">
                 <div className="text-xs uppercase text-muted-foreground">Évolution des points</div>
                 <ChartContainer
                   className="mt-2 h-48 w-full"
-                  config={{ points: { label: "Points cumulés", color: "hsl(var(--primary))" } }}
+                  config={{
+                    points: { label: "Mes points", color: "hsl(var(--primary))" },
+                    average: { label: "Moyenne unité", color: "hsl(var(--muted-foreground))" },
+                  }}
                 >
-                  <AreaChart data={stats.evolution} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                  <AreaChart data={evolutionWithAvg} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                     <defs>
                       <linearGradient id="pointsFill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="var(--color-points)" stopOpacity={0.35} />
@@ -208,6 +271,9 @@ function Profile() {
                     <YAxis fontSize={10} tickLine={false} axisLine={false} width={28} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Area type="monotone" dataKey="points" stroke="var(--color-points)" strokeWidth={2} fill="url(#pointsFill)" />
+                    {unitStats && unitStats.avg > 0 && (
+                      <Area type="monotone" dataKey="average" stroke="var(--color-average)" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
+                    )}
                   </AreaChart>
                 </ChartContainer>
               </CardContent>
