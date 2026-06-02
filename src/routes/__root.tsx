@@ -91,7 +91,7 @@ function RootComponent() {
           <Nav />
           <main className="flex-1"><Outlet /></main>
           <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-            Pronos CDM 2026 · Dépôt de Sequedin (Keolis / Ilévia) · Entre collègues
+            Inter-Dépôts CDM 2026 · Sequedin · Faidherbe · Wattrelos · PC Bus (Keolis / Ilévia) · Entre collègues
           </footer>
         </div>
         <Toaster richColors position="top-center" />
