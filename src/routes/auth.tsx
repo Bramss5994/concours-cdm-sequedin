@@ -111,13 +111,14 @@ function LoginForm() {
 function SignupForm() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [depot, setDepot] = useState<DepotValue | "">("");
   return (
     <form
       className="mt-4 space-y-3"
       onSubmit={async (e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
-        const parsed = nameSchema.safeParse(Object.fromEntries(fd));
+        const parsed = nameSchema.safeParse({ ...Object.fromEntries(fd), depot });
         if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
         setBusy(true);
         const email = buildEmail(parsed.data.prenom, parsed.data.numPaie);
@@ -126,7 +127,7 @@ function SignupForm() {
           password: parsed.data.password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { prenom: parsed.data.prenom, num_paie: parsed.data.numPaie },
+            data: { prenom: parsed.data.prenom, num_paie: parsed.data.numPaie, depot: parsed.data.depot },
           },
         });
         if (error) {
@@ -145,6 +146,15 @@ function SignupForm() {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5"><Label>Prénom</Label><Input name="prenom" required maxLength={50} autoComplete="given-name" /></div>
         <div className="space-y-1.5"><Label>N° de paie</Label><Input name="numPaie" required maxLength={50} autoComplete="off" /></div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Dépôt / Unité</Label>
+        <Select value={depot} onValueChange={(v) => setDepot(v as DepotValue)}>
+          <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
+          <SelectContent>
+            {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retiens-le bien, il n'y a pas de récupération par e-mail.</p></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Création..." : "Créer mon compte"}</Button>
