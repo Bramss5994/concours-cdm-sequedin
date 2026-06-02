@@ -87,7 +87,7 @@ function Home() {
             <img
               src={fifaWc2026.url}
               alt="Concours Inter-Dépôts Coupe du Monde 2026"
-              className="relative h-96 w-96 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.55)] sm:h-[32rem] sm:w-[32rem] lg:h-[48rem] lg:w-[48rem]"
+              className="relative h-[32rem] w-[32rem] object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.55)] sm:h-[48rem] sm:w-[48rem] lg:h-[64rem] lg:w-[64rem]"
             />
           </motion.div>
 
