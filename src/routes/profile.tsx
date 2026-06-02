@@ -99,16 +99,25 @@ function Profile() {
       };
     });
 
-    // Best match
-    const bestMatch = joined.reduce<{ pts: number; label: string } | null>((acc, x) => {
+    // Best & worst match (worst = biggest gap from real score among 0-pt predictions)
+    let bestMatch: { pts: number; label: string; pred: string; real: string } | null = null;
+    let worstMatch: { gap: number; label: string; pred: string; real: string } | null = null;
+    for (const x of joined) {
       const pp = x.p.points || 0;
-      if (!acc || pp > acc.pts) {
-        const nameA = x.m.team_a?.name || x.m.team_a_placeholder || "?";
-        const nameB = x.m.team_b?.name || x.m.team_b_placeholder || "?";
-        return { pts: pp, label: `${nameA} - ${nameB}` };
+      const nameA = x.m.team_a?.name || x.m.team_a_placeholder || "?";
+      const nameB = x.m.team_b?.name || x.m.team_b_placeholder || "?";
+      const pred = `${x.p.score_a}-${x.p.score_b}`;
+      const real = `${x.m.score_a}-${x.m.score_b}`;
+      const label = `${nameA} - ${nameB}`;
+      if (!bestMatch || pp > bestMatch.pts) bestMatch = { pts: pp, label, pred, real };
+      if (pp === 0) {
+        const gap = Math.abs((x.p.score_a - x.m.score_a)) + Math.abs((x.p.score_b - x.m.score_b));
+        if (!worstMatch || gap > worstMatch.gap) worstMatch = { gap, label, pred, real };
       }
-      return acc;
-    }, null);
+    }
+
+    const exactRate = finished ? Math.round((exact / finished) * 100) : 0;
+    const goodRate = finished ? Math.round((good / finished) * 100) : 0;
 
     return {
       total: data.preds.length,
@@ -116,14 +125,30 @@ function Profile() {
       pts,
       exact,
       good,
+      exactRate,
+      goodRate,
       rate,
       avg,
       bestStreak: best,
       currentStreak: currentNow,
       evolution,
       bestMatch,
+      worstMatch,
     };
   }, [data]);
+
+  const favoriteTeam = useMemo(() => {
+    if (!data?.profile?.favorite_team_id) return null;
+    return data.teams.find((t: any) => t.id === data.profile!.favorite_team_id) || null;
+  }, [data]);
+
+  // Add average line to evolution chart
+  const evolutionWithAvg = useMemo(() => {
+    if (!stats?.evolution.length || !unitStats?.avg) return stats?.evolution || [];
+    // Distribute unit avg progressively (avg total / n * i)
+    const n = stats.evolution.length;
+    return stats.evolution.map((e, i) => ({ ...e, average: Math.round((unitStats.avg * (i + 1)) / n) }));
+  }, [stats, unitStats]);
 
   if (loading) return null;
   if (!user) return (
