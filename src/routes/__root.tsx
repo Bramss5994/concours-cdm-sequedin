@@ -55,14 +55,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Inter-Dépôts CDM 2026 — Concours de pronostics" },
-      { name: "description", content: "Concours de pronostics de la Coupe du Monde 2026 entre les dépôts Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
-      { name: "author", content: "Inter-Dépôts Keolis Lille" },
-      { property: "og:title", content: "Inter-Dépôts CDM 2026 — Concours de pronostics" },
-      { property: "og:description", content: "Concours de pronostics de la Coupe du Monde 2026 entre les dépôts Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
+      { title: "Pronostics CDM 2026" },
+      { name: "description", content: "Concours de pronostics de la Coupe du Monde 2026 — Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
+      { name: "author", content: "Keolis Lille" },
+      { property: "og:title", content: "Pronostics CDM 2026" },
+      { property: "og:description", content: "Concours de pronostics de la Coupe du Monde 2026 — Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "Inter-Dépôts CDM 2026 — Concours de pronostics" },
-      { name: "twitter:description", content: "Concours de pronostics de la Coupe du Monde 2026 entre les dépôts Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
+      { name: "twitter:title", content: "Pronostics CDM 2026" },
+      { name: "twitter:description", content: "Concours de pronostics de la Coupe du Monde 2026 — Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
       { property: "og:image", content: shareIcon.url },
       { name: "twitter:image", content: shareIcon.url },
       { name: "twitter:card", content: "summary_large_image" },
@@ -98,7 +98,7 @@ function RootComponent() {
           <Nav />
           <main className="flex-1"><Outlet /></main>
           <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-            Inter-Dépôts CDM 2026 · Sequedin · Faidherbe · Wattrelos · PC Bus (Keolis / Ilévia) · Entre collègues
+            Pronostics CDM 2026 · Sequedin · Faidherbe · Wattrelos · PC Bus (Keolis / Ilévia) · Entre collègues
           </footer>
         </div>
         <Toaster richColors position="top-center" />

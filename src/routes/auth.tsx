@@ -71,7 +71,7 @@ function AuthPage() {
     <div className="container mx-auto max-w-md px-4 py-10">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Inter-Dépôts CDM 2026</CardTitle>
+          <CardTitle className="text-2xl">Pronostics CDM 2026</CardTitle>
           {lockedDepotLabel && (
             <p className="mt-1 text-sm text-muted-foreground">
               Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connecte-toi pour pronostiquer avec ton dépôt.
