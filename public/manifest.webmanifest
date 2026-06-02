@@ -1,0 +1,32 @@
+{
+  "name": "Pronostics CDM 2026 — Kéolis Lille Ilévia",
+  "short_name": "Pronos CDM",
+  "description": "Concours de pronostics de la Coupe du Monde 2026 — Sequedin, Faidherbe, Wattrelos et PC Bus.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/__l5e/assets-v1/064eef1d-5579-4d12-bd0a-71889a4fb4a0/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/__l5e/assets-v1/1ba7d291-232b-4198-8b32-6e6044782ba6/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/__l5e/assets-v1/1ba7d291-232b-4198-8b32-6e6044782ba6/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
