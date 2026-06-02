@@ -55,17 +55,12 @@ function Home() {
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/80">
               Concours de pronostics
             </p>
-            <h1 className="mt-2 font-black uppercase leading-[0.95] tracking-tight">
-              <span className="block text-4xl sm:text-6xl lg:text-7xl text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-                Coupe
-              </span>
-              <span className="block text-4xl sm:text-6xl lg:text-7xl bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(217,165,40,0.35)]">
-                du Monde
-              </span>
-              <span className="block text-4xl sm:text-6xl lg:text-7xl text-white">
-                2026
-              </span>
-            </h1>
+            <img
+              src={fifaWc2026.url}
+              alt="FIFA World Cup 2026 — United States · Canada · México"
+              className="mx-auto mt-2 h-40 w-auto object-contain drop-shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:h-56 lg:mx-0 lg:h-64"
+            />
+
             <div className="mx-auto mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)] lg:mx-0" />
             <p className="mx-auto mt-6 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
               Pronostique chaque match, grimpe au classement et joue ta place sur le podium du dépôt.
