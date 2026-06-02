@@ -19,6 +19,17 @@ const STAGES = [
   { value: "final", label: "Finale" },
 ];
 
+const DEPOTS: { value: string; label: string }[] = [
+  { value: "all", label: "Tous les dépôts" },
+  { value: "sequedin", label: "Sequedin" },
+  { value: "faidherbe", label: "Faidherbe" },
+  { value: "wattrelos", label: "Wattrelos" },
+  { value: "pc_bus", label: "PC Bus" },
+];
+const DEPOT_LABEL: Record<string, string> = {
+  sequedin: "Sequedin", faidherbe: "Faidherbe", wattrelos: "Wattrelos", pc_bus: "PC Bus",
+};
+
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   visible: (i = 1) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.4 } }),
