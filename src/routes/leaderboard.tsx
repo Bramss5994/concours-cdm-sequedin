@@ -245,7 +245,7 @@ function Leaderboard() {
                     <tr>
                       <th className="px-3 py-2 text-left">#</th>
                       <th className="px-3 py-2 text-left">Participant</th>
-                      <th className="px-3 py-2 text-left">Dépôt</th>
+                      {isAdmin && <th className="px-3 py-2 text-left">Unité</th>}
                       <th className="px-3 py-2 text-right">Points</th>
                       <th className="px-3 py-2 text-right">Scores exacts</th>
                       <th className="px-3 py-2 text-right">Bons vainqueurs</th>
