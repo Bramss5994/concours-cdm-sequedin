@@ -141,6 +141,7 @@ function Leaderboard() {
                     <tr>
                       <th className="px-3 py-2 text-left">#</th>
                       <th className="px-3 py-2 text-left">Participant</th>
+                      <th className="px-3 py-2 text-left">Dépôt</th>
                       <th className="px-3 py-2 text-right">Points</th>
                       <th className="px-3 py-2 text-right">Scores exacts</th>
                       <th className="px-3 py-2 text-right">Bons vainqueurs</th>
@@ -162,6 +163,7 @@ function Leaderboard() {
                           {i === 0 ? <Trophy className="inline h-4 w-4 text-yellow-500" /> : i < 3 ? <Medal className="inline h-4 w-4 text-muted-foreground" /> : null} {i + 1}
                         </td>
                         <td className="px-3 py-2">{r.name}</td>
+                        <td className="px-3 py-2"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>
                         <td className="px-3 py-2 text-right font-bold">{r.pts}</td>
                         <td className="px-3 py-2 text-right">{r.exact}</td>
                         <td className="px-3 py-2 text-right">{r.good}</td>
