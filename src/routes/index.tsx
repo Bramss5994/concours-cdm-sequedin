@@ -49,7 +49,7 @@ function Home() {
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-amber-300 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_2px_rgba(251,191,36,0.8)]" />
-              Dépôt de Sequedin
+              Sequedin · Faidherbe · Wattrelos · PC Bus
             </div>
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/80">
               Concours de pronostics
@@ -112,7 +112,7 @@ function Home() {
         className="container mx-auto grid gap-4 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4"
       >
         {[
-          { icon: Users, t: "Entre collègues", d: "Réservé au personnel du dépôt de Sequedin." },
+          { icon: Users, t: "Entre collègues", d: "Ouvert au personnel des dépôts Sequedin, Faidherbe, Wattrelos et PC Bus." },
           { icon: Calendar, t: "Tous les matchs", d: "Phase de groupes (A à L) + 16es, 8es, quarts, demi-finales, match pour la 3e place et finale." },
           { icon: Lock, t: "Clôture à H-1", d: "Les pronos se ferment automatiquement 1h avant le coup d'envoi." },
           { icon: BarChart3, t: "Classement live", d: "Score exact = 3 pts, Vainqueur = 2 pts, match nul prédit = 1 pt." },

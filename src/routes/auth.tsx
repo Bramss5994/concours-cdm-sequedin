@@ -60,7 +60,7 @@ function AuthPage() {
   return (
     <div className="container mx-auto max-w-md px-4 py-10">
       <Card>
-        <CardHeader><CardTitle className="text-2xl">Pronos CDM 2026</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-2xl">Inter-Dépôts CDM 2026</CardTitle></CardHeader>
         <CardContent>
           <Tabs defaultValue="login">
             <TabsList className="grid w-full grid-cols-2">

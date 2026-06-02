@@ -52,14 +52,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Pronos CDM 2026 - Dépôt de Sequedin" },
-      { name: "description", content: "Concours de pronostics de la Coupe du Monde 2026 pour le personnel du dépôt de Sequedin (Keolis / Ilévia)." },
-      { name: "author", content: "Dépôt de Sequedin" },
-      { property: "og:title", content: "Pronos CDM 2026 - Dépôt de Sequedin" },
-      { property: "og:description", content: "Concours de pronostics de la Coupe du Monde 2026 pour le personnel du dépôt de Sequedin (Keolis / Ilévia)." },
+      { title: "Inter-Dépôts CDM 2026 — Concours de pronostics" },
+      { name: "description", content: "Concours de pronostics de la Coupe du Monde 2026 entre les dépôts Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
+      { name: "author", content: "Inter-Dépôts Keolis Lille" },
+      { property: "og:title", content: "Inter-Dépôts CDM 2026 — Concours de pronostics" },
+      { property: "og:description", content: "Concours de pronostics de la Coupe du Monde 2026 entre les dépôts Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "Pronos CDM 2026 - Dépôt de Sequedin" },
-      { name: "twitter:description", content: "Concours de pronostics de la Coupe du Monde 2026 pour le personnel du dépôt de Sequedin (Keolis / Ilévia)." },
+      { name: "twitter:title", content: "Inter-Dépôts CDM 2026 — Concours de pronostics" },
+      { name: "twitter:description", content: "Concours de pronostics de la Coupe du Monde 2026 entre les dépôts Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2cb549cc-be3f-4a90-b4c2-52c309dfc9cf/id-preview-e1c596e4--1fcfbbcb-a9aa-45f6-845c-6fcd62e57ce5.lovable.app-1779966444793.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2cb549cc-be3f-4a90-b4c2-52c309dfc9cf/id-preview-e1c596e4--1fcfbbcb-a9aa-45f6-845c-6fcd62e57ce5.lovable.app-1779966444793.png" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -91,7 +91,7 @@ function RootComponent() {
           <Nav />
           <main className="flex-1"><Outlet /></main>
           <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-            Pronos CDM 2026 · Dépôt de Sequedin (Keolis / Ilévia) · Entre collègues
+            Inter-Dépôts CDM 2026 · Sequedin · Faidherbe · Wattrelos · PC Bus (Keolis / Ilévia) · Entre collègues
           </footer>
         </div>
         <Toaster richColors position="top-center" />
