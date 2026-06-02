@@ -49,7 +49,7 @@ function Home() {
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-amber-300 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_2px_rgba(251,191,36,0.8)]" />
-              Dépôt de Sequedin
+              Sequedin · Faidherbe · Wattrelos · PC Bus
             </div>
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/80">
               Concours de pronostics
