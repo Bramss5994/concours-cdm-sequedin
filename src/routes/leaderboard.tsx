@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +44,7 @@ const staggerContainer = {
 };
 
 function Leaderboard() {
+  const { user } = useAuth();
   const [stage, setStage] = useState("all");
   const [depotFilter, setDepotFilter] = useState("all");
 
@@ -81,6 +83,16 @@ function Leaderboard() {
     return [...stats.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.good - a.good);
   }, [rows, stage, depotFilter]);
 
+  const myRank = useMemo(() => {
+    if (!user) return null;
+    const idx = board.findIndex((r) => r.user_id === user.id);
+    if (idx === -1) return null;
+    return { rank: idx + 1, total: board.length, ...board[idx] };
+  }, [board, user]);
+
+  const depotScopeLabel =
+    depotFilter === "all" ? "tous dépôts confondus" : `dépôt ${DEPOT_LABEL[depotFilter] || depotFilter}`;
+
   return (
     <div className="container mx-auto px-4 py-6">
       <motion.h1
@@ -110,6 +122,49 @@ function Leaderboard() {
           </SelectContent>
         </Select>
       </motion.div>
+
+      {user && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.18 }}
+          className="mt-4"
+        >
+          <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Ma position · {depotScopeLabel}</div>
+                {myRank ? (
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-primary">#{myRank.rank}</span>
+                    <span className="text-sm text-muted-foreground">sur {myRank.total}</span>
+                  </div>
+                ) : (
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans ce dépôt."}
+                  </div>
+                )}
+              </div>
+              {myRank && (
+                <div className="flex items-center gap-4 text-right">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Points</div>
+                    <div className="text-2xl font-bold">{myRank.pts}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Exacts</div>
+                    <div className="text-2xl font-bold">{myRank.exact}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Vainqueurs</div>
+                    <div className="text-2xl font-bold">{myRank.good}</div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 8 }}
