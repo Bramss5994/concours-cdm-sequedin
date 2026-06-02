@@ -123,6 +123,49 @@ function Leaderboard() {
         </Select>
       </motion.div>
 
+      {user && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.18 }}
+          className="mt-4"
+        >
+          <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Ma position · {depotScopeLabel}</div>
+                {myRank ? (
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-primary">#{myRank.rank}</span>
+                    <span className="text-sm text-muted-foreground">sur {myRank.total}</span>
+                  </div>
+                ) : (
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans ce dépôt."}
+                  </div>
+                )}
+              </div>
+              {myRank && (
+                <div className="flex items-center gap-4 text-right">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Points</div>
+                    <div className="text-2xl font-bold">{myRank.pts}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Exacts</div>
+                    <div className="text-2xl font-bold">{myRank.exact}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Vainqueurs</div>
+                    <div className="text-2xl font-bold">{myRank.good}</div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
