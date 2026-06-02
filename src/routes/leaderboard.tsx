@@ -121,7 +121,7 @@ function Leaderboard() {
           <Trophy className="mx-auto h-10 w-10 text-muted-foreground" />
           <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Classement réservé aux participants</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pour consulter le classement, tu dois d'abord t'inscrire à ton unité (Sequedin, Faidherbe, Wattrelos ou PC Bus).
+            Pour consulter le classement, tu dois d'abord t'inscrire à ton unité.
           </p>
         </motion.div>
       </div>
