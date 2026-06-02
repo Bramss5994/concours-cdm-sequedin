@@ -41,7 +41,7 @@ function Home() {
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-amber-400/70 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="relative container mx-auto grid items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-[1.4fr_1fr]">
+        <div className="relative container mx-auto grid items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,7 +87,7 @@ function Home() {
             <img
               src={fifaWc2026.url}
               alt="Concours Inter-Dépôts Coupe du Monde 2026"
-              className="relative h-96 w-96 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.55)] sm:h-[32rem] sm:w-[32rem] lg:h-[48rem] lg:w-[48rem]"
+              className="relative h-[32rem] w-[32rem] object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.55)] sm:h-[48rem] sm:w-[48rem] lg:h-[64rem] lg:w-[64rem]"
             />
           </motion.div>
 
