@@ -19,7 +19,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/auth")({ component: AuthPage });
+export const Route = createFileRoute("/auth")({
+  component: AuthPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    depot: typeof search.depot === "string" ? (search.depot as string) : undefined,
+    tab: search.tab === "signup" ? "signup" : "login",
+  }),
+});
+
 
 // Build a deterministic pseudo-email from prénom + numéro de paie so Supabase Auth
 // (which requires an email) accepts the account without the user typing one.
@@ -52,6 +59,9 @@ const loginSchema = z.object({
 function AuthPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { depot: depotParam, tab } = Route.useSearch();
+  const lockedDepot = DEPOTS.find((d) => d.value === depotParam)?.value as DepotValue | undefined;
+  const lockedDepotLabel = DEPOTS.find((d) => d.value === depotParam)?.label;
 
   useEffect(() => {
     if (!loading && user) router.navigate({ to: "/matches" });
@@ -60,15 +70,22 @@ function AuthPage() {
   return (
     <div className="container mx-auto max-w-md px-4 py-10">
       <Card>
-        <CardHeader><CardTitle className="text-2xl">Inter-Dépôts CDM 2026</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-2xl">Inter-Dépôts CDM 2026</CardTitle>
+          {lockedDepotLabel && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connecte-toi pour pronostiquer avec ton dépôt.
+            </p>
+          )}
+        </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
+          <Tabs defaultValue={lockedDepot ? "signup" : tab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
             <TabsContent value="login"><LoginForm /></TabsContent>
-            <TabsContent value="signup"><SignupForm /></TabsContent>
+            <TabsContent value="signup"><SignupForm lockedDepot={lockedDepot} /></TabsContent>
           </Tabs>
         </CardContent>
       </Card>
@@ -78,6 +95,7 @@ function AuthPage() {
     </div>
   );
 }
+
 
 function LoginForm() {
   const router = useRouter();
@@ -108,10 +126,11 @@ function LoginForm() {
   );
 }
 
-function SignupForm() {
+function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [depot, setDepot] = useState<DepotValue | "">("");
+  const [depot, setDepot] = useState<DepotValue | "">(lockedDepot ?? "");
+
   return (
     <form
       className="mt-4 space-y-3"
@@ -149,13 +168,22 @@ function SignupForm() {
       </div>
       <div className="space-y-1.5">
         <Label>Dépôt / Unité</Label>
-        <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
-          <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
-          <SelectContent>
-            {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {lockedDepot ? (
+          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+            <span className="h-2 w-2 rounded-full bg-primary" />
+            <span className="font-medium">{DEPOTS.find((d) => d.value === lockedDepot)?.label}</span>
+            <span className="text-xs text-muted-foreground">(verrouillé par le lien d'inscription)</span>
+          </div>
+        ) : (
+          <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
+            <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
+            <SelectContent>
+              {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
       </div>
+
       <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retiens-le bien, il n'y a pas de récupération par e-mail.</p></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Création..." : "Créer mon compte"}</Button>
       

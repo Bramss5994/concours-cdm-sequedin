@@ -96,6 +96,62 @@ function Home() {
 
       <Countdown />
 
+      {!user && (
+        <section className="container mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mx-auto max-w-4xl text-center"
+          >
+            <h2 className="text-2xl font-bold sm:text-3xl">Rejoins ton dépôt</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Chaque dépôt a son propre classement et son propre podium. Inscris-toi via le lien de ton unité.
+            </p>
+          </motion.div>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={staggerContainer}
+            className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            {[
+              { value: "sequedin", label: "Sequedin" },
+              { value: "faidherbe", label: "Faidherbe" },
+              { value: "wattrelos", label: "Wattrelos" },
+              { value: "pc_bus", label: "PC Bus" },
+            ].map((d) => (
+              <motion.div key={d.value} variants={fadeUp}>
+                <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
+                  <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-lg font-bold">{d.label}</h3>
+                    <p className="text-xs text-muted-foreground">Classement propre à ton unité</p>
+                    <Button asChild size="sm" className="mt-2 w-full">
+                      <Link to="/auth" search={{ depot: d.value, tab: "signup" }}>
+                        S'inscrire
+                      </Link>
+                    </Button>
+                    <Link
+                      to="/auth"
+                      search={{ depot: d.value, tab: "login" }}
+                      className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                    >
+                      Déjà inscrit ? Connexion
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+      )}
+
+
       <motion.section
         initial="hidden"
         whileInView="visible"
