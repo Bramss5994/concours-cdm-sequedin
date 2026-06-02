@@ -54,10 +54,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Pronostics CDM 2026" },
       { name: "description", content: "Concours de pronostics de la Coupe du Monde 2026 — Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
       { name: "author", content: "Keolis Lille" },
+      { name: "theme-color", content: "#0a0a0f" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Pronos CDM" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { property: "og:title", content: "Pronostics CDM 2026" },
       { property: "og:description", content: "Concours de pronostics de la Coupe du Monde 2026 — Sequedin, Faidherbe, Wattrelos et PC Bus (Keolis / Ilévia)." },
       { property: "og:type", content: "website" },
@@ -71,7 +76,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/x-icon", href: faviconIco.url },
       { rel: "apple-touch-icon", sizes: "180x180", href: appleTouchIcon.url },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
+
   }),
   shellComponent: RootShell,
   component: RootComponent,
