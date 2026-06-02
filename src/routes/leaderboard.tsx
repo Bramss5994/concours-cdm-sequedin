@@ -42,6 +42,7 @@ const staggerContainer = {
 
 function Leaderboard() {
   const [stage, setStage] = useState("all");
+  const [depotFilter, setDepotFilter] = useState("all");
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
@@ -59,10 +60,11 @@ function Leaderboard() {
     const r = rows as any;
     if (!r || !r.profiles) return [];
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
-    const stats = new Map<string, { user_id: string; name: string; pts: number; exact: number; good: number; }>();
+    const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; }>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", pts: 0, exact: 0, good: 0 });
+      if (depotFilter !== "all" && p.depot !== depotFilter) continue;
+      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: 0, exact: 0, good: 0 });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);
@@ -75,7 +77,7 @@ function Leaderboard() {
       if (pred.good_winner) s.good++;
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.good - a.good);
-  }, [rows, stage]);
+  }, [rows, stage, depotFilter]);
 
   return (
     <div className="container mx-auto px-4 py-6">
