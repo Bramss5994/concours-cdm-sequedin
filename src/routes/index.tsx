@@ -234,7 +234,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité sont récompensés :</motion.p>
+          >Chaque unité a son propre podium. À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité (Sequedin, Faidherbe, Wattrelos, PC Bus) sont récompensés séparément :</motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -260,7 +260,7 @@ function Home() {
                   </div>
                 </div>
                 <div className="mt-4 text-2xl font-extrabold text-amber-950 dark:text-amber-50">Restaurant offert</div>
-                <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">pour le podium complet</p>
+                <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">pour le podium complet de chaque unité</p>
               </CardContent>
             </Card>
           </motion.div>
