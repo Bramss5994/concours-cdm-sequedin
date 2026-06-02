@@ -128,10 +128,7 @@ function Home() {
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
                   <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
                     {d.logo ? (
-                      <div className="flex flex-col items-center gap-1">
-                        <img src={d.logo} alt={d.label} className="h-12 w-auto object-contain" />
-                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/80">Sequedin</span>
-                      </div>
+                      <img src={d.logo} alt={d.label} className="h-16 w-auto object-contain" />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                         <Users className="h-6 w-6" />
