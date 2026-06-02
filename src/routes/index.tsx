@@ -63,7 +63,7 @@ function Home() {
 
             <div className="mx-auto mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)] lg:mx-0" />
             <p className="mx-auto mt-6 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
-              Pronostique chaque match, grimpe au classement et joue ta place sur le podium de ton dépôt.
+              Pronostique chaque match, grimpe au classement et joue ta place sur le podium de ton unité.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               {user ? (
@@ -182,7 +182,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >À l'issue de la finale, les 3 meilleurs pronostiqueurs du dépôt sont récompensés :</motion.p>
+          >À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité sont récompensés :</motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
