@@ -109,6 +109,25 @@ function Leaderboard() {
   const depotScopeLabel =
     depotFilter === "all" ? "tous dépôts confondus" : `dépôt ${DEPOT_LABEL[depotFilter] || depotFilter}`;
 
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto max-w-xl text-center"
+        >
+          <Trophy className="mx-auto h-10 w-10 text-muted-foreground" />
+          <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Classement réservé aux participants</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Pour consulter le classement, tu dois d'abord t'inscrire à ton unité (Sequedin, Faidherbe, Wattrelos ou PC Bus).
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-6">
       <motion.h1
@@ -122,7 +141,7 @@ function Leaderboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="mt-1 text-sm text-muted-foreground"
-      >Dépôts Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
+      >Unités Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
 
       {isAdmin ? (
         <motion.div
