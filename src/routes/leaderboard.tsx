@@ -141,7 +141,7 @@ function Leaderboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="mt-1 text-sm text-muted-foreground"
-      >Unités Sequedin · Faidherbe · Wattrelos · PC Bus — mis à jour après chaque match.</motion.p>
+      >{isAdmin ? "Toutes les unités — mis à jour après chaque match." : `Unité ${DEPOT_LABEL[depotFilter] || depotFilter} — mis à jour après chaque match.`}</motion.p>
 
       {isAdmin ? (
         <motion.div
