@@ -98,7 +98,7 @@ function RootComponent() {
           <Nav />
           <main className="flex-1"><Outlet /></main>
           <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-            Pronostics CDM 2026 · Sequedin · Faidherbe · Wattrelos · PC Bus (Keolis / Ilévia) · Entre collègues
+            Pronostics CDM 2026 · Kéolis Lille Ilévia
           </footer>
         </div>
         <Toaster richColors position="top-center" />
