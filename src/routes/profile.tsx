@@ -21,12 +21,38 @@ function Profile() {
     queryKey: ["profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const [{ data: profile }, { data: preds }, { data: matches }] = await Promise.all([
+      const [{ data: profile }, { data: preds }, { data: matches }, { data: teams }] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle(),
         supabase.from("predictions").select("*").eq("user_id", user!.id),
-        supabase.from("matches").select("id, kickoff_at, stage, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(code,name), team_b:teams!matches_team_b_id_fkey(code,name), team_a_placeholder, team_b_placeholder").order("kickoff_at"),
+        supabase.from("matches").select("id, kickoff_at, stage, group_letter, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(code,name), team_b:teams!matches_team_b_id_fkey(code,name), team_a_placeholder, team_b_placeholder").order("kickoff_at"),
+        supabase.from("teams").select("id, code, name"),
       ]);
-      return { profile, preds: preds || [], matches: matches || [] };
+      return { profile, preds: preds || [], matches: matches || [], teams: teams || [] };
+    },
+  });
+
+  // Unité comparison: average points per user in the same unit (depot)
+  const { data: unitStats } = useQuery({
+    queryKey: ["unit-stats", data?.profile?.depot],
+    enabled: !!data?.profile?.depot,
+    queryFn: async () => {
+      const { data: profiles } = await supabase.rpc("get_public_profiles");
+      const sameUnit = (profiles || []).filter((p: any) => p.depot === data!.profile!.depot && p.active);
+      const ids = sameUnit.map((p: any) => p.id);
+      if (!ids.length) return { avg: 0, rank: null as number | null, total: 0 };
+      const { data: preds } = await supabase
+        .from("predictions")
+        .select("user_id, points")
+        .in("user_id", ids);
+      const totals = new Map<string, number>();
+      for (const id of ids) totals.set(id, 0);
+      for (const p of preds || []) totals.set(p.user_id, (totals.get(p.user_id) || 0) + (p.points || 0));
+      const values = [...totals.values()];
+      const avg = values.length ? values.reduce((s, v) => s + v, 0) / values.length : 0;
+      const myPts = totals.get(user!.id) || 0;
+      const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1]);
+      const rank = sorted.findIndex(([id]) => id === user!.id) + 1 || null;
+      return { avg, myPts, rank, total: ids.length };
     },
   });
 
@@ -73,16 +99,25 @@ function Profile() {
       };
     });
 
-    // Best match
-    const bestMatch = joined.reduce<{ pts: number; label: string } | null>((acc, x) => {
+    // Best & worst match (worst = biggest gap from real score among 0-pt predictions)
+    let bestMatch: { pts: number; label: string; pred: string; real: string } | null = null;
+    let worstMatch: { gap: number; label: string; pred: string; real: string } | null = null;
+    for (const x of joined) {
       const pp = x.p.points || 0;
-      if (!acc || pp > acc.pts) {
-        const nameA = x.m.team_a?.name || x.m.team_a_placeholder || "?";
-        const nameB = x.m.team_b?.name || x.m.team_b_placeholder || "?";
-        return { pts: pp, label: `${nameA} - ${nameB}` };
+      const nameA = x.m.team_a?.name || x.m.team_a_placeholder || "?";
+      const nameB = x.m.team_b?.name || x.m.team_b_placeholder || "?";
+      const pred = `${x.p.score_a}-${x.p.score_b}`;
+      const real = `${x.m.score_a}-${x.m.score_b}`;
+      const label = `${nameA} - ${nameB}`;
+      if (!bestMatch || pp > bestMatch.pts) bestMatch = { pts: pp, label, pred, real };
+      if (pp === 0) {
+        const gap = Math.abs((x.p.score_a - x.m.score_a)) + Math.abs((x.p.score_b - x.m.score_b));
+        if (!worstMatch || gap > worstMatch.gap) worstMatch = { gap, label, pred, real };
       }
-      return acc;
-    }, null);
+    }
+
+    const exactRate = finished ? Math.round((exact / finished) * 100) : 0;
+    const goodRate = finished ? Math.round((good / finished) * 100) : 0;
 
     return {
       total: data.preds.length,
@@ -90,14 +125,30 @@ function Profile() {
       pts,
       exact,
       good,
+      exactRate,
+      goodRate,
       rate,
       avg,
       bestStreak: best,
       currentStreak: currentNow,
       evolution,
       bestMatch,
+      worstMatch,
     };
   }, [data]);
+
+  const favoriteTeam = useMemo(() => {
+    if (!data?.profile?.favorite_team_id) return null;
+    return data.teams.find((t: any) => t.id === data.profile!.favorite_team_id) || null;
+  }, [data]);
+
+  // Add average line to evolution chart
+  const evolutionWithAvg = useMemo(() => {
+    if (!stats?.evolution.length || !unitStats?.avg) return stats?.evolution || [];
+    // Distribute unit avg progressively (avg total / n * i)
+    const n = stats.evolution.length;
+    return stats.evolution.map((e, i) => ({ ...e, average: Math.round((unitStats.avg * (i + 1)) / n) }));
+  }, [stats, unitStats]);
 
   if (loading) return null;
   if (!user) return (
@@ -119,33 +170,96 @@ function Profile() {
             <Stat label="Pronostics joués" value={`${stats.finished}/${stats.total}`} />
             <Stat label="Taux de réussite" value={`${stats.rate}%`} />
             <Stat label="Moyenne / match" value={stats.avg} />
-            <Stat label="Scores exacts" value={stats.exact} />
-            <Stat label="Bons vainqueurs" value={stats.good} />
+            <Stat label="Scores exacts" value={`${stats.exact} (${stats.exactRate}%)`} />
+            <Stat label="Bons vainqueurs" value={`${stats.good} (${stats.goodRate}%)`} />
             <Stat label="Meilleure série" value={stats.bestStreak} />
             <Stat label="Série en cours" value={stats.currentStreak} />
           </div>
 
-          {stats.bestMatch && stats.bestMatch.pts > 0 && (
+          {/* Comparaison vs unité */}
+          {unitStats && unitStats.total > 1 && (
             <Card className="mt-3">
               <CardContent className="p-4">
-                <div className="text-xs uppercase text-muted-foreground">Meilleur pronostic</div>
-                <div className="mt-1 flex items-center justify-between">
-                  <div className="font-semibold">{stats.bestMatch.label}</div>
-                  <Badge>{stats.bestMatch.pts} pts</Badge>
+                <div className="flex items-center justify-between gap-2 text-xs uppercase text-muted-foreground">
+                  <span>Comparaison vs ton unité</span>
+                  {unitStats.rank && (
+                    <Badge variant="secondary">
+                      {unitStats.rank}<sup>{unitStats.rank === 1 ? "er" : "e"}</sup> / {unitStats.total}
+                    </Badge>
+                  )}
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-3 text-center">
+                  <div>
+                    <div className="text-2xl font-bold">{stats.pts}</div>
+                    <div className="text-xs text-muted-foreground">Mes points</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-muted-foreground">{unitStats.avg.toFixed(1)}</div>
+                    <div className="text-xs text-muted-foreground">Moyenne unité</div>
+                  </div>
+                  <div>
+                    <div className={`text-2xl font-bold ${stats.pts >= unitStats.avg ? "text-success" : "text-destructive"}`}>
+                      {stats.pts >= unitStats.avg ? "+" : ""}{(stats.pts - unitStats.avg).toFixed(1)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Écart</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {stats.evolution.length > 0 && (
+          {/* Équipe fétiche */}
+          {favoriteTeam && (
+            <Card className="mt-3">
+              <CardContent className="flex items-center gap-3 p-4">
+                <img src={`https://flagcdn.com/w80/${favoriteTeam.code}.png`} alt={favoriteTeam.name} className="h-10 w-14 rounded-sm object-cover ring-1 ring-border" />
+                <div>
+                  <div className="text-xs uppercase text-muted-foreground">Équipe fétiche</div>
+                  <div className="font-semibold">{favoriteTeam.name}</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {stats.bestMatch && stats.bestMatch.pts > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-xs uppercase text-muted-foreground">🏆 Meilleur pronostic</div>
+                  <div className="mt-1 font-semibold">{stats.bestMatch.label}</div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Pronostic <b>{stats.bestMatch.pred}</b> · Réel <b>{stats.bestMatch.real}</b></span>
+                    <Badge>{stats.bestMatch.pts} pts</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {stats.worstMatch && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-xs uppercase text-muted-foreground">💩 Pire pronostic</div>
+                  <div className="mt-1 font-semibold">{stats.worstMatch.label}</div>
+                  <div className="mt-1 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Pronostic <b>{stats.worstMatch.pred}</b> · Réel <b>{stats.worstMatch.real}</b></span>
+                    <Badge variant="outline">{stats.worstMatch.gap} d'écart</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {evolutionWithAvg.length > 0 && (
             <Card className="mt-3">
               <CardContent className="p-4">
                 <div className="text-xs uppercase text-muted-foreground">Évolution des points</div>
                 <ChartContainer
                   className="mt-2 h-48 w-full"
-                  config={{ points: { label: "Points cumulés", color: "hsl(var(--primary))" } }}
+                  config={{
+                    points: { label: "Mes points", color: "hsl(var(--primary))" },
+                    average: { label: "Moyenne unité", color: "hsl(var(--muted-foreground))" },
+                  }}
                 >
-                  <AreaChart data={stats.evolution} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                  <AreaChart data={evolutionWithAvg} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
                     <defs>
                       <linearGradient id="pointsFill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="var(--color-points)" stopOpacity={0.35} />
@@ -157,6 +271,9 @@ function Profile() {
                     <YAxis fontSize={10} tickLine={false} axisLine={false} width={28} />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Area type="monotone" dataKey="points" stroke="var(--color-points)" strokeWidth={2} fill="url(#pointsFill)" />
+                    {unitStats && unitStats.avg > 0 && (
+                      <Area type="monotone" dataKey="average" stroke="var(--color-average)" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
+                    )}
                   </AreaChart>
                 </ChartContainer>
               </CardContent>
