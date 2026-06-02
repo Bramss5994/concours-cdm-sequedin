@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import logoConcours from "@/assets/logo-concours-transparent.png";
+import logoConcours from "@/assets/logo-inter-depots.png";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
@@ -92,11 +92,11 @@ function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative order-1 flex justify-self-center lg:order-2"
           >
-            <div className="absolute -inset-10 rounded-full bg-amber-400/20 blur-3xl" />
+            <div className="absolute -inset-10 rounded-full bg-emerald-400/20 blur-3xl" />
             <img
               src={logoConcours}
-              alt="Logo CDM Pronos — Keolis Lille Ilévia"
-              className="relative h-64 w-64 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.45)] sm:h-80 sm:w-80 lg:h-[28rem] lg:w-[28rem]"
+              alt="Inter-Dépôts CDM 2026 — Keolis Lille Ilévia"
+              className="relative h-64 w-64 object-contain drop-shadow-[0_12px_40px_rgba(16,94,82,0.55)] sm:h-80 sm:w-80 lg:h-[28rem] lg:w-[28rem]"
             />
           </motion.div>
         </div>
