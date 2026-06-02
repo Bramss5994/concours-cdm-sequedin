@@ -6,6 +6,7 @@ import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } f
 import { useAuth } from "@/lib/auth";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
+import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
@@ -118,7 +119,7 @@ function Home() {
             className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4"
           >
             {[
-              { value: "sequedin", label: "Sequedin" },
+              { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
               { value: "faidherbe", label: "Faidherbe" },
               { value: "wattrelos", label: "Wattrelos" },
               { value: "pc_bus", label: "PC Bus" },
@@ -126,9 +127,13 @@ function Home() {
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
                   <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Users className="h-6 w-6" />
-                    </div>
+                    {d.logo ? (
+                      <img src={d.logo} alt={d.label} className="h-12 w-auto object-contain" />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Users className="h-6 w-6" />
+                      </div>
+                    )}
                     <h3 className="text-lg font-bold">{d.label}</h3>
                     <p className="text-xs text-muted-foreground">Classement propre à ton unité</p>
                     <Button asChild size="sm" className="mt-2 w-full">
