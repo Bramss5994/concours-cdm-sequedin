@@ -6,6 +6,7 @@ import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } f
 import { useAuth } from "@/lib/auth";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
+import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
