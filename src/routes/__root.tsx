@@ -3,6 +3,9 @@ import {
   Outlet, Link, createRootRouteWithContext, useRouter, HeadContent, Scripts,
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
+import faviconIco from "../assets/favicon.ico.asset.json";
+import appleTouchIcon from "../assets/apple-touch-icon.png.asset.json";
+import shareIcon from "../assets/icon-512.png.asset.json";
 import { AuthProvider } from "@/lib/auth";
 import { Nav } from "@/components/Nav";
 import { Toaster } from "@/components/ui/sonner";
