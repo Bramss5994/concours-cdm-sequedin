@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
+import logoFaidherbe from "@/assets/logo-faidherbe.png.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
@@ -120,7 +121,7 @@ function Home() {
           >
             {[
               { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
-              { value: "faidherbe", label: "Faidherbe" },
+              { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
               { value: "wattrelos", label: "Wattrelos" },
               { value: "pc_bus", label: "PC Bus" },
             ].map((d) => (
