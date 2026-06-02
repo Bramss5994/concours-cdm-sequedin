@@ -44,6 +44,7 @@ const staggerContainer = {
 };
 
 function Leaderboard() {
+  const { user } = useAuth();
   const [stage, setStage] = useState("all");
   const [depotFilter, setDepotFilter] = useState("all");
 
