@@ -16,6 +16,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -52,6 +53,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksSyncScoresRoute =
+  ApiPublicHooksSyncScoresRouteImport.update({
+    id: '/api/public/hooks/sync-scores',
+    path: '/api/public/hooks/sync-scores',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByTo {
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +89,7 @@ export interface FileRoutesById {
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/reset-password'
+    | '/api/public/hooks/sync-scores'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/reset-password'
+    | '/api/public/hooks/sync-scores'
   id:
     | '__root__'
     | '/'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/reset-password'
+    | '/api/public/hooks/sync-scores'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +132,7 @@ export interface RootRouteChildren {
   MatchesRoute: typeof MatchesRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicHooksSyncScoresRoute: typeof ApiPublicHooksSyncScoresRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/sync-scores': {
+      id: '/api/public/hooks/sync-scores'
+      path: '/api/public/hooks/sync-scores'
+      fullPath: '/api/public/hooks/sync-scores'
+      preLoaderRoute: typeof ApiPublicHooksSyncScoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +204,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatchesRoute: MatchesRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicHooksSyncScoresRoute: ApiPublicHooksSyncScoresRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
