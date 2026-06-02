@@ -121,7 +121,7 @@ function Home() {
           >
             {[
               { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
-              { value: "faidherbe", label: "Faidherbe" },
+              { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
               { value: "wattrelos", label: "Wattrelos" },
               { value: "pc_bus", label: "PC Bus" },
             ].map((d) => (
