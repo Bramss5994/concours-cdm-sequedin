@@ -181,7 +181,7 @@ function Profile() {
             <Card className="mt-3">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between gap-2 text-xs uppercase text-muted-foreground">
-                  <span>Comparaison vs ton unité</span>
+                  <span>Comparaison vs votre unité</span>
                   {unitStats.rank && (
                     <Badge variant="secondary">
                       {unitStats.rank}<sup>{unitStats.rank === 1 ? "er" : "e"}</sup> / {unitStats.total}
