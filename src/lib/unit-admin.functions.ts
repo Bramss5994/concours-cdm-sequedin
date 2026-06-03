@@ -7,11 +7,11 @@ type UnitAdminSession = { depot: string; login_code: string };
 
 function getSessionPassword() {
   const explicitSecret = process.env.UNIT_ADMIN_COOKIE_SECRET;
-  if ((explicitSecret?.length ?? 0) >= 32) return explicitSecret;
+  if (explicitSecret && explicitSecret.length >= 32) return explicitSecret;
 
   const fallbackSecret =
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SYNC_WEBHOOK_SECRET ?? process.env.LOVABLE_API_KEY;
-  if ((fallbackSecret?.length ?? 0) >= 32) {
+  if (fallbackSecret && fallbackSecret.length >= 32) {
     return createHash("sha256").update(`unit-admin-session:${fallbackSecret}`).digest("hex");
   }
 
