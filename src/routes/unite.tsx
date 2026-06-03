@@ -180,7 +180,9 @@ function UniteDashboard() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-base">
-            Participants de l'unité ({listQ.data?.length ?? 0})
+            {isSuper
+              ? `Tous les participants (${listQ.data?.length ?? 0})`
+              : `Participants de l'unité (${listQ.data?.length ?? 0})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
