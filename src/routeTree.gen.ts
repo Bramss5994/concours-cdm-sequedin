@@ -19,6 +19,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
 import { Route as UniteLoginRouteImport } from './routes/unite.login'
+import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
 import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
 const UniteRoute = UniteRouteImport.update({
@@ -71,6 +72,11 @@ const UniteLoginRoute = UniteLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => UniteRoute,
 } as any)
+const UniteGestionRoute = UniteGestionRouteImport.update({
+  id: '/gestion',
+  path: '/gestion',
+  getParentRoute: () => UniteRoute,
+} as any)
 const ApiPublicHooksSyncScoresRoute =
   ApiPublicHooksSyncScoresRouteImport.update({
     id: '/api/public/hooks/sync-scores',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/unite': typeof UniteRouteWithChildren
+  '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/unite': typeof UniteRouteWithChildren
+  '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/unite': typeof UniteRouteWithChildren
+  '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/unite'
+    | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
     | '/api/public/hooks/sync-scores'
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/unite'
+    | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
     | '/api/public/hooks/sync-scores'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/unite'
+    | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
     | '/api/public/hooks/sync-scores'
@@ -244,6 +256,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UniteLoginRouteImport
       parentRoute: typeof UniteRoute
     }
+    '/unite/gestion': {
+      id: '/unite/gestion'
+      path: '/gestion'
+      fullPath: '/unite/gestion'
+      preLoaderRoute: typeof UniteGestionRouteImport
+      parentRoute: typeof UniteRoute
+    }
     '/api/public/hooks/sync-scores': {
       id: '/api/public/hooks/sync-scores'
       path: '/api/public/hooks/sync-scores'
@@ -255,11 +274,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface UniteRouteChildren {
+  UniteGestionRoute: typeof UniteGestionRoute
   UniteLoginRoute: typeof UniteLoginRoute
   UniteMatchsRoute: typeof UniteMatchsRoute
 }
 
 const UniteRouteChildren: UniteRouteChildren = {
+  UniteGestionRoute: UniteGestionRoute,
   UniteLoginRoute: UniteLoginRoute,
   UniteMatchsRoute: UniteMatchsRoute,
 }
@@ -280,3 +301,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
