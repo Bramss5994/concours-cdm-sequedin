@@ -192,6 +192,7 @@ function UniteMatchsPage() {
                 <thead className="bg-muted/50 text-xs uppercase">
                   <tr>
                     <th className="px-3 py-2 text-left">Participant</th>
+                    {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
                     <th className="px-3 py-2 text-center">Pronostic</th>
                     <th className="px-3 py-2 text-right">Points</th>
                   </tr>
@@ -203,6 +204,7 @@ function UniteMatchsPage() {
                         {p.prenom}{" "}
                         <span className="text-xs text-muted-foreground">{p.num_paie}</span>
                       </td>
+                      {isSuper && <td className="px-3 py-2 text-xs">{p.depot}</td>}
                       <td className="px-3 py-2 text-center font-mono">
                         {p.score_a} - {p.score_b}
                       </td>
