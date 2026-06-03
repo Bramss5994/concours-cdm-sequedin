@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
-import { loginUnitAdmin } from "@/lib/unit-admin.functions";
+import { loginUnitAdmin, getUnitAdminSession } from "@/lib/unit-admin.functions";
 
 export const Route = createFileRoute("/unite/login")({
   component: UniteLoginPage,
