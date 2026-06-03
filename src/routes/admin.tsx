@@ -36,8 +36,16 @@ import {
 import { toast } from "sonner";
 import { formatFR } from "@/lib/time";
 import { deleteUserFn, resetUserPasswordFn } from "@/lib/admin.functions";
+import {
+  listUnitAdminsFn,
+  createUnitAdminFn,
+  resetUnitAdminPasswordFn,
+  toggleUnitAdminFn,
+  deleteUnitAdminFn,
+  isSequedinSuperAdminFn,
+} from "@/lib/super-admin.functions";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trash2, KeyRound, Download } from "lucide-react";
+import { Trash2, KeyRound, Download, ShieldPlus } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
