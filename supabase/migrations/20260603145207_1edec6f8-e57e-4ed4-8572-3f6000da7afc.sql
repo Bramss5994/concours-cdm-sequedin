@@ -1,0 +1,1 @@
+ALTER TYPE public.depot ADD VALUE IF NOT EXISTS 'copem';

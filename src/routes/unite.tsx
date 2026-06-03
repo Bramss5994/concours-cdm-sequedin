@@ -46,6 +46,7 @@ const DEPOT_LABEL: Record<string, string> = {
   wattrelos: "Wattrelos",
   pc_bus: "PC Bus",
   tram: "Tram",
+  copem: "COPEM",
 };
 
 function UnitePage() {
