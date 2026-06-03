@@ -1,15 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatFR } from "@/lib/time";
+import { deleteUserFn, resetUserPasswordFn } from "@/lib/admin.functions";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Trash2, KeyRound, Download } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -21,18 +49,19 @@ function AdminPage() {
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold">Espace admin</h1>
       <p className="mt-2 text-muted-foreground">Vous n'avez pas les droits d'administrateur.</p>
-      <p className="mt-1 text-xs text-muted-foreground">Pour devenir admin, demandez à un admin existant — ou si vous êtes le premier utilisateur, demandez à ce que votre rôle soit ajouté manuellement.</p>
     </div>
   );
 
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold sm:text-3xl">Administration</h1>
-      <Tabs defaultValue="results" className="mt-4">
+      <Tabs defaultValue="stats" className="mt-4">
         <TabsList>
-          <TabsTrigger value="results">Résultats des matchs</TabsTrigger>
+          <TabsTrigger value="stats">Statistiques</TabsTrigger>
+          <TabsTrigger value="results">Matchs</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
         </TabsList>
+        <TabsContent value="stats"><AdminStats /></TabsContent>
         <TabsContent value="results"><AdminResults /></TabsContent>
         <TabsContent value="users"><AdminUsers /></TabsContent>
       </Tabs>
@@ -40,8 +69,157 @@ function AdminPage() {
   );
 }
 
+/* ----------------------------- STATS ----------------------------- */
+
+function AdminStats() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: async () => {
+      const [{ data: profiles }, { data: preds }, { data: matches }] = await Promise.all([
+        supabase.from("profiles").select("id, prenom, num_paie, active, created_at, depot"),
+        supabase.from("predictions").select("user_id, points, match_id, updated_at"),
+        supabase.from("matches").select("id, finished, kickoff_at"),
+      ]);
+      return { profiles: profiles || [], preds: preds || [], matches: matches || [] };
+    },
+  });
+
+  const computed = useMemo(() => {
+    if (!data) return null;
+    const totalUsers = data.profiles.length;
+    const activeUsers = data.profiles.filter((p: any) => p.active).length;
+    const finishedMatches = data.matches.filter((m: any) => m.finished).length;
+    const totalPreds = data.preds.length;
+    const expected = totalUsers * data.matches.length;
+    const participation = expected > 0 ? Math.round((totalPreds / expected) * 100) : 0;
+
+    // Top 10 by points
+    const pointsBy = new Map<string, number>();
+    for (const p of data.preds) pointsBy.set(p.user_id, (pointsBy.get(p.user_id) || 0) + (p.points || 0));
+    const top10 = [...data.profiles]
+      .map((p: any) => ({ ...p, points: pointsBy.get(p.id) || 0 }))
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 10);
+
+    // Signups per day
+    const byDay = new Map<string, number>();
+    for (const p of data.profiles) {
+      const d = (p.created_at || "").slice(0, 10);
+      byDay.set(d, (byDay.get(d) || 0) + 1);
+    }
+    const signups = [...byDay.entries()].sort().map(([date, count]) => ({ date, count }));
+
+    // Inactive users for last 3 finished matches
+    const lastFinishedIds = [...data.matches]
+      .filter((m: any) => m.finished)
+      .sort((a: any, b: any) => b.kickoff_at.localeCompare(a.kickoff_at))
+      .slice(0, 3)
+      .map((m: any) => m.id);
+    const predBy = new Map<string, Set<string>>();
+    for (const p of data.preds) {
+      if (!predBy.has(p.user_id)) predBy.set(p.user_id, new Set());
+      predBy.get(p.user_id)!.add(p.match_id);
+    }
+    const inactives = data.profiles.filter((p: any) => {
+      const set = predBy.get(p.id);
+      return lastFinishedIds.length > 0 && lastFinishedIds.every((id) => !set?.has(id));
+    });
+
+    return { totalUsers, activeUsers, finishedMatches, totalPreds, participation, top10, signups, inactives };
+  }, [data]);
+
+  if (isLoading || !computed) return <p className="mt-4 text-sm text-muted-foreground">Chargement…</p>;
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Kpi label="Inscrits" value={computed.totalUsers} />
+        <Kpi label="Actifs" value={computed.activeUsers} />
+        <Kpi label="Pronostics" value={computed.totalPreds} />
+        <Kpi label="Participation" value={`${computed.participation}%`} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle className="text-base">Top 10 du classement</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <tbody>
+                {computed.top10.map((u: any, i: number) => (
+                  <tr key={u.id} className="border-t">
+                    <td className="w-10 px-3 py-2 text-muted-foreground">#{i + 1}</td>
+                    <td className="px-3 py-2">{u.prenom} <span className="text-xs text-muted-foreground">{u.num_paie}</span></td>
+                    <td className="px-3 py-2 text-right font-semibold">{u.points} pts</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Évolution des inscriptions</CardTitle></CardHeader>
+          <CardContent>
+            <div className="h-56 w-full">
+              <ResponsiveContainer>
+                <LineChart data={computed.signups}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis dataKey="date" fontSize={11} />
+                  <YAxis allowDecimals={false} fontSize={11} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            Utilisateurs inactifs ({computed.inactives.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Aucun pronostic sur les 3 derniers matchs terminés.
+          </p>
+          {computed.inactives.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Tous les utilisateurs participent.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {computed.inactives.map((u: any) => (
+                <span key={u.id} className="rounded border bg-muted/40 px-2 py-1 text-xs">
+                  {u.prenom} · {u.num_paie}
+                </span>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function Kpi({ label, value }: { label: string; value: number | string }) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <p className="text-xs uppercase text-muted-foreground">{label}</p>
+        <p className="mt-1 text-2xl font-bold">{value}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ----------------------------- MATCHES ----------------------------- */
+
 function AdminResults() {
   const qc = useQueryClient();
+  const [matchdayFilter, setMatchdayFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<string>("all");
+
   const { data: matches = [] } = useQuery({
     queryKey: ["admin-matches"],
     queryFn: async () => {
@@ -54,10 +232,26 @@ function AdminResults() {
     },
   });
 
-  async function save(id: string, sa: number, sb: number, finished: boolean) {
-    const { error } = await supabase.from("matches").update({ score_a: sa, score_b: sb, finished }).eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Résultat enregistré, points recalculés"); qc.invalidateQueries(); }
+  const matchdays = useMemo(
+    () => [...new Set(matches.map((m: any) => m.matchday).filter((x: any) => x != null))].sort((a: any, b: any) => a - b),
+    [matches],
+  );
+  const stages = useMemo(
+    () => [...new Set(matches.map((m: any) => m.stage))],
+    [matches],
+  );
+
+  const filtered = matches.filter((m: any) => {
+    if (matchdayFilter !== "all" && String(m.matchday) !== matchdayFilter) return false;
+    if (stageFilter !== "all" && m.stage !== stageFilter) return false;
+    return true;
+  });
+
+  async function save(id: string, patch: Record<string, any>) {
+    const { error } = await supabase.from("matches").update(patch).eq("id", id);
+    if (error) { toast.error(error.message); return false; }
+    qc.invalidateQueries();
+    return true;
   }
 
   const [syncing, setSyncing] = useState(false);
@@ -80,45 +274,96 @@ function AdminResults() {
     }
   }
 
+  async function markAllFinished() {
+    const targets = filtered.filter((m: any) => !m.finished && m.score_a != null && m.score_b != null);
+    if (targets.length === 0) { toast.info("Rien à valider (scores manquants ou déjà validés)"); return; }
+    const { error } = await supabase.from("matches").update({ finished: true }).in("id", targets.map((m: any) => m.id));
+    if (error) toast.error(error.message);
+    else { toast.success(`${targets.length} match(s) validés`); qc.invalidateQueries(); }
+  }
+
   return (
     <>
-      <div className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
         <div className="text-sm">
           <p className="font-semibold">Agent IA — mise à jour automatique des scores</p>
-          <p className="text-xs text-muted-foreground">Synchronise les scores depuis API-Football toutes les 15 min. Vous pouvez aussi déclencher manuellement.</p>
+          <p className="text-xs text-muted-foreground">Synchro toutes les 15 min depuis API-Football.</p>
         </div>
         <Button size="sm" onClick={syncNow} disabled={syncing}>
           {syncing ? "Synchro…" : "Synchroniser maintenant"}
         </Button>
       </div>
-    <Card className="mt-4">
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase">
-              <tr><th className="px-3 py-2 text-left">Match</th><th className="px-3 py-2">Date</th><th className="px-3 py-2">Score</th><th className="px-3 py-2">Validé</th><th></th></tr>
-            </thead>
-            <tbody>
-              {matches.map((m) => <ResultRow key={m.id} m={m} onSave={save} />)}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Select value={stageFilter} onValueChange={setStageFilter}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Phase" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes phases</SelectItem>
+            {stages.map((s: any) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={matchdayFilter} onValueChange={setMatchdayFilter}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Journée" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes journées</SelectItem>
+            {matchdays.map((d: any) => <SelectItem key={d} value={String(d)}>Journée {d}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="secondary" onClick={markAllFinished}>
+          Valider tous les matchs filtrés
+        </Button>
+        <span className="text-xs text-muted-foreground">{filtered.length} match(s)</span>
+      </div>
+
+      <Card className="mt-4">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase">
+                <tr>
+                  <th className="px-3 py-2 text-left">Match</th>
+                  <th className="px-3 py-2">Date / heure</th>
+                  <th className="px-3 py-2">Score</th>
+                  <th className="px-3 py-2">Validé</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((m: any) => <ResultRow key={m.id} m={m} onSave={save} />)}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </>
   );
 }
 
-function ResultRow({ m, onSave }: { m: any; onSave: (id: string, sa: number, sb: number, finished: boolean) => void }) {
+function ResultRow({ m, onSave }: { m: any; onSave: (id: string, patch: Record<string, any>) => Promise<boolean> }) {
   const [sa, setSa] = useState<string>(m.score_a != null ? String(m.score_a) : "");
   const [sb, setSb] = useState<string>(m.score_b != null ? String(m.score_b) : "");
   const [fin, setFin] = useState<boolean>(m.finished);
+  const [kickoff, setKickoff] = useState<string>(toLocalInput(m.kickoff_at));
   const nameA = m.team_a?.name || m.team_a_placeholder || "?";
   const nameB = m.team_b?.name || m.team_b_placeholder || "?";
+
   return (
     <tr className="border-t">
-      <td className="px-3 py-2">{nameA} - {nameB} <span className="ml-2 text-xs text-muted-foreground uppercase">{m.stage}{m.group_letter ? ` ${m.group_letter}` : ""}</span></td>
-      <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{formatFR(m.kickoff_at)}</td>
+      <td className="px-3 py-2">
+        {nameA} - {nameB}{" "}
+        <span className="ml-2 text-xs uppercase text-muted-foreground">
+          {m.stage}{m.group_letter ? ` ${m.group_letter}` : ""}{m.matchday ? ` · J${m.matchday}` : ""}
+        </span>
+      </td>
+      <td className="px-3 py-2">
+        <Input
+          type="datetime-local"
+          value={kickoff}
+          onChange={(e) => setKickoff(e.target.value)}
+          className="h-8 w-48"
+        />
+        <p className="mt-1 text-[10px] text-muted-foreground">{formatFR(m.kickoff_at)}</p>
+      </td>
       <td className="px-3 py-2">
         <div className="flex items-center gap-1">
           <Input type="number" min={0} max={20} value={sa} onChange={(e) => setSa(e.target.value)} className="h-8 w-14 text-center" />
@@ -128,18 +373,46 @@ function ResultRow({ m, onSave }: { m: any; onSave: (id: string, sa: number, sb:
       </td>
       <td className="px-3 py-2 text-center"><Switch checked={fin} onCheckedChange={setFin} /></td>
       <td className="px-3 py-2 text-right">
-        <Button size="sm" onClick={() => {
-          const a = Number(sa), b = Number(sb);
-          if (fin && (!Number.isInteger(a) || !Number.isInteger(b))) { toast.error("Scores requis pour valider"); return; }
-          onSave(m.id, a, b, fin);
+        <Button size="sm" onClick={async () => {
+          const a = sa === "" ? null : Number(sa);
+          const b = sb === "" ? null : Number(sb);
+          if (fin && (a == null || b == null)) { toast.error("Scores requis pour valider"); return; }
+          const patch: any = { score_a: a, score_b: b, finished: fin };
+          const newIso = fromLocalInput(kickoff);
+          if (newIso && newIso !== m.kickoff_at) patch.kickoff_at = newIso;
+          const ok = await onSave(m.id, patch);
+          if (ok) toast.success("Enregistré");
         }}>Enregistrer</Button>
       </td>
     </tr>
   );
 }
 
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fromLocalInput(v: string): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/* ----------------------------- USERS ----------------------------- */
+
 function AdminUsers() {
   const qc = useQueryClient();
+  const deleteUser = useServerFn(deleteUserFn);
+  const resetPwd = useServerFn(resetUserPasswordFn);
+
+  const [search, setSearch] = useState("");
+  const [depotFilter, setDepotFilter] = useState<string>("all");
+
+  const [pwdTarget, setPwdTarget] = useState<any | null>(null);
+  const [pwdValue, setPwdValue] = useState("");
+  const [delTarget, setDelTarget] = useState<any | null>(null);
+
   const { data: users = [] } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
@@ -155,6 +428,19 @@ function AdminUsers() {
       return (profiles || []).map((p: any) => ({ ...p, roles: roleMap.get(p.id) || [] }));
     },
   });
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter((u: any) => {
+      if (depotFilter !== "all" && u.depot !== depotFilter) return false;
+      if (!q) return true;
+      return (
+        (u.prenom || "").toLowerCase().includes(q) ||
+        (u.num_paie || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q)
+      );
+    });
+  }, [users, search, depotFilter]);
 
   async function toggleActive(id: string, next: boolean) {
     const { error } = await supabase.from("profiles").update({ active: next }).eq("id", id);
@@ -172,27 +458,153 @@ function AdminUsers() {
     qc.invalidateQueries({ queryKey: ["admin-users"] });
   }
 
+  async function confirmDelete() {
+    if (!delTarget) return;
+    try {
+      await deleteUser({ data: { userId: delTarget.id } });
+      toast.success("Utilisateur supprimé");
+      setDelTarget(null);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    }
+  }
+
+  async function confirmResetPwd() {
+    if (!pwdTarget) return;
+    if (pwdValue.length < 8) { toast.error("8 caractères minimum"); return; }
+    try {
+      await resetPwd({ data: { userId: pwdTarget.id, newPassword: pwdValue } });
+      toast.success("Mot de passe réinitialisé");
+      setPwdTarget(null);
+      setPwdValue("");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    }
+  }
+
+  function exportCSV() {
+    const headers = ["prenom", "num_paie", "email", "depot", "active", "admin", "created_at"];
+    const rows = filtered.map((u: any) => [
+      u.prenom, u.num_paie, u.email, u.depot, u.active ? "oui" : "non",
+      u.roles.includes("admin") ? "oui" : "non", u.created_at,
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map((c) => `"${String(c ?? "").replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inscrits-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
-    <Card className="mt-4">
-      <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase">
-              <tr><th className="px-3 py-2 text-left">Nom</th><th className="px-3 py-2 text-left">Email</th><th className="px-3 py-2 text-center">Actif</th><th className="px-3 py-2 text-center">Admin</th></tr>
-            </thead>
-            <tbody>
-              {users.map((u: any) => (
-                <tr key={u.id} className="border-t">
-                  <td className="px-3 py-2">{u.prenom} {u.num_paie}</td>
-                  <td className="px-3 py-2">{u.email}</td>
-                  <td className="px-3 py-2 text-center"><Switch checked={u.active} onCheckedChange={(v) => toggleActive(u.id, v)} /></td>
-                  <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
+    <>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Input
+          placeholder="Recherche prénom, n° paie, email…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="h-9 max-w-xs"
+        />
+        <Select value={depotFilter} onValueChange={setDepotFilter}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Dépôt" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous dépôts</SelectItem>
+            <SelectItem value="sequedin">Sequedin</SelectItem>
+            <SelectItem value="faidherbe">Faidherbe</SelectItem>
+            <SelectItem value="wattrelos">Wattrelos</SelectItem>
+            <SelectItem value="pc_bus">PC Bus</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="outline" onClick={exportCSV}>
+          <Download className="mr-1 h-4 w-4" /> Export CSV
+        </Button>
+        <span className="text-xs text-muted-foreground">{filtered.length} / {users.length}</span>
+      </div>
+
+      <Card className="mt-4">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase">
+                <tr>
+                  <th className="px-3 py-2 text-left">Nom</th>
+                  <th className="px-3 py-2 text-left">Email</th>
+                  <th className="px-3 py-2 text-left">Dépôt</th>
+                  <th className="px-3 py-2 text-center">Actif</th>
+                  <th className="px-3 py-2 text-center">Admin</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+              </thead>
+              <tbody>
+                {filtered.map((u: any) => (
+                  <tr key={u.id} className="border-t">
+                    <td className="px-3 py-2">{u.prenom} <span className="text-xs text-muted-foreground">{u.num_paie}</span></td>
+                    <td className="px-3 py-2 text-xs">{u.email}</td>
+                    <td className="px-3 py-2 text-xs">{u.depot}</td>
+                    <td className="px-3 py-2 text-center"><Switch checked={u.active} onCheckedChange={(v) => toggleActive(u.id, v)} /></td>
+                    <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
+                    <td className="px-3 py-2 text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" title="Réinitialiser mot de passe"
+                          onClick={() => { setPwdTarget(u); setPwdValue(""); }}>
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" title="Supprimer"
+                          onClick={() => setDelTarget(u)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!pwdTarget} onOpenChange={(o) => !o && setPwdTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Réinitialiser le mot de passe</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Pour <strong>{pwdTarget?.prenom} {pwdTarget?.num_paie}</strong>
+          </p>
+          <Input
+            type="text"
+            placeholder="Nouveau mot de passe (min. 8 caractères)"
+            value={pwdValue}
+            onChange={(e) => setPwdValue(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwdTarget(null)}>Annuler</Button>
+            <Button onClick={confirmResetPwd}>Réinitialiser</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!delTarget} onOpenChange={(o) => !o && setDelTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cet utilisateur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{delTarget?.prenom} {delTarget?.num_paie}</strong> et tous ses pronostics seront supprimés définitivement.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
