@@ -16,6 +16,7 @@ const DEPOTS = [
   { value: "pc_bus", label: "PC Bus" },
   { value: "tram", label: "Tram" },
   { value: "copem", label: "COPEM" },
+  { value: "support", label: "Équipe Support" },
 ] as const;
 type DepotValue = typeof DEPOTS[number]["value"];
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,7 +51,7 @@ const nameSchema = z.object({
   prenom: z.string().trim().min(1, "Prénom requis").max(50),
   numPaie: z.string().trim().min(1, "N° de paie requis").max(50),
   password: z.string().min(8, "8 caractères minimum").max(72),
-  depot: z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram", "copem"], { message: "Dépôt requis" }),
+  depot: z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram", "copem", "support"], { message: "Dépôt requis" }),
 });
 
 const loginSchema = z.object({

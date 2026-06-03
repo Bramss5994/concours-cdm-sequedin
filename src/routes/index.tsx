@@ -12,6 +12,7 @@ import logoWattrelos from "@/assets/logo-wattrelos.png.asset.json";
 import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
 import logoTram from "@/assets/logo-tram.jpg.asset.json";
 import logoCopem from "@/assets/logo-copem.jpg.asset.json";
+import logoSupport from "@/assets/logo-support.jpg.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
@@ -127,6 +128,7 @@ function Home() {
               { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url, scale: 1 },
               { value: "tram", label: "Tram", logo: logoTram.url, scale: 1.25 },
               { value: "copem", label: "COPEM", logo: logoCopem.url, scale: 1.25 },
+              { value: "support", label: "Équipe Support", logo: logoSupport.url, scale: 1.25 },
             ].map((d, i) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">

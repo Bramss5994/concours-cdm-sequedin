@@ -47,6 +47,7 @@ const DEPOT_LABEL: Record<string, string> = {
   pc_bus: "PC Bus",
   tram: "Tram",
   copem: "COPEM",
+  support: "Équipe Support",
 };
 
 function UnitePage() {

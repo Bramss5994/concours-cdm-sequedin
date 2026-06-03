@@ -536,6 +536,7 @@ function AdminUsers() {
             <SelectItem value="pc_bus">PC Bus</SelectItem>
             <SelectItem value="tram">Tram</SelectItem>
             <SelectItem value="copem">COPEM</SelectItem>
+            <SelectItem value="support">Équipe Support</SelectItem>
           </SelectContent>
         </Select>
         <Button size="sm" variant="outline" onClick={exportCSV}>
@@ -636,6 +637,7 @@ const UNIT_DEPOTS: { value: string; label: string }[] = [
   { value: "pc_bus", label: "PC Bus" },
   { value: "tram", label: "Tram" },
   { value: "copem", label: "COPEM" },
+  { value: "support", label: "Équipe Support" },
 ];
 
 function AdminUnitAdmins() {
