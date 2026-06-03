@@ -85,6 +85,7 @@ function UniteDashboard() {
   const [pwdValue, setPwdValue] = useState("");
   const [delTarget, setDelTarget] = useState<any | null>(null);
   const [search, setSearch] = useState("");
+  const [depotFilter, setDepotFilter] = useState<string>("all");
 
   if (!sessionQ.data) {
     return <div className="container mx-auto p-6 text-sm text-muted-foreground">Vérification…</div>;
@@ -92,7 +93,12 @@ function UniteDashboard() {
 
   const depot = sessionQ.data.depot;
   const isSuper = (sessionQ.data as any).isSuper;
-  const participants = (listQ.data ?? []).filter((p: any) => {
+  const allList = listQ.data ?? [];
+  const depotsAvailable = isSuper
+    ? Array.from(new Set(allList.map((p: any) => p.depot as string))).sort()
+    : [];
+  const participants = allList.filter((p: any) => {
+    if (isSuper && depotFilter !== "all" && p.depot !== depotFilter) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
