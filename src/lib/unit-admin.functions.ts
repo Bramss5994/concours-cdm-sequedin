@@ -150,7 +150,7 @@ export const toggleUnitParticipantFn = createServerFn({ method: "POST" })
       .select("depot")
       .eq("id", data.userId)
       .maybeSingle();
-    if (!prof || prof.depot !== context.depot) throw new Error("Participant hors de votre unité");
+    if (!prof || (!context.isSuper && prof.depot !== context.depot)) throw new Error("Participant hors de votre unité");
     const { error } = await supabaseAdmin
       .from("profiles")
       .update({ active: data.active })
