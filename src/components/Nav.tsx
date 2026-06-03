@@ -43,9 +43,6 @@ export function Nav() {
             </Button>
           ) : (
             <div className="flex items-center gap-1">
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/auth">S'inscrire</Link>
-              </Button>
               <Button asChild size="sm">
                 <Link to="/auth"><LogIn className="h-4 w-4" /> Se connecter</Link>
               </Button>
@@ -78,9 +75,6 @@ export function Nav() {
               </Button>
             ) : (
               <div className="flex flex-col gap-1">
-                <Button asChild variant="outline">
-                  <Link to="/auth" onClick={() => setOpen(false)}>S'inscrire</Link>
-                </Button>
                 <Button asChild>
                   <Link to="/auth" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Se connecter</Link>
                 </Button>

@@ -71,12 +71,9 @@ function Home() {
                 </Button>
               ) : (
                 <Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_8px_30px_rgba(220,38,38,0.45)] hover:from-red-500 hover:to-red-400">
-                  <Link to="/auth">Rejoindre le concours</Link>
+                  <a href="#choisis-ton-unite">Rejoindre le concours</a>
                 </Button>
               )}
-              <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/5 text-white backdrop-blur hover:bg-white/10">
-                <Link to="/leaderboard">Classement</Link>
-              </Button>
             </div>
           </motion.div>
 
@@ -101,7 +98,7 @@ function Home() {
       <Countdown />
 
       {!user && (
-        <section className="container mx-auto px-4 py-12">
+        <section id="choisis-ton-unite" className="container mx-auto px-4 py-12 scroll-mt-24">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -109,7 +106,7 @@ function Home() {
             transition={{ duration: 0.5 }}
             className="mx-auto max-w-4xl text-center"
           >
-            <h2 className="text-2xl font-bold sm:text-3xl">Rejoins ton unité</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Choisis ton unité</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Chaque unité a son propre classement et son propre podium. Inscris-toi via le lien de ton unité.
             </p>
