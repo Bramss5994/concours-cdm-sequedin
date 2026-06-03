@@ -120,11 +120,11 @@ function Home() {
             className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
           >
             {[
-              { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
-              { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
-              { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url },
-              { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url },
-              { value: "tram", label: "Tram", logo: logoTram.url },
+              { value: "sequedin", label: "Sequedin", logo: logoSequedin.url, scale: 1 },
+              { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url, scale: 1 },
+              { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url, scale: 1 },
+              { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url, scale: 1 },
+              { value: "tram", label: "Tram", logo: logoTram.url, scale: 1.25 },
             ].map((d, i) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
@@ -140,6 +140,7 @@ function Home() {
                           src={d.logo}
                           alt={d.label}
                           className="relative max-h-full max-w-full object-contain"
+                          style={{ scale: d.scale }}
                           animate={{ y: [0, -6, 0], rotate: [0, 0.6, 0, -0.6, 0] }}
                           transition={{
                             duration: 4 + i * 0.3,
@@ -147,9 +148,10 @@ function Home() {
                             ease: "easeInOut",
                             delay: i * 0.35,
                           }}
-                          whileHover={{ scale: 1.06 }}
+                          whileHover={{ scale: (d.scale ?? 1) * 1.06 }}
                         />
                       </div>
+
                     ) : (
                       <>
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
