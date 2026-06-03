@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Shield } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -22,6 +23,7 @@ type DepotValue = typeof DEPOTS[number]["value"];
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { resolveParticipantLoginEmail } from "@/lib/login.functions";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -112,6 +114,7 @@ function AuthPage() {
 
 function LoginForm() {
   const router = useRouter();
+  const resolveLoginEmail = useServerFn(resolveParticipantLoginEmail);
   const [busy, setBusy] = useState(false);
   return (
     <form
@@ -122,7 +125,8 @@ function LoginForm() {
         const parsed = loginSchema.safeParse(Object.fromEntries(fd));
         if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
         setBusy(true);
-        const email = buildEmail(parsed.data.prenom, parsed.data.numPaie);
+        const resolved = await resolveLoginEmail({ data: { prenom: parsed.data.prenom, numPaie: parsed.data.numPaie } });
+        const email = resolved.email ?? buildEmail(parsed.data.prenom, parsed.data.numPaie);
         const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
         if (error) { setBusy(false); toast.error("Identifiants invalides"); return; }
         // Check if user is super admin → redirect to /admin
