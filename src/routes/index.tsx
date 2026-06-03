@@ -33,7 +33,8 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   const { user } = useAuth();
   return (
-    <div>
+    <div className="overflow-x-hidden">
+
       <section className="relative overflow-hidden bg-[#0a0a0f]">
         {/* Stadium ambient lighting */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(217,165,40,0.18),transparent_55%)]" />
