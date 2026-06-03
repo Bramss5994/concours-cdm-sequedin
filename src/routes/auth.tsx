@@ -16,6 +16,7 @@ const DEPOTS = [
   { value: "pc_bus", label: "PC Bus" },
   { value: "tram", label: "Tram" },
   { value: "copem", label: "COPEM" },
+  { value: "support", label: "Équipe Support" },
 ] as const;
 type DepotValue = typeof DEPOTS[number]["value"];
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
