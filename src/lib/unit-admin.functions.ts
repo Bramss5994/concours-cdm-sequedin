@@ -191,7 +191,7 @@ export const deleteUnitParticipantFn = createServerFn({ method: "POST" })
       .select("depot")
       .eq("id", data.userId)
       .maybeSingle();
-    if (!prof || prof.depot !== context.depot) throw new Error("Participant hors de votre unité");
+    if (!prof || (!context.isSuper && prof.depot !== context.depot)) throw new Error("Participant hors de votre unité");
     await supabaseAdmin.from("predictions").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
