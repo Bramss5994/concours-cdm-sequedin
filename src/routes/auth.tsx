@@ -93,12 +93,6 @@ function AuthPage() {
       <p className="mt-3 text-center text-xs text-muted-foreground">
         Aucune adresse e-mail n'est demandée. Utilisez votre prénom et votre numéro de paie pour vous connecter.
       </p>
-      <p className="mt-2 text-center text-xs">
-        <a href="/unite/login" className="text-muted-foreground underline underline-offset-2 hover:text-primary">
-          Espace admin d'unité →
-        </a>
-      </p>
-
     </div>
   );
 }
