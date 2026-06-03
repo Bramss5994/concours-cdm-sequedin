@@ -25,7 +25,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye } from "lucide-react";
+import { formatFR } from "@/lib/time";
 import {
   getUnitAdminSession,
   logoutUnitAdmin,
@@ -33,7 +34,9 @@ import {
   toggleUnitParticipantFn,
   resetUnitParticipantPasswordFn,
   deleteUnitParticipantFn,
+  getUnitParticipantPredictionsFn,
 } from "@/lib/unit-admin.functions";
+
 
 export const Route = createFileRoute("/unite")({
   component: UnitePage,
