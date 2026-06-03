@@ -90,6 +90,7 @@ function UniteMatchsPage() {
   if (!sessionQ.data) {
     return <div className="container mx-auto p-6 text-sm text-muted-foreground">Vérification…</div>;
   }
+  const isSuper = (sessionQ.data as any).isSuper;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -102,7 +103,9 @@ function UniteMatchsPage() {
           </Button>
           <h1 className="mt-2 text-xl font-bold sm:text-2xl">Matchs & pronostics</h1>
           <p className="text-sm text-muted-foreground">
-            Consultation des matchs et des pronostics de votre unité.
+            {isSuper
+              ? "Consultation des matchs et des pronostics de toutes les unités."
+              : "Consultation des matchs et des pronostics de votre unité."}
           </p>
         </div>
       </div>
