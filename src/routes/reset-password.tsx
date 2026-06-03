@@ -57,7 +57,7 @@ function ResetPwd() {
                 const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
                 setBusy(false);
                 if (error) toast.error(error.message);
-                else toast.success("Email envoyé. Consulte ta boîte mail.");
+                else toast.success("Email envoyé. Consultez votre boîte mail.");
               }}
             >
               <div className="space-y-1.5"><Label>Email</Label><Input name="email" type="email" required /></div>
