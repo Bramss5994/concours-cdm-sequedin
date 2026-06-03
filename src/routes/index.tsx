@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
+import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award, Activity } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { getParticipationStatsFn } from "@/lib/stats.functions";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
@@ -99,6 +102,9 @@ function Home() {
       </section>
 
       <Countdown />
+
+      <ParticipationLive />
+
 
       {!user && (
         <section id="choisis-ton-unite" className="container mx-auto px-4 py-12 scroll-mt-24">
@@ -330,6 +336,88 @@ function Home() {
           </motion.ol>
         </div>
       </motion.section>
+    </div>
+  );
+}
+
+function ParticipationLive() {
+  const fn = useServerFn(getParticipationStatsFn);
+  const { data } = useQuery({
+    queryKey: ["participation-stats"],
+    queryFn: () => fn(),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
+  const rate = data?.participationRate ?? 0;
+  const users = data?.usersWithPredictions ?? 0;
+  const total = data?.totalUsers ?? 0;
+  const preds = data?.totalPredictions ?? 0;
+
+  return (
+    <section className="container mx-auto px-4 py-10">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="mx-auto max-w-4xl"
+      >
+        <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-background via-background to-primary/5">
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Activity className="h-5 w-5" />
+                  <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    En direct
+                  </div>
+                  <h2 className="text-xl font-bold sm:text-2xl">Taux de participation</h2>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-4xl font-extrabold text-primary sm:text-5xl">
+                  {rate}
+                  <span className="text-2xl sm:text-3xl">%</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {users} / {total} inscrits
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 h-3 w-full overflow-hidden rounded-full bg-muted">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${rate}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full rounded-full bg-gradient-to-r from-red-600 via-red-500 to-amber-400 shadow-[0_0_18px_rgba(220,38,38,0.6)]"
+              />
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <Stat label="Pronostiqueurs actifs" value={users.toString()} />
+              <Stat label="Pronostics enregistrés" value={preds.toString()} />
+              <Stat label="Inscrits au concours" value={total.toString()} />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </section>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border bg-card/50 p-3 text-center">
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }
