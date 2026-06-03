@@ -283,6 +283,14 @@ function UniteDashboard() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            title="Voir les pronostics"
+                            onClick={() => setPredTarget(u)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             title="Réinitialiser mot de passe"
                             onClick={() => {
                               setPwdTarget(u);
@@ -291,6 +299,7 @@ function UniteDashboard() {
                           >
                             <KeyRound className="h-4 w-4" />
                           </Button>
+
                           <Button
                             size="icon"
                             variant="ghost"
