@@ -15,7 +15,7 @@ export function Nav() {
     { to: "/matches", label: "Matchs", icon: Calendar },
     { to: "/leaderboard", label: "Classement", icon: BarChart3 },
     ...(user ? [{ to: "/profile", label: "Mon profil", icon: UserIcon }] : []),
-    { to: "/admin", label: "Admin", icon: Shield },
+    ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
   return (
