@@ -52,7 +52,7 @@ export function FavoriteTeamPicker() {
           <h3 className="font-semibold">Mon équipe favorite</h3>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Choisis l'équipe que tu supportes pour la Coupe du Monde 2026.
+          Choisissez l'équipe que vous supportez pour la Coupe du Monde 2026.
         </p>
         <div className="mt-4">
           <Select
