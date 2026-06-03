@@ -15,8 +15,9 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = request.headers.get("apikey");
-        if (!apiKey || apiKey !== process.env.SUPABASE_PUBLISHABLE_KEY) {
+        const provided = request.headers.get("x-webhook-secret");
+        const expected = process.env.SYNC_WEBHOOK_SECRET;
+        if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
 
