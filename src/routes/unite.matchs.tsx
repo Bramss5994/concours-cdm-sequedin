@@ -126,7 +126,9 @@ function UniteMatchsPage() {
                       <th className="px-3 py-2 text-left">Date</th>
                       <th className="px-3 py-2 text-left">Match</th>
                       <th className="px-3 py-2 text-center">Score</th>
-                      <th className="px-3 py-2 text-center">Pronos unité</th>
+                      <th className="px-3 py-2 text-center">
+                        {isSuper ? "Pronos totaux" : "Pronos unité"}
+                      </th>
                       <th className="px-3 py-2 text-right">Actions</th>
                     </tr>
                   </thead>
