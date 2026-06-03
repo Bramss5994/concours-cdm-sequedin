@@ -117,13 +117,14 @@ function Home() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             variants={staggerContainer}
-            className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
           >
             {[
               { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
               { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
               { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url },
               { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url },
+              { value: "tram", label: "Tram", logo: logoTram.url },
             ].map((d, i) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
