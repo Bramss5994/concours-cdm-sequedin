@@ -290,9 +290,9 @@ function Home() {
           </motion.div>
           <motion.ol variants={staggerContainer} className="md:col-span-2 space-y-4">
             {[
-              ["1. Inscris-toi", "Inscris-toi avec ton numéro de paie et ton prénom, et crée ton mot de passe !"],
-              ["2. Pronostique", "Saisis le score que tu prévois pour chaque match avant H-1."],
-              ["3. Suis le classement", "Tes points sont calculés automatiquement après chaque match."],
+              ["1. Inscrivez-vous", "Inscrivez-vous avec votre numéro de paie et votre prénom, puis créez votre mot de passe !"],
+              ["2. Pronostiquez", "Saisissez le score que vous prévoyez pour chaque match avant H-1."],
+              ["3. Suivez le classement", "Vos points sont calculés automatiquement après chaque match."],
             ].map(([t, d]) => (
               <motion.li key={t} variants={fadeUp} className="flex gap-3 transition-transform duration-200 hover:translate-x-1">
                 <Clock className="mt-0.5 h-5 w-5 flex-none text-primary" />
