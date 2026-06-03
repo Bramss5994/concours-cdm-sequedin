@@ -85,7 +85,7 @@ function AdminResults() {
       <div className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
         <div className="text-sm">
           <p className="font-semibold">Agent IA — mise à jour automatique des scores</p>
-          <p className="text-xs text-muted-foreground">Synchronise les scores depuis API-Football toutes les 15 min. Tu peux aussi déclencher manuellement.</p>
+          <p className="text-xs text-muted-foreground">Synchronise les scores depuis API-Football toutes les 15 min. Vous pouvez aussi déclencher manuellement.</p>
         </div>
         <Button size="sm" onClick={syncNow} disabled={syncing}>
           {syncing ? "Synchro…" : "Synchroniser maintenant"}
