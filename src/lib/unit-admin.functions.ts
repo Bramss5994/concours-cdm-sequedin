@@ -505,4 +505,27 @@ export const deleteUnitAdminAsSuperFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/* -------------------- Leaderboard (read-only) -------------------- */
+
+export const getUnitLeaderboardFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: profiles, error: e1 }, { data: preds, error: e2 }, { data: matches, error: e3 }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("profiles")
+          .select("id, prenom, num_paie, depot, active"),
+        supabaseAdmin
+          .from("predictions")
+          .select("user_id, match_id, points, exact_score, good_winner"),
+        supabaseAdmin.from("matches").select("id, stage, finished"),
+      ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+    if (e3) throw new Error(e3.message);
+    return { profiles: profiles ?? [], predictions: preds ?? [], matches: matches ?? [] };
+  });
+
+
 
