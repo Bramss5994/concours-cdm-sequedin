@@ -571,6 +571,10 @@ function AdminUsers() {
                     <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" title="Voir les pronostics"
+                          onClick={() => setPredTarget(u)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="icon" variant="ghost" title="Réinitialiser mot de passe"
                           onClick={() => { setPwdTarget(u); setPwdValue(""); }}>
                           <KeyRound className="h-4 w-4" />
