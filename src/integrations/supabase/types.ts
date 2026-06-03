@@ -291,9 +291,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_login_part: { Args: { _value: string }; Returns: string }
       recompute_match_points: {
         Args: { _match_id: string }
         Returns: undefined
+      }
+      resolve_login_email: {
+        Args: { _num_paie: string; _prenom: string }
+        Returns: string
       }
     }
     Enums: {
