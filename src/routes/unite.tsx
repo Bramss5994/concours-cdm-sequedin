@@ -208,6 +208,7 @@ function UniteDashboard() {
                 <thead className="bg-muted/50 text-xs uppercase">
                   <tr>
                     <th className="px-3 py-2 text-left">Nom</th>
+                    {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
                     <th className="px-3 py-2 text-left">Email</th>
                     <th className="px-3 py-2 text-right">Points</th>
                     <th className="px-3 py-2 text-center">Actif</th>
@@ -221,6 +222,11 @@ function UniteDashboard() {
                         {u.prenom}{" "}
                         <span className="text-xs text-muted-foreground">{u.num_paie}</span>
                       </td>
+                      {isSuper && (
+                        <td className="px-3 py-2 text-xs">
+                          <Badge variant="outline">{DEPOT_LABEL[u.depot] ?? u.depot}</Badge>
+                        </td>
+                      )}
                       <td className="px-3 py-2 text-xs">{u.email}</td>
                       <td className="px-3 py-2 text-right font-semibold">{u.points}</td>
                       <td className="px-3 py-2 text-center">
