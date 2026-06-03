@@ -71,12 +71,9 @@ function Home() {
                 </Button>
               ) : (
                 <Button asChild size="lg" className="bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_8px_30px_rgba(220,38,38,0.45)] hover:from-red-500 hover:to-red-400">
-                  <Link to="/auth">Rejoindre le concours</Link>
+                  <a href="#choisis-ton-unite">Rejoindre le concours</a>
                 </Button>
               )}
-              <Button asChild size="lg" variant="outline" className="border-white/30 bg-white/5 text-white backdrop-blur hover:bg-white/10">
-                <Link to="/leaderboard">Classement</Link>
-              </Button>
             </div>
           </motion.div>
 
