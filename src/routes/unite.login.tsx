@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Shield } from "lucide-react";
-import { loginUnitAdmin } from "@/lib/unit-admin.functions";
+import { loginUnitAdmin, getUnitAdminSession } from "@/lib/unit-admin.functions";
 
 export const Route = createFileRoute("/unite/login")({
   component: UniteLoginPage,
@@ -18,7 +19,9 @@ export const Route = createFileRoute("/unite/login")({
 
 function UniteLoginPage() {
   const login = useServerFn(loginUnitAdmin);
+  const fetchSession = useServerFn(getUnitAdminSession);
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,6 +31,9 @@ function UniteLoginPage() {
     setLoading(true);
     try {
       await login({ data: { login_code: code, password } });
+      const session = await fetchSession();
+      qc.setQueryData(["unit-admin-session"], session);
+      await qc.invalidateQueries({ queryKey: ["unit-admin-session"] });
       toast.success("Connecté");
       navigate({ to: "/unite" });
     } catch (err: any) {
