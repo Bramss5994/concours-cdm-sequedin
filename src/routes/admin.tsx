@@ -429,6 +429,7 @@ function AdminUsers() {
   const [pwdTarget, setPwdTarget] = useState<any | null>(null);
   const [pwdValue, setPwdValue] = useState("");
   const [delTarget, setDelTarget] = useState<any | null>(null);
+  const [predTarget, setPredTarget] = useState<any | null>(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ["admin-users"],
