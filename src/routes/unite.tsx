@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -49,6 +49,12 @@ const DEPOT_LABEL: Record<string, string> = {
 };
 
 function UnitePage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  if (pathname !== "/unite") return <Outlet />;
+  return <UniteDashboard />;
+}
+
+function UniteDashboard() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fetchSession = useServerFn(getUnitAdminSession);
