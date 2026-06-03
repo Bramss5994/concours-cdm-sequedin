@@ -137,7 +137,7 @@ export const BADGES: BadgeDef[] = [
   {
     id: "marathoner",
     name: "Marathonien",
-    description: "Pronostique 50 matchs",
+    description: "Pronostiquez 50 matchs",
     icon: "🏃",
     check: (c) => c.totalPredictions >= 50,
     progress: (c) => ({ current: Math.min(c.totalPredictions, 50), target: 50 }),
