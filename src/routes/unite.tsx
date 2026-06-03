@@ -194,11 +194,34 @@ function UniteDashboard() {
         <CardHeader>
           <CardTitle className="text-base">
             {isSuper
-              ? `Tous les participants (${listQ.data?.length ?? 0})`
-              : `Participants de l'unité (${listQ.data?.length ?? 0})`}
+              ? depotFilter === "all"
+                ? `Tous les participants (${allList.length})`
+                : `Participants — ${DEPOT_LABEL[depotFilter] ?? depotFilter} (${allList.filter((p: any) => p.depot === depotFilter).length})`
+              : `Participants de l'unité (${allList.length})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {isSuper && depotsAvailable.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-1">
+              <Button
+                size="sm"
+                variant={depotFilter === "all" ? "default" : "outline"}
+                onClick={() => setDepotFilter("all")}
+              >
+                Toutes les unités
+              </Button>
+              {depotsAvailable.map((d) => (
+                <Button
+                  key={d}
+                  size="sm"
+                  variant={depotFilter === d ? "default" : "outline"}
+                  onClick={() => setDepotFilter(d)}
+                >
+                  {DEPOT_LABEL[d] ?? d}
+                </Button>
+              ))}
+            </div>
+          )}
           <div className="mb-3 flex flex-wrap gap-2">
             <Input
               placeholder="Recherche prénom, n° paie, email…"
