@@ -518,6 +518,7 @@ function AdminUsers() {
             <SelectItem value="faidherbe">Faidherbe</SelectItem>
             <SelectItem value="wattrelos">Wattrelos</SelectItem>
             <SelectItem value="pc_bus">PC Bus</SelectItem>
+            <SelectItem value="tram">Tram</SelectItem>
           </SelectContent>
         </Select>
         <Button size="sm" variant="outline" onClick={exportCSV}>

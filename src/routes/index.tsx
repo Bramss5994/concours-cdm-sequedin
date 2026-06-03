@@ -10,6 +10,7 @@ import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import logoFaidherbe from "@/assets/logo-faidherbe.png.asset.json";
 import logoWattrelos from "@/assets/logo-wattrelos.png.asset.json";
 import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
+import logoTram from "@/assets/logo-tram.jpg.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
@@ -54,7 +55,7 @@ function Home() {
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-amber-300 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_10px_2px_rgba(251,191,36,0.8)]" />
-              Sequedin · Faidherbe · Wattrelos · PC Bus
+              Sequedin · Faidherbe · Wattrelos · PC Bus · Tram
             </div>
             <p className="text-sm font-medium uppercase tracking-[0.3em] text-amber-300/80">
               Concours de pronostics
@@ -116,13 +117,14 @@ function Home() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             variants={staggerContainer}
-            className="mx-auto mt-8 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="mx-auto mt-8 grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
           >
             {[
               { value: "sequedin", label: "Sequedin", logo: logoSequedin.url },
               { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
               { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url },
               { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url },
+              { value: "tram", label: "Tram", logo: logoTram.url },
             ].map((d, i) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
@@ -186,7 +188,7 @@ function Home() {
         className="container mx-auto grid gap-4 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4"
       >
         {[
-          { icon: Users, t: "Entre collègues", d: "Ouvert au personnel des dépôts Sequedin, Faidherbe, Wattrelos et PC Bus." },
+          { icon: Users, t: "Entre collègues", d: "Ouvert au personnel des dépôts Sequedin, Faidherbe, Wattrelos, PC Bus et Tram." },
           { icon: Calendar, t: "Tous les matchs", d: "Phase de groupes (A à L) + 16es, 8es, quarts, demi-finales, match pour la 3e place et finale." },
           { icon: Lock, t: "Clôture à H-1", d: "Les pronos se ferment automatiquement 1h avant le coup d'envoi." },
           { icon: BarChart3, t: "Classement live", d: "Suivez votre position au classement général en direct, avec une mise à jour automatique à la fin de chaque match." },
@@ -260,7 +262,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >Chaque unité a son propre podium. À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité (Sequedin, Faidherbe, Wattrelos, PC Bus) sont récompensés séparément :</motion.p>
+          >Chaque unité a son propre podium. À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité (Sequedin, Faidherbe, Wattrelos, PC Bus, Tram) sont récompensés séparément :</motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

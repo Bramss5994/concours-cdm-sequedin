@@ -28,9 +28,10 @@ const DEPOTS: { value: string; label: string }[] = [
   { value: "faidherbe", label: "Faidherbe" },
   { value: "wattrelos", label: "Wattrelos" },
   { value: "pc_bus", label: "PC Bus" },
+  { value: "tram", label: "Tram" },
 ];
 const DEPOT_LABEL: Record<string, string> = {
-  sequedin: "Sequedin", faidherbe: "Faidherbe", wattrelos: "Wattrelos", pc_bus: "PC Bus",
+  sequedin: "Sequedin", faidherbe: "Faidherbe", wattrelos: "Wattrelos", pc_bus: "PC Bus", tram: "Tram",
 };
 
 const fadeUp = {

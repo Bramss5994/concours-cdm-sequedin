@@ -268,7 +268,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
-      depot: "sequedin" | "faidherbe" | "wattrelos" | "pc_bus"
+      depot: "sequedin" | "faidherbe" | "wattrelos" | "pc_bus" | "tram"
       match_stage: "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final"
     }
     CompositeTypes: {
@@ -398,7 +398,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      depot: ["sequedin", "faidherbe", "wattrelos", "pc_bus"],
+      depot: ["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram"],
       match_stage: ["group", "r32", "r16", "qf", "sf", "third", "final"],
     },
   },
