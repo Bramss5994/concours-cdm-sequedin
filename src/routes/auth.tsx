@@ -157,7 +157,7 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
         // Auto-confirm is enabled, so we can sign in immediately
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
         setBusy(false);
-        if (signInError) { toast.success("Compte créé. Connecte-toi."); return; }
+        if (signInError) { toast.success("Compte créé. Connectez-vous."); return; }
         toast.success("Compte créé !");
         router.navigate({ to: "/matches" });
       }}
