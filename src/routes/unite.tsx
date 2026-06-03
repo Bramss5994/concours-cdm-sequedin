@@ -190,6 +190,11 @@ function UniteDashboard() {
               <ListChecks className="mr-1 h-4 w-4" /> Matchs & pronostics
             </Link>
           </Button>
+          <Button asChild variant="secondary" size="sm">
+            <Link to="/unite/classement">
+              <BarChart3 className="mr-1 h-4 w-4" /> Classement
+            </Link>
+          </Button>
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="mr-1 h-4 w-4" /> Déconnexion
           </Button>
