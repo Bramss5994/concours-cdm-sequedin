@@ -1,18 +1,34 @@
 import { createServerFn, createMiddleware } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
+import { createHash } from "crypto";
 import { z } from "zod";
 
 type UnitAdminSession = { depot: string; login_code: string };
 
+function getSessionPassword() {
+  const explicitSecret = process.env.UNIT_ADMIN_COOKIE_SECRET;
+  if (explicitSecret && explicitSecret.length >= 32) return explicitSecret;
+
+  const fallbackSecret =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SYNC_WEBHOOK_SECRET ?? process.env.LOVABLE_API_KEY;
+  if (fallbackSecret && fallbackSecret.length >= 32) {
+    return createHash("sha256").update(`unit-admin-session:${fallbackSecret}`).digest("hex");
+  }
+
+  throw new Error("UNIT_ADMIN_COOKIE_SECRET is missing or too short (min 32 chars)");
+}
+
 function hasValidSessionSecret() {
-  return (process.env.UNIT_ADMIN_COOKIE_SECRET?.length ?? 0) >= 32;
+  try {
+    getSessionPassword();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function sessionConfig() {
-  const password = process.env.UNIT_ADMIN_COOKIE_SECRET;
-  if (!password || password.length < 32) {
-    throw new Error("UNIT_ADMIN_COOKIE_SECRET is missing or too short (min 32 chars)");
-  }
+  const password = getSessionPassword();
   return {
     password,
     name: "unit_admin_session",
