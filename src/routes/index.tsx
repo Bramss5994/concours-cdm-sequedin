@@ -203,7 +203,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >Pour chaque match, tes points sont attribués automatiquement à la fin de la rencontre.</motion.p>
+          >Pour chaque match, vos points sont attribués automatiquement à la fin de la rencontre.</motion.p>
           <motion.div
             initial="hidden"
             whileInView="visible"
