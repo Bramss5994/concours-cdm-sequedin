@@ -108,7 +108,7 @@ function Home() {
           >
             <h2 className="text-2xl font-bold sm:text-3xl">Choisis ton unité</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Chaque unité a son propre classement et son propre podium. Inscris-toi via le lien de ton unité.
+              Chaque dépôt possède un classement ainsi qu'un podium distinct.
             </p>
           </motion.div>
           <motion.div
