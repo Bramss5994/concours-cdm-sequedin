@@ -116,12 +116,14 @@ export const listUnitParticipantsFn = createServerFn({ method: "GET" })
   .middleware([requireUnitAdmin])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const profilesQuery = supabaseAdmin
+      .from("profiles")
+      .select("id, prenom, num_paie, email, depot, active, created_at")
+      .order("created_at", { ascending: false });
+    if (!context.isSuper) profilesQuery.eq("depot", context.depot as any);
+
     const [{ data: profiles, error: e1 }, { data: preds, error: e2 }] = await Promise.all([
-      supabaseAdmin
-        .from("profiles")
-        .select("id, prenom, num_paie, email, depot, active, created_at")
-        .eq("depot", context.depot as any)
-        .order("created_at", { ascending: false }),
+      profilesQuery,
       supabaseAdmin.from("predictions").select("user_id, points"),
     ]);
     if (e1) throw new Error(e1.message);
