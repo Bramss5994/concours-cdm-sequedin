@@ -26,15 +26,30 @@ export const resolveParticipantLoginEmail = createServerFn({ method: "POST" })
       .from("profiles")
       .select("email, prenom, num_paie")
       .eq("active", true)
-      .limit(1000);
+      .limit(2000);
 
     if (error) throw new Error(error.message);
+    if (!profiles || profiles.length === 0) return { email: null };
 
-    const match = profiles?.find(
-      (profile) =>
-        normalizeLoginPart(profile.prenom ?? "") === targetPrenom &&
-        normalizeLoginPart(profile.num_paie ?? "") === targetNumPaie,
+    // 1. Strict match: same normalized prénom AND n° de paie
+    const strict = profiles.find(
+      (p) =>
+        normalizeLoginPart(p.prenom ?? "") === targetPrenom &&
+        normalizeLoginPart(p.num_paie ?? "") === targetNumPaie,
     );
+    if (strict) return { email: strict.email };
 
-    return { email: match?.email ?? null };
+    // 2. Fallback: unique match on n° de paie alone (employee ID is unique)
+    const byNumPaie = profiles.filter(
+      (p) => normalizeLoginPart(p.num_paie ?? "") === targetNumPaie,
+    );
+    if (byNumPaie.length === 1) return { email: byNumPaie[0].email };
+
+    // 3. Fallback: unique match on prénom alone
+    const byPrenom = profiles.filter(
+      (p) => normalizeLoginPart(p.prenom ?? "") === targetPrenom,
+    );
+    if (byPrenom.length === 1) return { email: byPrenom[0].email };
+
+    return { email: null };
   });
