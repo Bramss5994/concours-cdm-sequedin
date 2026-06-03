@@ -123,13 +123,30 @@ function Home() {
               { value: "faidherbe", label: "Faidherbe", logo: logoFaidherbe.url },
               { value: "wattrelos", label: "Wattrelos", logo: logoWattrelos.url },
               { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url },
-            ].map((d) => (
+            ].map((d, i) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
                   <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
                     {d.logo ? (
-                      <div className="flex h-64 w-full items-center justify-center rounded-md bg-white p-2">
-                        <img src={d.logo} alt={d.label} className="max-h-full max-w-full object-contain" />
+                      <div className="relative flex h-64 w-full items-center justify-center overflow-hidden rounded-md bg-white p-2">
+                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(220,38,38,0.12),transparent_65%)] animate-pulse" />
+                        <div
+                          className="pointer-events-none absolute -inset-x-1/2 -top-1/2 h-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-60 animate-shine"
+                          style={{ animationDelay: `${i * 0.6}s` }}
+                        />
+                        <motion.img
+                          src={d.logo}
+                          alt={d.label}
+                          className="relative max-h-full max-w-full object-contain"
+                          animate={{ y: [0, -6, 0], rotate: [0, 0.6, 0, -0.6, 0] }}
+                          transition={{
+                            duration: 4 + i * 0.3,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: i * 0.35,
+                          }}
+                          whileHover={{ scale: 1.06 }}
+                        />
                       </div>
                     ) : (
                       <>

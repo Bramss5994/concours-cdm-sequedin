@@ -180,3 +180,11 @@
   animation: fade-in-up 0.5s ease-out forwards;
 }
 
+
+@keyframes shine {
+  0% { transform: translateX(-120%) rotate(12deg); }
+  60%, 100% { transform: translateX(220%) rotate(12deg); }
+}
+.animate-shine {
+  animation: shine 3.5s ease-in-out infinite;
+}
