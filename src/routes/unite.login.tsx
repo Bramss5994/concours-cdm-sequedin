@@ -19,7 +19,9 @@ export const Route = createFileRoute("/unite/login")({
 
 function UniteLoginPage() {
   const login = useServerFn(loginUnitAdmin);
+  const fetchSession = useServerFn(getUnitAdminSession);
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,9 @@ function UniteLoginPage() {
     setLoading(true);
     try {
       await login({ data: { login_code: code, password } });
+      const session = await fetchSession();
+      qc.setQueryData(["unit-admin-session"], session);
+      await qc.invalidateQueries({ queryKey: ["unit-admin-session"] });
       toast.success("Connecté");
       navigate({ to: "/unite" });
     } catch (err: any) {
