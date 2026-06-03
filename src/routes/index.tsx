@@ -106,7 +106,7 @@ function Home() {
             transition={{ duration: 0.5 }}
             className="mx-auto max-w-4xl text-center"
           >
-            <h2 className="text-2xl font-bold sm:text-3xl">Choisis ton unité</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Choisissez votre unité</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Chaque dépôt possède un classement ainsi qu'un podium distinct.
             </p>
