@@ -630,11 +630,92 @@ function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <UserPredictionsDialog user={predTarget} onClose={() => setPredTarget(null)} />
     </>
   );
 }
 
-/* ----------------------------- UNIT ADMINS (super-admin) ----------------------------- */
+/* ----------------------------- USER PREDICTIONS ----------------------------- */
+
+function UserPredictionsDialog({ user, onClose }: { user: any | null; onClose: () => void }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-user-preds", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data: preds, error } = await supabase
+        .from("predictions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      const ids = [...new Set((preds || []).map((p: any) => p.match_id))];
+      const { data: matches } = await supabase
+        .from("matches")
+        .select("id, stage, group_letter, matchday, kickoff_at, score_a, score_b, finished, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name), team_a_placeholder, team_b_placeholder")
+        .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      const mMap = new Map((matches || []).map((m: any) => [m.id, m]));
+      return (preds || []).map((p: any) => ({ ...p, match: mMap.get(p.match_id) }));
+    },
+  });
+
+  const totalPoints = (data || []).reduce((s: number, p: any) => s + (p.points || 0), 0);
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>
+            Pronostics — {user?.prenom} <span className="text-xs text-muted-foreground">{user?.num_paie}</span>
+          </DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : (data || []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun pronostic.</p>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground">
+              {(data || []).length} pronostic(s) · Total : <strong>{totalPoints} pts</strong>
+            </p>
+            <div className="max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted/80 text-xs uppercase">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Date</th>
+                    <th className="px-3 py-2 text-left">Match</th>
+                    <th className="px-3 py-2 text-center">Score réel</th>
+                    <th className="px-3 py-2 text-center">Pronostic</th>
+                    <th className="px-3 py-2 text-right">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data || []).map((p: any) => {
+                    const m = p.match;
+                    const nameA = m?.team_a?.name || m?.team_a_placeholder || "?";
+                    const nameB = m?.team_b?.name || m?.team_b_placeholder || "?";
+                    return (
+                      <tr key={p.id} className="border-t">
+                        <td className="px-3 py-2 text-xs">{m ? formatFR(m.kickoff_at) : "—"}</td>
+                        <td className="px-3 py-2">{nameA} <span className="text-muted-foreground">vs</span> {nameB}</td>
+                        <td className="px-3 py-2 text-center font-mono">
+                          {m?.finished && m?.score_a != null ? `${m.score_a} - ${m.score_b}` : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-center font-mono">{p.score_a} - {p.score_b}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Badge variant={p.points > 0 ? "default" : "secondary"}>{p.points} pt{p.points > 1 ? "s" : ""}</Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const UNIT_DEPOTS: { value: string; label: string }[] = [
   { value: "sequedin", label: "Sequedin" },
