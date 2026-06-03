@@ -98,7 +98,7 @@ function Home() {
       <Countdown />
 
       {!user && (
-        <section className="container mx-auto px-4 py-12">
+        <section id="choisis-ton-unite" className="container mx-auto px-4 py-12 scroll-mt-24">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
