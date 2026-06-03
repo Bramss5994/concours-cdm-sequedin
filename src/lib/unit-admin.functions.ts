@@ -175,5 +175,83 @@ export const deleteUnitParticipantFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/* -------------------- Matches & predictions (own depot, read-only) -------------------- */
+
+export const listUnitMatchesFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [{ data: matches, error: e1 }, { data: teams, error: e2 }, { data: profiles, error: e3 }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("matches")
+          .select(
+            "id, kickoff_at, stage, group_letter, matchday, stadium, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder, score_a, score_b, finished",
+          )
+          .order("kickoff_at", { ascending: true }),
+        supabaseAdmin.from("teams").select("id, name, code"),
+        supabaseAdmin.from("profiles").select("id").eq("depot", context.depot as any),
+      ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+    if (e3) throw new Error(e3.message);
+
+    const teamMap = new Map((teams ?? []).map((t) => [t.id, t]));
+    const depotUserIds = new Set((profiles ?? []).map((p) => p.id));
+
+    const { data: preds, error: e4 } = await supabaseAdmin
+      .from("predictions")
+      .select("match_id, user_id");
+    if (e4) throw new Error(e4.message);
+
+    const countBy = new Map<string, number>();
+    for (const p of preds ?? []) {
+      if (!depotUserIds.has(p.user_id)) continue;
+      countBy.set(p.match_id, (countBy.get(p.match_id) || 0) + 1);
+    }
+
+    return (matches ?? []).map((m) => ({
+      ...m,
+      team_a: m.team_a_id ? teamMap.get(m.team_a_id) ?? null : null,
+      team_b: m.team_b_id ? teamMap.get(m.team_b_id) ?? null : null,
+      depot_predictions_count: countBy.get(m.id) || 0,
+      depot_participants_count: depotUserIds.size,
+    }));
+  });
+
+export const listUnitPredictionsForMatchFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ matchId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: profiles, error: e1 } = await supabaseAdmin
+      .from("profiles")
+      .select("id, prenom, num_paie")
+      .eq("depot", context.depot as any);
+    if (e1) throw new Error(e1.message);
+
+    const ids = (profiles ?? []).map((p) => p.id);
+    if (ids.length === 0) return [];
+
+    const { data: preds, error: e2 } = await supabaseAdmin
+      .from("predictions")
+      .select("user_id, score_a, score_b, points, exact_score, good_winner, updated_at")
+      .eq("match_id", data.matchId)
+      .in("user_id", ids);
+    if (e2) throw new Error(e2.message);
+
+    const profMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+    return (preds ?? [])
+      .map((p) => ({
+        ...p,
+        prenom: profMap.get(p.user_id)?.prenom ?? "",
+        num_paie: profMap.get(p.user_id)?.num_paie ?? "",
+      }))
+      .sort((a, b) => b.points - a.points);
+  });
+
 // Silence unused warning if tree-shaken
 export const __DEPOTS = DEPOTS;
+
