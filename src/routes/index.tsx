@@ -33,7 +33,8 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   const { user } = useAuth();
   return (
-    <div>
+    <div className="overflow-x-hidden">
+
       <section className="relative overflow-hidden bg-[#0a0a0f]">
         {/* Stadium ambient lighting */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(217,165,40,0.18),transparent_55%)]" />
@@ -364,33 +365,34 @@ function ParticipationLive() {
         className="mx-auto max-w-4xl"
       >
         <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-background via-background to-primary/5">
-          <CardContent className="p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <CardContent className="p-5 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="relative flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Activity className="h-5 w-5" />
                   <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
                     <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
                   </span>
                 </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground sm:text-xs">
                     En direct
                   </div>
-                  <h2 className="text-xl font-bold sm:text-2xl">Taux de participation</h2>
+                  <h2 className="truncate text-base font-bold sm:text-2xl">Taux de participation</h2>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-4xl font-extrabold text-primary sm:text-5xl">
+              <div className="ml-auto text-right">
+                <div className="text-3xl font-extrabold leading-none text-primary sm:text-5xl">
                   {rate}
-                  <span className="text-2xl sm:text-3xl">%</span>
+                  <span className="text-xl sm:text-3xl">%</span>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="mt-1 text-[10px] text-muted-foreground sm:text-xs">
                   {users} / {total} inscrits
                 </div>
               </div>
             </div>
+
 
             <div className="mt-5 h-3 w-full overflow-hidden rounded-full bg-muted">
               <motion.div
