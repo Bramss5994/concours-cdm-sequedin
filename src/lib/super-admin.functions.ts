@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const DEPOT = z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram"]);
+const DEPOT = z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram", "copem"]);
 
 async function assertSequedinSuperAdmin(supabase: any, userId: string) {
   const { data: roleData, error: e1 } = await supabase
