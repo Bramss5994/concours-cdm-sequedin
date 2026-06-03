@@ -45,7 +45,8 @@ import {
   isSequedinSuperAdminFn,
 } from "@/lib/super-admin.functions";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trash2, KeyRound, Download, ShieldPlus } from "lucide-react";
+import { Trash2, KeyRound, Download, ShieldPlus, Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -428,6 +429,7 @@ function AdminUsers() {
   const [pwdTarget, setPwdTarget] = useState<any | null>(null);
   const [pwdValue, setPwdValue] = useState("");
   const [delTarget, setDelTarget] = useState<any | null>(null);
+  const [predTarget, setPredTarget] = useState<any | null>(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ["admin-users"],
@@ -569,6 +571,10 @@ function AdminUsers() {
                     <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" title="Voir les pronostics"
+                          onClick={() => setPredTarget(u)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                         <Button size="icon" variant="ghost" title="Réinitialiser mot de passe"
                           onClick={() => { setPwdTarget(u); setPwdValue(""); }}>
                           <KeyRound className="h-4 w-4" />
@@ -624,11 +630,92 @@ function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <UserPredictionsDialog user={predTarget} onClose={() => setPredTarget(null)} />
     </>
   );
 }
 
-/* ----------------------------- UNIT ADMINS (super-admin) ----------------------------- */
+/* ----------------------------- USER PREDICTIONS ----------------------------- */
+
+function UserPredictionsDialog({ user, onClose }: { user: any | null; onClose: () => void }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-user-preds", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data: preds, error } = await supabase
+        .from("predictions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      const ids = [...new Set((preds || []).map((p: any) => p.match_id))];
+      const { data: matches } = await supabase
+        .from("matches")
+        .select("id, stage, group_letter, matchday, kickoff_at, score_a, score_b, finished, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name), team_a_placeholder, team_b_placeholder")
+        .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      const mMap = new Map((matches || []).map((m: any) => [m.id, m]));
+      return (preds || []).map((p: any) => ({ ...p, match: mMap.get(p.match_id) }));
+    },
+  });
+
+  const totalPoints = (data || []).reduce((s: number, p: any) => s + (p.points || 0), 0);
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>
+            Pronostics — {user?.prenom} <span className="text-xs text-muted-foreground">{user?.num_paie}</span>
+          </DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : (data || []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun pronostic.</p>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground">
+              {(data || []).length} pronostic(s) · Total : <strong>{totalPoints} pts</strong>
+            </p>
+            <div className="max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted/80 text-xs uppercase">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Date</th>
+                    <th className="px-3 py-2 text-left">Match</th>
+                    <th className="px-3 py-2 text-center">Score réel</th>
+                    <th className="px-3 py-2 text-center">Pronostic</th>
+                    <th className="px-3 py-2 text-right">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data || []).map((p: any) => {
+                    const m = p.match;
+                    const nameA = m?.team_a?.name || m?.team_a_placeholder || "?";
+                    const nameB = m?.team_b?.name || m?.team_b_placeholder || "?";
+                    return (
+                      <tr key={p.id} className="border-t">
+                        <td className="px-3 py-2 text-xs">{m ? formatFR(m.kickoff_at) : "—"}</td>
+                        <td className="px-3 py-2">{nameA} <span className="text-muted-foreground">vs</span> {nameB}</td>
+                        <td className="px-3 py-2 text-center font-mono">
+                          {m?.finished && m?.score_a != null ? `${m.score_a} - ${m.score_b}` : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-center font-mono">{p.score_a} - {p.score_b}</td>
+                        <td className="px-3 py-2 text-right">
+                          <Badge variant={p.points > 0 ? "default" : "secondary"}>{p.points} pt{p.points > 1 ? "s" : ""}</Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const UNIT_DEPOTS: { value: string; label: string }[] = [
   { value: "sequedin", label: "Sequedin" },
