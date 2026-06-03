@@ -42,6 +42,8 @@ function sessionConfig() {
   };
 }
 
+export const SUPER_ADMIN_DEPOT = "sequedin";
+
 export const requireUnitAdmin = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
     const session = await useSession<UnitAdminSession>(sessionConfig());
@@ -52,6 +54,7 @@ export const requireUnitAdmin = createMiddleware({ type: "function" }).server(
       context: {
         depot: session.data.depot,
         loginCode: session.data.login_code,
+        isSuper: session.data.depot === SUPER_ADMIN_DEPOT,
       },
     });
   },
