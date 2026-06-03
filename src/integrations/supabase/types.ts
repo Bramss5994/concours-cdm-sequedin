@@ -206,6 +206,36 @@ export type Database = {
         }
         Relationships: []
       }
+      unit_admins: {
+        Row: {
+          active: boolean
+          created_at: string
+          depot: Database["public"]["Enums"]["depot"]
+          id: string
+          login_code: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          depot: Database["public"]["Enums"]["depot"]
+          id?: string
+          login_code: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          depot?: Database["public"]["Enums"]["depot"]
+          id?: string
+          login_code?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
