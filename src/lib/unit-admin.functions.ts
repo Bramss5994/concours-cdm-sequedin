@@ -283,3 +283,172 @@ export const listUnitPredictionsForMatchFn = createServerFn({ method: "GET" })
 // Silence unused warning if tree-shaken
 export const __DEPOTS = DEPOTS;
 
+/* -------------------- SUPER ADMIN (Sequedin) — site-wide management -------------------- */
+
+function assertSuper(ctx: { isSuper: boolean }) {
+  if (!ctx.isSuper) throw new Error("Forbidden: super admin required");
+}
+
+const DEPOT_ENUM = z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram"]);
+
+export const getSuperAdminStatsFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: profiles }, { data: preds }, { data: matches }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, prenom, num_paie, active, created_at, depot"),
+      supabaseAdmin.from("predictions").select("user_id, points, match_id, updated_at"),
+      supabaseAdmin.from("matches").select("id, finished, kickoff_at"),
+    ]);
+    return { profiles: profiles ?? [], preds: preds ?? [], matches: matches ?? [] };
+  });
+
+export const listAdminMatchesFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: matches, error: e1 }, { data: teams, error: e2 }] = await Promise.all([
+      supabaseAdmin
+        .from("matches")
+        .select(
+          "id, kickoff_at, stage, group_letter, matchday, stadium, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder, score_a, score_b, finished",
+        )
+        .order("kickoff_at", { ascending: true }),
+      supabaseAdmin.from("teams").select("id, name, code"),
+    ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+    const teamMap = new Map((teams ?? []).map((t) => [t.id, t]));
+    return (matches ?? []).map((m) => ({
+      ...m,
+      team_a: m.team_a_id ? teamMap.get(m.team_a_id) ?? null : null,
+      team_b: m.team_b_id ? teamMap.get(m.team_b_id) ?? null : null,
+    }));
+  });
+
+export const updateAdminMatchFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        score_a: z.number().int().min(0).max(50).nullable(),
+        score_b: z.number().int().min(0).max(50).nullable(),
+        finished: z.boolean(),
+        kickoff_at: z.string().datetime().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: any = { score_a: data.score_a, score_b: data.score_b, finished: data.finished };
+    if (data.kickoff_at) patch.kickoff_at = data.kickoff_at;
+    const { error } = await supabaseAdmin.from("matches").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const markMatchesFinishedFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ ids: z.array(z.string().uuid()).min(1).max(500) }).parse(input))
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("matches").update({ finished: true }).in("id", data.ids);
+    if (error) throw new Error(error.message);
+    return { ok: true, count: data.ids.length };
+  });
+
+export const listAllUnitAdminsFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("unit_admins")
+      .select("id, depot, login_code, active, created_at, updated_at")
+      .order("depot")
+      .order("login_code");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const createUnitAdminAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z
+      .object({
+        depot: DEPOT_ENUM,
+        login_code: z
+          .string()
+          .min(3)
+          .max(32)
+          .regex(/^[A-Za-z0-9_-]+$/, "Lettres, chiffres, tirets uniquement"),
+        password: z.string().min(8).max(128),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { hashPassword } = await import("./unit-admin-crypto.server");
+    const password_hash = await hashPassword(data.password);
+    const { error } = await supabaseAdmin.from("unit_admins").insert({
+      depot: data.depot,
+      login_code: data.login_code.toUpperCase(),
+      password_hash,
+      active: true,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const resetUnitAdminPwdAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z.object({ id: z.string().uuid(), password: z.string().min(8).max(128) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { hashPassword } = await import("./unit-admin-crypto.server");
+    const password_hash = await hashPassword(data.password);
+    const { error } = await supabaseAdmin
+      .from("unit_admins")
+      .update({ password_hash })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const toggleUnitAdminAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z.object({ id: z.string().uuid(), active: z.boolean() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("unit_admins")
+      .update({ active: data.active })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteUnitAdminAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("unit_admins").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+

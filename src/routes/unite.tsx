@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings } from "lucide-react";
 import {
   getUnitAdminSession,
   logoutUnitAdmin,
@@ -164,7 +164,14 @@ function UniteDashboard() {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {isSuper && (
+            <Button asChild variant="secondary" size="sm">
+              <Link to="/unite/gestion">
+                <Settings className="mr-1 h-4 w-4" /> Gestion globale
+              </Link>
+            </Button>
+          )}
           <Button asChild variant="default" size="sm">
             <Link to="/unite/matchs">
               <ListChecks className="mr-1 h-4 w-4" /> Matchs & pronostics
