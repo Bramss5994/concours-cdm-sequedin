@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3 } from "lucide-react";
 import { formatFR } from "@/lib/time";
 import {
   getUnitAdminSession,
@@ -188,6 +188,11 @@ function UniteDashboard() {
           <Button asChild variant="default" size="sm">
             <Link to="/unite/matchs">
               <ListChecks className="mr-1 h-4 w-4" /> Matchs & pronostics
+            </Link>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
+            <Link to="/unite/classement">
+              <BarChart3 className="mr-1 h-4 w-4" /> Classement
             </Link>
           </Button>
           <Button variant="outline" size="sm" onClick={handleLogout}>

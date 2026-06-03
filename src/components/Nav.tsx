@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { Trophy, Calendar, BarChart3, User as UserIcon, Shield, LogOut, LogIn, Menu, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,13 @@ import logoIlevia from "@/assets/logo-keolis-ilevia.png.asset.json";
 export function Nav() {
   const { user, isAdmin, signOut } = useAuth();
   const router = useRouter();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+
+  // The /unite admin panel has its own session and navigation.
+  // Hide the participant nav there to avoid accidentally leaving the panel.
+  if (pathname.startsWith("/unite")) return null;
+
 
   const links = [
     { to: "/", label: "Accueil", icon: Trophy },
