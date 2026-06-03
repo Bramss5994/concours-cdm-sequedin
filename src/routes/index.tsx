@@ -103,6 +103,9 @@ function Home() {
 
       <Countdown />
 
+      <ParticipationLive />
+
+
       {!user && (
         <section id="choisis-ton-unite" className="container mx-auto px-4 py-12 scroll-mt-24">
           <motion.div
