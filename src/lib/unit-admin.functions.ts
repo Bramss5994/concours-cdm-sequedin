@@ -42,6 +42,8 @@ function sessionConfig() {
   };
 }
 
+export const SUPER_ADMIN_DEPOT = "sequedin";
+
 export const requireUnitAdmin = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
     const session = await useSession<UnitAdminSession>(sessionConfig());
@@ -52,6 +54,7 @@ export const requireUnitAdmin = createMiddleware({ type: "function" }).server(
       context: {
         depot: session.data.depot,
         loginCode: session.data.login_code,
+        isSuper: session.data.depot === SUPER_ADMIN_DEPOT,
       },
     });
   },
@@ -100,7 +103,11 @@ export const getUnitAdminSession = createServerFn({ method: "GET" }).handler(asy
   if (!hasValidSessionSecret()) return null;
   const session = await useSession<UnitAdminSession>(sessionConfig());
   if (!session.data?.depot) return null;
-  return { depot: session.data.depot, login_code: session.data.login_code };
+  return {
+    depot: session.data.depot,
+    login_code: session.data.login_code,
+    isSuper: session.data.depot === SUPER_ADMIN_DEPOT,
+  };
 });
 
 /* -------------------- Participant management (own depot) -------------------- */
@@ -109,12 +116,14 @@ export const listUnitParticipantsFn = createServerFn({ method: "GET" })
   .middleware([requireUnitAdmin])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const profilesQuery = supabaseAdmin
+      .from("profiles")
+      .select("id, prenom, num_paie, email, depot, active, created_at")
+      .order("created_at", { ascending: false });
+    if (!context.isSuper) profilesQuery.eq("depot", context.depot as any);
+
     const [{ data: profiles, error: e1 }, { data: preds, error: e2 }] = await Promise.all([
-      supabaseAdmin
-        .from("profiles")
-        .select("id, prenom, num_paie, email, depot, active, created_at")
-        .eq("depot", context.depot as any)
-        .order("created_at", { ascending: false }),
+      profilesQuery,
       supabaseAdmin.from("predictions").select("user_id, points"),
     ]);
     if (e1) throw new Error(e1.message);
@@ -141,7 +150,7 @@ export const toggleUnitParticipantFn = createServerFn({ method: "POST" })
       .select("depot")
       .eq("id", data.userId)
       .maybeSingle();
-    if (!prof || prof.depot !== context.depot) throw new Error("Participant hors de votre unité");
+    if (!prof || (!context.isSuper && prof.depot !== context.depot)) throw new Error("Participant hors de votre unité");
     const { error } = await supabaseAdmin
       .from("profiles")
       .update({ active: data.active })
@@ -164,7 +173,7 @@ export const resetUnitParticipantPasswordFn = createServerFn({ method: "POST" })
       .select("depot")
       .eq("id", data.userId)
       .maybeSingle();
-    if (!prof || prof.depot !== context.depot) throw new Error("Participant hors de votre unité");
+    if (!prof || (!context.isSuper && prof.depot !== context.depot)) throw new Error("Participant hors de votre unité");
     const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
       password: data.newPassword,
     });
@@ -182,7 +191,7 @@ export const deleteUnitParticipantFn = createServerFn({ method: "POST" })
       .select("depot")
       .eq("id", data.userId)
       .maybeSingle();
-    if (!prof || prof.depot !== context.depot) throw new Error("Participant hors de votre unité");
+    if (!prof || (!context.isSuper && prof.depot !== context.depot)) throw new Error("Participant hors de votre unité");
     await supabaseAdmin.from("predictions").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
     await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
@@ -198,6 +207,9 @@ export const listUnitMatchesFn = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const profilesQuery = supabaseAdmin.from("profiles").select("id");
+    if (!context.isSuper) profilesQuery.eq("depot", context.depot as any);
+
     const [{ data: matches, error: e1 }, { data: teams, error: e2 }, { data: profiles, error: e3 }] =
       await Promise.all([
         supabaseAdmin
@@ -207,7 +219,7 @@ export const listUnitMatchesFn = createServerFn({ method: "GET" })
           )
           .order("kickoff_at", { ascending: true }),
         supabaseAdmin.from("teams").select("id, name, code"),
-        supabaseAdmin.from("profiles").select("id").eq("depot", context.depot as any),
+        profilesQuery,
       ]);
     if (e1) throw new Error(e1.message);
     if (e2) throw new Error(e2.message);
@@ -242,10 +254,9 @@ export const listUnitPredictionsForMatchFn = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: profiles, error: e1 } = await supabaseAdmin
-      .from("profiles")
-      .select("id, prenom, num_paie")
-      .eq("depot", context.depot as any);
+    const profilesQuery = supabaseAdmin.from("profiles").select("id, prenom, num_paie, depot");
+    if (!context.isSuper) profilesQuery.eq("depot", context.depot as any);
+    const { data: profiles, error: e1 } = await profilesQuery;
     if (e1) throw new Error(e1.message);
 
     const ids = (profiles ?? []).map((p) => p.id);
@@ -264,6 +275,7 @@ export const listUnitPredictionsForMatchFn = createServerFn({ method: "GET" })
         ...p,
         prenom: profMap.get(p.user_id)?.prenom ?? "",
         num_paie: profMap.get(p.user_id)?.num_paie ?? "",
+        depot: (profMap.get(p.user_id) as any)?.depot ?? "",
       }))
       .sort((a, b) => b.points - a.points);
   });

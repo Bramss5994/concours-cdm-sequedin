@@ -90,6 +90,7 @@ function UniteMatchsPage() {
   if (!sessionQ.data) {
     return <div className="container mx-auto p-6 text-sm text-muted-foreground">Vérification…</div>;
   }
+  const isSuper = (sessionQ.data as any).isSuper;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -102,7 +103,9 @@ function UniteMatchsPage() {
           </Button>
           <h1 className="mt-2 text-xl font-bold sm:text-2xl">Matchs & pronostics</h1>
           <p className="text-sm text-muted-foreground">
-            Consultation des matchs et des pronostics de votre unité.
+            {isSuper
+              ? "Consultation des matchs et des pronostics de toutes les unités."
+              : "Consultation des matchs et des pronostics de votre unité."}
           </p>
         </div>
       </div>
@@ -123,7 +126,9 @@ function UniteMatchsPage() {
                       <th className="px-3 py-2 text-left">Date</th>
                       <th className="px-3 py-2 text-left">Match</th>
                       <th className="px-3 py-2 text-center">Score</th>
-                      <th className="px-3 py-2 text-center">Pronos unité</th>
+                      <th className="px-3 py-2 text-center">
+                        {isSuper ? "Pronos totaux" : "Pronos unité"}
+                      </th>
                       <th className="px-3 py-2 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -187,6 +192,7 @@ function UniteMatchsPage() {
                 <thead className="bg-muted/50 text-xs uppercase">
                   <tr>
                     <th className="px-3 py-2 text-left">Participant</th>
+                    {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
                     <th className="px-3 py-2 text-center">Pronostic</th>
                     <th className="px-3 py-2 text-right">Points</th>
                   </tr>
@@ -198,6 +204,7 @@ function UniteMatchsPage() {
                         {p.prenom}{" "}
                         <span className="text-xs text-muted-foreground">{p.num_paie}</span>
                       </td>
+                      {isSuper && <td className="px-3 py-2 text-xs">{p.depot}</td>}
                       <td className="px-3 py-2 text-center font-mono">
                         {p.score_a} - {p.score_b}
                       </td>

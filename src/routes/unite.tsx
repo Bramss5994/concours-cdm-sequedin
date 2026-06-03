@@ -91,13 +91,15 @@ function UniteDashboard() {
   }
 
   const depot = sessionQ.data.depot;
+  const isSuper = (sessionQ.data as any).isSuper;
   const participants = (listQ.data ?? []).filter((p: any) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
       (p.prenom || "").toLowerCase().includes(q) ||
       (p.num_paie || "").toLowerCase().includes(q) ||
-      (p.email || "").toLowerCase().includes(q)
+      (p.email || "").toLowerCase().includes(q) ||
+      (p.depot || "").toLowerCase().includes(q)
     );
   });
 
@@ -151,9 +153,13 @@ function UniteDashboard() {
             <ShieldCheck className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold sm:text-2xl">Admin d'unité</h1>
+            <h1 className="text-xl font-bold sm:text-2xl">
+              {isSuper ? "Super admin" : "Admin d'unité"}
+            </h1>
             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="secondary">{DEPOT_LABEL[depot] ?? depot}</Badge>
+              <Badge variant={isSuper ? "default" : "secondary"}>
+                {isSuper ? "Toutes les unités" : DEPOT_LABEL[depot] ?? depot}
+              </Badge>
               <span className="text-xs">code : {sessionQ.data.login_code}</span>
             </div>
           </div>
@@ -174,7 +180,9 @@ function UniteDashboard() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle className="text-base">
-            Participants de l'unité ({listQ.data?.length ?? 0})
+            {isSuper
+              ? `Tous les participants (${listQ.data?.length ?? 0})`
+              : `Participants de l'unité (${listQ.data?.length ?? 0})`}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -200,6 +208,7 @@ function UniteDashboard() {
                 <thead className="bg-muted/50 text-xs uppercase">
                   <tr>
                     <th className="px-3 py-2 text-left">Nom</th>
+                    {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
                     <th className="px-3 py-2 text-left">Email</th>
                     <th className="px-3 py-2 text-right">Points</th>
                     <th className="px-3 py-2 text-center">Actif</th>
@@ -213,6 +222,11 @@ function UniteDashboard() {
                         {u.prenom}{" "}
                         <span className="text-xs text-muted-foreground">{u.num_paie}</span>
                       </td>
+                      {isSuper && (
+                        <td className="px-3 py-2 text-xs">
+                          <Badge variant="outline">{DEPOT_LABEL[u.depot] ?? u.depot}</Badge>
+                        </td>
+                      )}
                       <td className="px-3 py-2 text-xs">{u.email}</td>
                       <td className="px-3 py-2 text-right font-semibold">{u.points}</td>
                       <td className="px-3 py-2 text-center">
