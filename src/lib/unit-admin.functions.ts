@@ -103,7 +103,11 @@ export const getUnitAdminSession = createServerFn({ method: "GET" }).handler(asy
   if (!hasValidSessionSecret()) return null;
   const session = await useSession<UnitAdminSession>(sessionConfig());
   if (!session.data?.depot) return null;
-  return { depot: session.data.depot, login_code: session.data.login_code };
+  return {
+    depot: session.data.depot,
+    login_code: session.data.login_code,
+    isSuper: session.data.depot === SUPER_ADMIN_DEPOT,
+  };
 });
 
 /* -------------------- Participant management (own depot) -------------------- */
