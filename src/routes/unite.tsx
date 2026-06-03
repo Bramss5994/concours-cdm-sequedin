@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks } from "lucide-react";
 import {
   getUnitAdminSession,
   logoutUnitAdmin,
@@ -158,9 +158,17 @@ function UniteDashboard() {
             </div>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleLogout}>
-          <LogOut className="mr-1 h-4 w-4" /> Déconnexion
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="default" size="sm">
+            <Link to="/unite/matchs">
+              <ListChecks className="mr-1 h-4 w-4" /> Matchs & pronostics
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="mr-1 h-4 w-4" /> Déconnexion
+          </Button>
+        </div>
+
       </div>
 
       <Card className="mt-6">
