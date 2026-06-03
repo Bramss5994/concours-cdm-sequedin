@@ -275,6 +275,7 @@ export const listUnitPredictionsForMatchFn = createServerFn({ method: "GET" })
         ...p,
         prenom: profMap.get(p.user_id)?.prenom ?? "",
         num_paie: profMap.get(p.user_id)?.num_paie ?? "",
+        depot: (profMap.get(p.user_id) as any)?.depot ?? "",
       }))
       .sort((a, b) => b.points - a.points);
   });
