@@ -20,8 +20,8 @@ function AdminPage() {
   if (!isAdmin) return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold">Espace admin</h1>
-      <p className="mt-2 text-muted-foreground">Tu n'as pas les droits d'administrateur.</p>
-      <p className="mt-1 text-xs text-muted-foreground">Pour devenir admin, demande à un admin existant — ou si tu es le premier utilisateur, demande à ce que ton rôle soit ajouté manuellement.</p>
+      <p className="mt-2 text-muted-foreground">Vous n'avez pas les droits d'administrateur.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Pour devenir admin, demandez à un admin existant — ou si vous êtes le premier utilisateur, demandez à ce que votre rôle soit ajouté manuellement.</p>
     </div>
   );
 
