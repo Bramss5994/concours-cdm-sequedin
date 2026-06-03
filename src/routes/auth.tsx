@@ -176,7 +176,7 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
           </div>
         ) : (
           <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
-            <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Choisissez votre unité" /></SelectTrigger>
             <SelectContent>
               {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
             </SelectContent>
