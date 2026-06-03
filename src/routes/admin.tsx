@@ -635,6 +635,7 @@ const UNIT_DEPOTS: { value: string; label: string }[] = [
   { value: "wattrelos", label: "Wattrelos" },
   { value: "pc_bus", label: "PC Bus" },
   { value: "tram", label: "Tram" },
+  { value: "copem", label: "COPEM" },
 ];
 
 function AdminUnitAdmins() {
