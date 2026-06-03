@@ -74,7 +74,7 @@ function AuthPage() {
           <CardTitle className="text-2xl">Pronostics CDM 2026</CardTitle>
           {lockedDepotLabel && (
             <p className="mt-1 text-sm text-muted-foreground">
-              Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connecte-toi pour pronostiquer avec ton dépôt.
+              Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connectez-vous pour pronostiquer avec votre dépôt.
             </p>
           )}
         </CardHeader>
@@ -90,7 +90,7 @@ function AuthPage() {
         </CardContent>
       </Card>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Aucune adresse e-mail n'est demandée. Utilise ton prénom et ton numéro de paie pour te connecter.
+        Aucune adresse e-mail n'est demandée. Utilisez votre prénom et votre numéro de paie pour vous connecter.
       </p>
     </div>
   );
@@ -157,7 +157,7 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
         // Auto-confirm is enabled, so we can sign in immediately
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
         setBusy(false);
-        if (signInError) { toast.success("Compte créé. Connecte-toi."); return; }
+        if (signInError) { toast.success("Compte créé. Connectez-vous."); return; }
         toast.success("Compte créé !");
         router.navigate({ to: "/matches" });
       }}
@@ -176,7 +176,7 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
           </div>
         ) : (
           <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
-            <SelectTrigger><SelectValue placeholder="Choisis ton unité" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Choisissez votre unité" /></SelectTrigger>
             <SelectContent>
               {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
             </SelectContent>
@@ -184,7 +184,7 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
         )}
       </div>
 
-      <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retiens-le bien, il n'y a pas de récupération par e-mail.</p></div>
+      <div className="space-y-1.5"><Label>Mot de passe</Label><Input name="password" type="password" required minLength={8} autoComplete="new-password" /><p className="text-xs text-muted-foreground">8 caractères minimum. Retenez-le bien, il n'y a pas de récupération par e-mail.</p></div>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Création..." : "Créer mon compte"}</Button>
       
     </form>

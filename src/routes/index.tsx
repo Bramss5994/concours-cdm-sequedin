@@ -62,7 +62,7 @@ function Home() {
 
             <div className="mx-auto mt-5 h-1 w-24 rounded-full bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_18px_rgba(220,38,38,0.6)] lg:mx-0" />
             <p className="mx-auto mt-6 max-w-xl text-base text-white/75 sm:text-lg lg:mx-0">
-              Pronostique chaque match, grimpe au classement et joue ta place sur le podium de ton unité.
+              Pronostiquez chaque match, grimpez au classement et jouez votre place sur le podium de votre unité.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               {user ? (
@@ -106,7 +106,7 @@ function Home() {
             transition={{ duration: 0.5 }}
             className="mx-auto max-w-4xl text-center"
           >
-            <h2 className="text-2xl font-bold sm:text-3xl">Choisis ton unité</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Choisissez votre unité</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Chaque dépôt possède un classement ainsi qu'un podium distinct.
             </p>
@@ -139,7 +139,7 @@ function Home() {
                         <h3 className="text-lg font-bold">{d.label}</h3>
                       </>
                     )}
-                    <p className="text-xs text-muted-foreground">Classement propre à ton unité</p>
+                    <p className="text-xs text-muted-foreground">Classement propre à votre unité</p>
                     <Button asChild size="sm" className="mt-2 w-full">
                       <Link to="/auth" search={{ depot: d.value, tab: "signup" }}>
                         S'inscrire
@@ -150,7 +150,7 @@ function Home() {
                       search={{ depot: d.value, tab: "login" }}
                       className="text-xs text-muted-foreground underline-offset-2 hover:underline"
                     >
-                      Déjà inscrit ? Connexion
+                      Déjà inscrit·e ? Connexion
                     </Link>
                   </CardContent>
                 </Card>
@@ -203,7 +203,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >Pour chaque match, tes points sont attribués automatiquement à la fin de la rencontre.</motion.p>
+          >Pour chaque match, vos points sont attribués automatiquement à la fin de la rencontre.</motion.p>
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -213,8 +213,8 @@ function Home() {
           >
             {[
               { cls: "border-primary/40 bg-primary/5", pts: "3 pts", t: "Score exact", desc: "Sauf le 0-0 (compte comme match nul prédit)" },
-              { cls: "", pts: "2 pts", t: "Vainqueur", desc: "Tu trouves le gagnant mais pas le score exact" },
-              { cls: "", pts: "1 pt", t: "Match nul prédit", desc: "Tu pronostiques un nul et le match finit nul" },
+              { cls: "", pts: "2 pts", t: "Vainqueur", desc: "Vous trouvez le gagnant mais pas le score exact" },
+              { cls: "", pts: "1 pt", t: "Match nul prédit", desc: "Vous pronostiquez un nul et le match finit nul" },
             ].map((c, i) => (
               <motion.div key={c.t} variants={fadeUp} custom={i}>
                 <Card className={`h-full transition-all duration-300 hover:shadow-md hover:-translate-y-1 ${c.cls}`}>
@@ -290,9 +290,9 @@ function Home() {
           </motion.div>
           <motion.ol variants={staggerContainer} className="md:col-span-2 space-y-4">
             {[
-              ["1. Inscris-toi", "Inscris-toi avec ton numéro de paie et ton prénom, et crée ton mot de passe !"],
-              ["2. Pronostique", "Saisis le score que tu prévois pour chaque match avant H-1."],
-              ["3. Suis le classement", "Tes points sont calculés automatiquement après chaque match."],
+              ["1. Inscrivez-vous", "Inscrivez-vous avec votre numéro de paie et votre prénom, puis créez votre mot de passe !"],
+              ["2. Pronostiquez", "Saisissez le score que vous prévoyez pour chaque match avant H-1."],
+              ["3. Suivez le classement", "Vos points sont calculés automatiquement après chaque match."],
             ].map(([t, d]) => (
               <motion.li key={t} variants={fadeUp} className="flex gap-3 transition-transform duration-200 hover:translate-x-1">
                 <Clock className="mt-0.5 h-5 w-5 flex-none text-primary" />

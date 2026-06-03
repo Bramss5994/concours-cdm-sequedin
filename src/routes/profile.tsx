@@ -153,7 +153,7 @@ function Profile() {
   if (loading) return null;
   if (!user) return (
     <div className="container mx-auto max-w-md px-4 py-10 text-center">
-      <p>Tu dois être connecté pour voir ton profil.</p>
+      <p>Vous devez être connecté·e pour voir votre profil.</p>
       <Button asChild className="mt-4"><Link to="/auth">Se connecter</Link></Button>
     </div>
   );
@@ -181,7 +181,7 @@ function Profile() {
             <Card className="mt-3">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between gap-2 text-xs uppercase text-muted-foreground">
-                  <span>Comparaison vs ton unité</span>
+                  <span>Comparaison vs votre unité</span>
                   {unitStats.rank && (
                     <Badge variant="secondary">
                       {unitStats.rank}<sup>{unitStats.rank === 1 ? "er" : "e"}</sup> / {unitStats.total}

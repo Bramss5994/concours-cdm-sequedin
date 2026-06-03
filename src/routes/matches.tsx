@@ -104,7 +104,7 @@ function MatchesPage() {
         >
           <Card className="mt-4 border-primary/30 bg-primary/5">
             <CardContent className="flex items-center justify-between gap-3 p-4">
-              <p className="text-sm">Connecte-toi pour pronostiquer.</p>
+              <p className="text-sm">Connectez-vous pour pronostiquer.</p>
               <Button asChild size="sm"><Link to="/auth">Se connecter</Link></Button>
             </CardContent>
           </Card>

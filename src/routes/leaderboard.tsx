@@ -121,7 +121,7 @@ function Leaderboard() {
           <Trophy className="mx-auto h-10 w-10 text-muted-foreground" />
           <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Classement réservé aux participants</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Pour consulter le classement, tu dois d'abord t'inscrire à ton unité.
+            Pour consulter le classement, vous devez d'abord vous inscrire à votre unité.
           </p>
         </motion.div>
       </div>
@@ -190,7 +190,7 @@ function Leaderboard() {
                   </div>
                 ) : (
                   <div className="mt-1 text-sm text-muted-foreground">
-                    {isAdmin && depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Tu n'es pas dans cette unité."}
+                    {isAdmin && depotFilter === "all" ? "Aucun pronostic comptabilisé pour l'instant." : "Vous n'êtes pas dans cette unité."}
                   </div>
                 )}
               </div>

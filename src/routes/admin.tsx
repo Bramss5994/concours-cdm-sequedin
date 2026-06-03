@@ -20,8 +20,8 @@ function AdminPage() {
   if (!isAdmin) return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold">Espace admin</h1>
-      <p className="mt-2 text-muted-foreground">Tu n'as pas les droits d'administrateur.</p>
-      <p className="mt-1 text-xs text-muted-foreground">Pour devenir admin, demande à un admin existant — ou si tu es le premier utilisateur, demande à ce que ton rôle soit ajouté manuellement.</p>
+      <p className="mt-2 text-muted-foreground">Vous n'avez pas les droits d'administrateur.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Pour devenir admin, demandez à un admin existant — ou si vous êtes le premier utilisateur, demandez à ce que votre rôle soit ajouté manuellement.</p>
     </div>
   );
 
@@ -85,7 +85,7 @@ function AdminResults() {
       <div className="mt-4 flex items-center justify-between rounded-lg border bg-muted/30 p-3">
         <div className="text-sm">
           <p className="font-semibold">Agent IA — mise à jour automatique des scores</p>
-          <p className="text-xs text-muted-foreground">Synchronise les scores depuis API-Football toutes les 15 min. Tu peux aussi déclencher manuellement.</p>
+          <p className="text-xs text-muted-foreground">Synchronise les scores depuis API-Football toutes les 15 min. Vous pouvez aussi déclencher manuellement.</p>
         </div>
         <Button size="sm" onClick={syncNow} disabled={syncing}>
           {syncing ? "Synchro…" : "Synchroniser maintenant"}
