@@ -254,10 +254,9 @@ export const listUnitPredictionsForMatchFn = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: profiles, error: e1 } = await supabaseAdmin
-      .from("profiles")
-      .select("id, prenom, num_paie")
-      .eq("depot", context.depot as any);
+    const profilesQuery = supabaseAdmin.from("profiles").select("id, prenom, num_paie, depot");
+    if (!context.isSuper) profilesQuery.eq("depot", context.depot as any);
+    const { data: profiles, error: e1 } = await profilesQuery;
     if (e1) throw new Error(e1.message);
 
     const ids = (profiles ?? []).map((p) => p.id);
