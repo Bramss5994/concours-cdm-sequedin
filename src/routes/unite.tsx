@@ -91,13 +91,15 @@ function UniteDashboard() {
   }
 
   const depot = sessionQ.data.depot;
+  const isSuper = (sessionQ.data as any).isSuper;
   const participants = (listQ.data ?? []).filter((p: any) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
       (p.prenom || "").toLowerCase().includes(q) ||
       (p.num_paie || "").toLowerCase().includes(q) ||
-      (p.email || "").toLowerCase().includes(q)
+      (p.email || "").toLowerCase().includes(q) ||
+      (p.depot || "").toLowerCase().includes(q)
     );
   });
 
