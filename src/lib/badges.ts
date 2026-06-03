@@ -129,7 +129,7 @@ export const BADGES: BadgeDef[] = [
   {
     id: "participant",
     name: "Participant assidu",
-    description: "Pronostique 20 matchs",
+    description: "Pronostiquez 20 matchs",
     icon: "📝",
     check: (c) => c.totalPredictions >= 20,
     progress: (c) => ({ current: Math.min(c.totalPredictions, 20), target: 20 }),
