@@ -25,7 +25,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye } from "lucide-react";
+import { formatFR } from "@/lib/time";
 import {
   getUnitAdminSession,
   logoutUnitAdmin,
@@ -33,7 +34,9 @@ import {
   toggleUnitParticipantFn,
   resetUnitParticipantPasswordFn,
   deleteUnitParticipantFn,
+  getUnitParticipantPredictionsFn,
 } from "@/lib/unit-admin.functions";
+
 
 export const Route = createFileRoute("/unite")({
   component: UnitePage,
@@ -86,6 +89,8 @@ function UniteDashboard() {
   const [pwdTarget, setPwdTarget] = useState<any | null>(null);
   const [pwdValue, setPwdValue] = useState("");
   const [delTarget, setDelTarget] = useState<any | null>(null);
+  const [predTarget, setPredTarget] = useState<any | null>(null);
+
   const [search, setSearch] = useState("");
   const [depotFilter, setDepotFilter] = useState<string>("all");
 
@@ -278,6 +283,14 @@ function UniteDashboard() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            title="Voir les pronostics"
+                            onClick={() => setPredTarget(u)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
                             title="Réinitialiser mot de passe"
                             onClick={() => {
                               setPwdTarget(u);
@@ -286,6 +299,7 @@ function UniteDashboard() {
                           >
                             <KeyRound className="h-4 w-4" />
                           </Button>
+
                           <Button
                             size="icon"
                             variant="ghost"
@@ -347,6 +361,96 @@ function UniteDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UnitParticipantPredictionsDialog
+        user={predTarget}
+        onClose={() => setPredTarget(null)}
+      />
     </div>
   );
 }
+
+function UnitParticipantPredictionsDialog({
+  user,
+  onClose,
+}: {
+  user: any | null;
+  onClose: () => void;
+}) {
+  const fetchPreds = useServerFn(getUnitParticipantPredictionsFn);
+  const { data, isLoading } = useQuery({
+    queryKey: ["unit-admin-user-preds", user?.id],
+    enabled: !!user,
+    queryFn: () => fetchPreds({ data: { userId: user.id } }),
+  });
+  const preds = data?.predictions ?? [];
+  const totalPoints = preds.reduce((s: number, p: any) => s + (p.points || 0), 0);
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>
+            Pronostics — {user?.prenom}{" "}
+            <span className="text-xs text-muted-foreground">{user?.num_paie}</span>
+          </DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : preds.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aucun pronostic.</p>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground">
+              {preds.length} pronostic(s) · Total : <strong>{totalPoints} pts</strong>
+            </p>
+            <div className="max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-muted/80 text-xs uppercase">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Date</th>
+                    <th className="px-3 py-2 text-left">Match</th>
+                    <th className="px-3 py-2 text-center">Score réel</th>
+                    <th className="px-3 py-2 text-center">Pronostic</th>
+                    <th className="px-3 py-2 text-right">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preds.map((p: any) => {
+                    const m = p.match;
+                    const nameA = m?.team_a?.name || m?.team_a_placeholder || "?";
+                    const nameB = m?.team_b?.name || m?.team_b_placeholder || "?";
+                    return (
+                      <tr key={p.id} className="border-t">
+                        <td className="px-3 py-2 text-xs">
+                          {m ? formatFR(m.kickoff_at) : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {nameA} <span className="text-muted-foreground">vs</span> {nameB}
+                        </td>
+                        <td className="px-3 py-2 text-center font-mono">
+                          {m?.finished && m?.score_a != null
+                            ? `${m.score_a} - ${m.score_b}`
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2 text-center font-mono">
+                          {p.score_a} - {p.score_b}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <Badge variant={p.points > 0 ? "default" : "secondary"}>
+                            {p.points} pt{p.points > 1 ? "s" : ""}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
