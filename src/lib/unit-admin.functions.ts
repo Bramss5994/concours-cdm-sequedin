@@ -207,6 +207,9 @@ export const listUnitMatchesFn = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const profilesQuery = supabaseAdmin.from("profiles").select("id");
+    if (!context.isSuper) profilesQuery.eq("depot", context.depot as any);
+
     const [{ data: matches, error: e1 }, { data: teams, error: e2 }, { data: profiles, error: e3 }] =
       await Promise.all([
         supabaseAdmin
@@ -216,7 +219,7 @@ export const listUnitMatchesFn = createServerFn({ method: "GET" })
           )
           .order("kickoff_at", { ascending: true }),
         supabaseAdmin.from("teams").select("id, name, code"),
-        supabaseAdmin.from("profiles").select("id").eq("depot", context.depot as any),
+        profilesQuery,
       ]);
     if (e1) throw new Error(e1.message);
     if (e2) throw new Error(e2.message);
