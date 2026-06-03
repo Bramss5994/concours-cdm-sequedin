@@ -262,7 +262,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >Chaque unité a son propre podium. À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité (Sequedin, Faidherbe, Wattrelos, PC Bus) sont récompensés séparément :</motion.p>
+          >Chaque unité a son propre podium. À l'issue de la finale, les 3 meilleurs pronostiqueurs de chaque unité (Sequedin, Faidherbe, Wattrelos, PC Bus, Tram) sont récompensés séparément :</motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
