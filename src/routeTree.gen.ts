@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UniteRouteImport } from './routes/unite'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MatchesRouteImport } from './routes/matches'
@@ -16,8 +17,14 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UniteLoginRouteImport } from './routes/unite.login'
 import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
+const UniteRoute = UniteRouteImport.update({
+  id: '/unite',
+  path: '/unite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -53,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UniteLoginRoute = UniteLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => UniteRoute,
+} as any)
 const ApiPublicHooksSyncScoresRoute =
   ApiPublicHooksSyncScoresRouteImport.update({
     id: '/api/public/hooks/sync-scores',
@@ -68,6 +80,8 @@ export interface FileRoutesByFullPath {
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/unite': typeof UniteRouteWithChildren
+  '/unite/login': typeof UniteLoginRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesByTo {
@@ -78,6 +92,8 @@ export interface FileRoutesByTo {
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/unite': typeof UniteRouteWithChildren
+  '/unite/login': typeof UniteLoginRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesById {
@@ -89,6 +105,8 @@ export interface FileRoutesById {
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/unite': typeof UniteRouteWithChildren
+  '/unite/login': typeof UniteLoginRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRouteTypes {
@@ -101,6 +119,8 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/reset-password'
+    | '/unite'
+    | '/unite/login'
     | '/api/public/hooks/sync-scores'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -111,6 +131,8 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/reset-password'
+    | '/unite'
+    | '/unite/login'
     | '/api/public/hooks/sync-scores'
   id:
     | '__root__'
@@ -121,6 +143,8 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/reset-password'
+    | '/unite'
+    | '/unite/login'
     | '/api/public/hooks/sync-scores'
   fileRoutesById: FileRoutesById
 }
@@ -132,11 +156,19 @@ export interface RootRouteChildren {
   MatchesRoute: typeof MatchesRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  UniteRoute: typeof UniteRouteWithChildren
   ApiPublicHooksSyncScoresRoute: typeof ApiPublicHooksSyncScoresRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/unite': {
+      id: '/unite'
+      path: '/unite'
+      fullPath: '/unite'
+      preLoaderRoute: typeof UniteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -186,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unite/login': {
+      id: '/unite/login'
+      path: '/login'
+      fullPath: '/unite/login'
+      preLoaderRoute: typeof UniteLoginRouteImport
+      parentRoute: typeof UniteRoute
+    }
     '/api/public/hooks/sync-scores': {
       id: '/api/public/hooks/sync-scores'
       path: '/api/public/hooks/sync-scores'
@@ -196,6 +235,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface UniteRouteChildren {
+  UniteLoginRoute: typeof UniteLoginRoute
+}
+
+const UniteRouteChildren: UniteRouteChildren = {
+  UniteLoginRoute: UniteLoginRoute,
+}
+
+const UniteRouteWithChildren = UniteRoute._addFileChildren(UniteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
@@ -204,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatchesRoute: MatchesRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  UniteRoute: UniteRouteWithChildren,
   ApiPublicHooksSyncScoresRoute: ApiPublicHooksSyncScoresRoute,
 }
 export const routeTree = rootRouteImport
