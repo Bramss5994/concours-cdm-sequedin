@@ -51,6 +51,12 @@ export const Route = createFileRoute("/admin")({ component: AdminPage });
 
 function AdminPage() {
   const { user, loading, isAdmin } = useAuth();
+  const fetchIsSuper = useServerFn(isSequedinSuperAdminFn);
+  const { data: isSuper } = useQuery({
+    queryKey: ["is-sequedin-super"],
+    queryFn: () => fetchIsSuper(),
+    enabled: !!user && isAdmin,
+  });
   if (loading) return null;
   if (!user) return <div className="container mx-auto p-6">Connexion requise.</div>;
   if (!isAdmin) return (
@@ -68,10 +74,12 @@ function AdminPage() {
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="results">Matchs</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+          {isSuper && <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>}
         </TabsList>
         <TabsContent value="stats"><AdminStats /></TabsContent>
         <TabsContent value="results"><AdminResults /></TabsContent>
         <TabsContent value="users"><AdminUsers /></TabsContent>
+        {isSuper && <TabsContent value="unit-admins"><AdminUnitAdmins /></TabsContent>}
       </Tabs>
     </div>
   );
