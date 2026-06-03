@@ -75,9 +75,6 @@ export function Nav() {
               </Button>
             ) : (
               <div className="flex flex-col gap-1">
-                <Button asChild variant="outline">
-                  <Link to="/auth" onClick={() => setOpen(false)}>S'inscrire</Link>
-                </Button>
                 <Button asChild>
                   <Link to="/auth" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Se connecter</Link>
                 </Button>
