@@ -91,7 +91,7 @@ function Home() {
             <img
               src={fifaWc2026.url}
               alt="Concours de pronostics Coupe du Monde 2026"
-              className="relative h-48 w-48 object-contain drop-shadow-[0_12px_40px_rgba(217,165,40,0.55)] sm:h-72 sm:w-72 lg:h-[26rem] lg:w-[26rem]"
+              className="relative h-48 w-48 select-none object-contain sm:h-72 sm:w-72 lg:h-[26rem] lg:w-[26rem]"
             />
           </motion.div>
 
