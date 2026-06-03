@@ -4,6 +4,10 @@ import { z } from "zod";
 
 type UnitAdminSession = { depot: string; login_code: string };
 
+function hasValidSessionSecret() {
+  return (process.env.UNIT_ADMIN_COOKIE_SECRET?.length ?? 0) >= 32;
+}
+
 function sessionConfig() {
   const password = process.env.UNIT_ADMIN_COOKIE_SECRET;
   if (!password || password.length < 32) {
@@ -77,6 +81,7 @@ export const logoutUnitAdmin = createServerFn({ method: "POST" }).handler(async 
 });
 
 export const getUnitAdminSession = createServerFn({ method: "GET" }).handler(async () => {
+  if (!hasValidSessionSecret()) return null;
   const session = await useSession<UnitAdminSession>(sessionConfig());
   if (!session.data?.depot) return null;
   return { depot: session.data.depot, login_code: session.data.login_code };
