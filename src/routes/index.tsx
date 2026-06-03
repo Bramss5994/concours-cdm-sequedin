@@ -128,6 +128,7 @@ function Home() {
               { value: "pc_bus", label: "PC Bus", logo: logoPcBus.url, scale: 1 },
               { value: "tram", label: "Tram", logo: logoTram.url, scale: 1.25 },
               { value: "copem", label: "COPEM", logo: logoCopem.url, scale: 1.25 },
+              { value: "support", label: "Équipe Support", logo: logoSupport.url, scale: 1.25 },
             ].map((d, i) => (
               <motion.div key={d.value} variants={fadeUp}>
                 <Card className="group h-full border-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-lg">
