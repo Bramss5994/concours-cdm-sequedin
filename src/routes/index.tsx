@@ -139,7 +139,7 @@ function Home() {
                         <h3 className="text-lg font-bold">{d.label}</h3>
                       </>
                     )}
-                    <p className="text-xs text-muted-foreground">Classement propre à ton unité</p>
+                    <p className="text-xs text-muted-foreground">Classement propre à votre unité</p>
                     <Button asChild size="sm" className="mt-2 w-full">
                       <Link to="/auth" search={{ depot: d.value, tab: "signup" }}>
                         S'inscrire
