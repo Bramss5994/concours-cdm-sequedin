@@ -158,9 +158,17 @@ function UniteDashboard() {
             </div>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleLogout}>
-          <LogOut className="mr-1 h-4 w-4" /> Déconnexion
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="default" size="sm">
+            <Link to="/unite/matchs">
+              <ListChecks className="mr-1 h-4 w-4" /> Matchs & pronostics
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="mr-1 h-4 w-4" /> Déconnexion
+          </Button>
+        </div>
+
       </div>
 
       <Card className="mt-6">
