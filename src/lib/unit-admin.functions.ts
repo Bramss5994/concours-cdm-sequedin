@@ -289,7 +289,7 @@ function assertSuper(ctx: { isSuper: boolean }) {
   if (!ctx.isSuper) throw new Error("Forbidden: super admin required");
 }
 
-const DEPOT_ENUM = z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram"]);
+const DEPOT_ENUM = z.enum(["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram", "copem"]);
 
 export const getSuperAdminStatsFn = createServerFn({ method: "GET" })
   .middleware([requireUnitAdmin])
