@@ -74,7 +74,7 @@ function AuthPage() {
           <CardTitle className="text-2xl">Pronostics CDM 2026</CardTitle>
           {lockedDepotLabel && (
             <p className="mt-1 text-sm text-muted-foreground">
-              Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connecte-toi pour pronostiquer avec ton dépôt.
+              Espace <span className="font-semibold text-primary">{lockedDepotLabel}</span> · Connectez-vous pour pronostiquer avec votre dépôt.
             </p>
           )}
         </CardHeader>
