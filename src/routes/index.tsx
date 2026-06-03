@@ -10,6 +10,7 @@ import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import logoFaidherbe from "@/assets/logo-faidherbe.png.asset.json";
 import logoWattrelos from "@/assets/logo-wattrelos.png.asset.json";
 import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
+import logoTram from "@/assets/logo-tram.jpg.asset.json";
 import { Countdown } from "@/components/Countdown";
 
 const fadeUp = {
