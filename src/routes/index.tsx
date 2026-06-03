@@ -106,7 +106,7 @@ function Home() {
             transition={{ duration: 0.5 }}
             className="mx-auto max-w-4xl text-center"
           >
-            <h2 className="text-2xl font-bold sm:text-3xl">Rejoins ton unité</h2>
+            <h2 className="text-2xl font-bold sm:text-3xl">Choisis ton unité</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Chaque unité a son propre classement et son propre podium. Inscris-toi via le lien de ton unité.
             </p>
