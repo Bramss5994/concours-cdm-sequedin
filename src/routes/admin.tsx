@@ -536,6 +536,7 @@ function AdminUsers() {
             <SelectItem value="pc_bus">PC Bus</SelectItem>
             <SelectItem value="tram">Tram</SelectItem>
             <SelectItem value="copem">COPEM</SelectItem>
+            <SelectItem value="support">Équipe Support</SelectItem>
           </SelectContent>
         </Select>
         <Button size="sm" variant="outline" onClick={exportCSV}>
