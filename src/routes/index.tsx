@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award } from "lucide-react";
+import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award, Activity } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { getParticipationStatsFn } from "@/lib/stats.functions";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
