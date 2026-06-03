@@ -153,9 +153,13 @@ function UniteDashboard() {
             <ShieldCheck className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold sm:text-2xl">Admin d'unité</h1>
+            <h1 className="text-xl font-bold sm:text-2xl">
+              {isSuper ? "Super admin" : "Admin d'unité"}
+            </h1>
             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="secondary">{DEPOT_LABEL[depot] ?? depot}</Badge>
+              <Badge variant={isSuper ? "default" : "secondary"}>
+                {isSuper ? "Toutes les unités" : DEPOT_LABEL[depot] ?? depot}
+              </Badge>
               <span className="text-xs">code : {sessionQ.data.login_code}</span>
             </div>
           </div>
