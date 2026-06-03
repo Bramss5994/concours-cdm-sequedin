@@ -200,6 +200,60 @@ export const deleteUnitParticipantFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getUnitParticipantPredictionsFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prof, error: e0 } = await supabaseAdmin
+      .from("profiles")
+      .select("id, prenom, num_paie, depot")
+      .eq("id", data.userId)
+      .maybeSingle();
+    if (e0) throw new Error(e0.message);
+    if (!prof || (!context.isSuper && prof.depot !== context.depot)) {
+      throw new Error("Participant hors de votre unité");
+    }
+    const { data: preds, error: e1 } = await supabaseAdmin
+      .from("predictions")
+      .select("id, match_id, score_a, score_b, points, exact_score, good_winner, updated_at")
+      .eq("user_id", data.userId)
+      .order("updated_at", { ascending: false });
+    if (e1) throw new Error(e1.message);
+    const ids = [...new Set((preds ?? []).map((p) => p.match_id))];
+    const { data: matches, error: e2 } = await supabaseAdmin
+      .from("matches")
+      .select("id, stage, group_letter, matchday, kickoff_at, score_a, score_b, finished, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder")
+      .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    if (e2) throw new Error(e2.message);
+    const teamIds = [
+      ...new Set(
+        (matches ?? []).flatMap((m) => [m.team_a_id, m.team_b_id]).filter(Boolean) as string[],
+      ),
+    ];
+    const { data: teams } = await supabaseAdmin
+      .from("teams")
+      .select("id, name")
+      .in("id", teamIds.length ? teamIds : ["00000000-0000-0000-0000-000000000000"]);
+    const teamMap = new Map((teams ?? []).map((t) => [t.id, t]));
+    const mMap = new Map(
+      (matches ?? []).map((m) => [
+        m.id,
+        {
+          ...m,
+          team_a: m.team_a_id ? teamMap.get(m.team_a_id) ?? null : null,
+          team_b: m.team_b_id ? teamMap.get(m.team_b_id) ?? null : null,
+        },
+      ]),
+    );
+    return {
+      profile: prof,
+      predictions: (preds ?? []).map((p) => ({ ...p, match: mMap.get(p.match_id) ?? null })),
+    };
+  });
+
+
+
 /* -------------------- Matches & predictions (own depot, read-only) -------------------- */
 
 export const listUnitMatchesFn = createServerFn({ method: "GET" })
