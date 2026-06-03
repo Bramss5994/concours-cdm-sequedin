@@ -248,7 +248,7 @@ function AdminResults() {
   });
 
   async function save(id: string, patch: Record<string, any>) {
-    const { error } = await supabase.from("matches").update(patch).eq("id", id);
+    const { error } = await supabase.from("matches").update(patch as any).eq("id", id);
     if (error) { toast.error(error.message); return false; }
     qc.invalidateQueries();
     return true;
