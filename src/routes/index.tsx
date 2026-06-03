@@ -150,7 +150,7 @@ function Home() {
                       search={{ depot: d.value, tab: "login" }}
                       className="text-xs text-muted-foreground underline-offset-2 hover:underline"
                     >
-                      Déjà inscrit ? Connexion
+                      Déjà inscrit·e ? Connexion
                     </Link>
                   </CardContent>
                 </Card>
