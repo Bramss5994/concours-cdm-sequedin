@@ -203,7 +203,7 @@ function Home() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mt-2 text-center text-sm text-muted-foreground"
-          >Pour chaque match, vos points sont attribués automatiquement à la fin de la rencontre.</motion.p>
+          >Vos points sont calculés et attribués automatiquement dès le coup de sifflet final.</motion.p>
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -212,9 +212,9 @@ function Home() {
             className="mt-6 grid gap-3 sm:grid-cols-3"
           >
             {[
-              { cls: "border-primary/40 bg-primary/5", pts: "3 pts", t: "Score exact", desc: "Sauf le 0-0 (compte comme match nul prédit)" },
-              { cls: "", pts: "2 pts", t: "Vainqueur", desc: "Vous trouvez le gagnant mais pas le score exact" },
-              { cls: "", pts: "1 pt", t: "Match nul prédit", desc: "Vous pronostiquez un nul et le match finit nul" },
+              { cls: "border-primary/40 bg-primary/5", pts: "3 pts", t: "Score exact", desc: "Vous avez trouvé le score parfait ! (Exception : le score de 0-0 compte comme un simple match nul)." },
+              { cls: "", pts: "2 pts", t: "Vainqueur", desc: "Vous avez la bonne équipe gagnante, sans avoir le score exact." },
+              { cls: "", pts: "1 pt", t: "Match nul prédit", desc: "Vous avez pronostiqué une égalité parfaite à l'issue de la rencontre." },
             ].map((c, i) => (
               <motion.div key={c.t} variants={fadeUp} custom={i}>
                 <Card className={`h-full transition-all duration-300 hover:shadow-md hover:-translate-y-1 ${c.cls}`}>
