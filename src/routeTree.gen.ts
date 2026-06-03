@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
 import { Route as UniteLoginRouteImport } from './routes/unite.login'
 import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
+import { Route as UniteClassementRouteImport } from './routes/unite.classement'
 import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
 const UniteRoute = UniteRouteImport.update({
@@ -77,6 +78,11 @@ const UniteGestionRoute = UniteGestionRouteImport.update({
   path: '/gestion',
   getParentRoute: () => UniteRoute,
 } as any)
+const UniteClassementRoute = UniteClassementRouteImport.update({
+  id: '/classement',
+  path: '/classement',
+  getParentRoute: () => UniteRoute,
+} as any)
 const ApiPublicHooksSyncScoresRoute =
   ApiPublicHooksSyncScoresRouteImport.update({
     id: '/api/public/hooks/sync-scores',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/unite': typeof UniteRouteWithChildren
+  '/unite/classement': typeof UniteClassementRoute
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/unite': typeof UniteRouteWithChildren
+  '/unite/classement': typeof UniteClassementRoute
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/unite': typeof UniteRouteWithChildren
+  '/unite/classement': typeof UniteClassementRoute
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/unite'
+    | '/unite/classement'
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/unite'
+    | '/unite/classement'
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/unite'
+    | '/unite/classement'
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UniteGestionRouteImport
       parentRoute: typeof UniteRoute
     }
+    '/unite/classement': {
+      id: '/unite/classement'
+      path: '/classement'
+      fullPath: '/unite/classement'
+      preLoaderRoute: typeof UniteClassementRouteImport
+      parentRoute: typeof UniteRoute
+    }
     '/api/public/hooks/sync-scores': {
       id: '/api/public/hooks/sync-scores'
       path: '/api/public/hooks/sync-scores'
@@ -274,12 +293,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface UniteRouteChildren {
+  UniteClassementRoute: typeof UniteClassementRoute
   UniteGestionRoute: typeof UniteGestionRoute
   UniteLoginRoute: typeof UniteLoginRoute
   UniteMatchsRoute: typeof UniteMatchsRoute
 }
 
 const UniteRouteChildren: UniteRouteChildren = {
+  UniteClassementRoute: UniteClassementRoute,
   UniteGestionRoute: UniteGestionRoute,
   UniteLoginRoute: UniteLoginRoute,
   UniteMatchsRoute: UniteMatchsRoute,
