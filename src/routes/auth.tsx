@@ -90,7 +90,7 @@ function AuthPage() {
         </CardContent>
       </Card>
       <p className="mt-3 text-center text-xs text-muted-foreground">
-        Aucune adresse e-mail n'est demandée. Utilise ton prénom et ton numéro de paie pour te connecter.
+        Aucune adresse e-mail n'est demandée. Utilisez votre prénom et votre numéro de paie pour vous connecter.
       </p>
     </div>
   );
