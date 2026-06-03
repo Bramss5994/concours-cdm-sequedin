@@ -60,7 +60,7 @@ export const requireUnitAdmin = createMiddleware({ type: "function" }).server(
   },
 );
 
-const DEPOTS = ["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram"] as const;
+const DEPOTS = ["sequedin", "faidherbe", "wattrelos", "pc_bus", "tram", "copem"] as const;
 
 export const loginUnitAdmin = createServerFn({ method: "POST" })
   .inputValidator((input) =>
