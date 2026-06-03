@@ -93,12 +93,6 @@ function AuthPage() {
       <p className="mt-3 text-center text-xs text-muted-foreground">
         Aucune adresse e-mail n'est demandée. Utilisez votre prénom et votre numéro de paie pour vous connecter.
       </p>
-      <p className="mt-2 text-center text-xs">
-        <a href="/unite/login" className="text-muted-foreground underline underline-offset-2 hover:text-primary">
-          Espace admin d'unité →
-        </a>
-      </p>
-
     </div>
   );
 }
@@ -117,10 +111,18 @@ function LoginForm() {
         if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
         setBusy(true);
         const email = buildEmail(parsed.data.prenom, parsed.data.numPaie);
-        const { error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
+        if (error) { setBusy(false); toast.error("Identifiants invalides"); return; }
+        // Check if user is super admin → redirect to /admin
+        const uid = signInData.user?.id;
+        let isAdmin = false;
+        if (uid) {
+          const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid).eq("role", "admin").maybeSingle();
+          isAdmin = !!roles;
+        }
         setBusy(false);
-        if (error) toast.error("Identifiants invalides");
-        else { toast.success("Bienvenue !"); router.navigate({ to: "/matches" }); }
+        toast.success("Bienvenue !");
+        router.navigate({ to: isAdmin ? "/admin" : "/matches" });
       }}
     >
       <div className="grid grid-cols-2 gap-3">
