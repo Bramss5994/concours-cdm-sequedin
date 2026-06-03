@@ -625,3 +625,244 @@ function AdminUsers() {
     </>
   );
 }
+
+/* ----------------------------- UNIT ADMINS (super-admin) ----------------------------- */
+
+const UNIT_DEPOTS: { value: string; label: string }[] = [
+  { value: "sequedin", label: "Sequedin" },
+  { value: "faidherbe", label: "Faidherbe" },
+  { value: "wattrelos", label: "Wattrelos" },
+  { value: "pc_bus", label: "PC Bus" },
+  { value: "tram", label: "Tram" },
+];
+
+function AdminUnitAdmins() {
+  const qc = useQueryClient();
+  const fetchList = useServerFn(listUnitAdminsFn);
+  const doCreate = useServerFn(createUnitAdminFn);
+  const doReset = useServerFn(resetUnitAdminPasswordFn);
+  const doToggle = useServerFn(toggleUnitAdminFn);
+  const doDelete = useServerFn(deleteUnitAdminFn);
+
+  const { data: list = [], isLoading } = useQuery({
+    queryKey: ["unit-admins"],
+    queryFn: () => fetchList(),
+  });
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [nDepot, setNDepot] = useState("faidherbe");
+  const [nCode, setNCode] = useState("");
+  const [nPwd, setNPwd] = useState("");
+
+  const [pwdTarget, setPwdTarget] = useState<any | null>(null);
+  const [pwdValue, setPwdValue] = useState("");
+  const [delTarget, setDelTarget] = useState<any | null>(null);
+
+  async function submitCreate() {
+    if (nCode.trim().length < 3) return toast.error("Code trop court");
+    if (nPwd.length < 8) return toast.error("Mot de passe min. 8 caractères");
+    try {
+      await doCreate({ data: { depot: nDepot as any, login_code: nCode.trim(), password: nPwd } });
+      toast.success("Admin d'unité créé");
+      setCreateOpen(false);
+      setNCode("");
+      setNPwd("");
+      qc.invalidateQueries({ queryKey: ["unit-admins"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function toggleActive(id: string, active: boolean) {
+    try {
+      await doToggle({ data: { id, active } });
+      qc.invalidateQueries({ queryKey: ["unit-admins"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function confirmReset() {
+    if (!pwdTarget) return;
+    if (pwdValue.length < 8) return toast.error("8 caractères minimum");
+    try {
+      await doReset({ data: { id: pwdTarget.id, password: pwdValue } });
+      toast.success("Mot de passe réinitialisé");
+      setPwdTarget(null);
+      setPwdValue("");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function confirmDelete() {
+    if (!delTarget) return;
+    try {
+      await doDelete({ data: { id: delTarget.id } });
+      toast.success("Supprimé");
+      setDelTarget(null);
+      qc.invalidateQueries({ queryKey: ["unit-admins"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  return (
+    <>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3">
+        <div className="text-sm">
+          <p className="font-semibold">Admins d'unité (accès via /unite/login)</p>
+          <p className="text-xs text-muted-foreground">
+            Connexion par code d'unité + mot de passe, indépendante des comptes participants.
+          </p>
+        </div>
+        <Button size="sm" onClick={() => setCreateOpen(true)}>
+          <ShieldPlus className="mr-1 h-4 w-4" /> Créer un admin d'unité
+        </Button>
+      </div>
+
+      <Card className="mt-4">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <p className="p-4 text-sm text-muted-foreground">Chargement…</p>
+          ) : list.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">Aucun admin d'unité.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-xs uppercase">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Dépôt</th>
+                    <th className="px-3 py-2 text-left">Code de connexion</th>
+                    <th className="px-3 py-2 text-center">Actif</th>
+                    <th className="px-3 py-2 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map((a: any) => (
+                    <tr key={a.id} className="border-t">
+                      <td className="px-3 py-2">
+                        {UNIT_DEPOTS.find((d) => d.value === a.depot)?.label ?? a.depot}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-xs">{a.login_code}</td>
+                      <td className="px-3 py-2 text-center">
+                        <Switch checked={a.active} onCheckedChange={(v) => toggleActive(a.id, v)} />
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Réinitialiser mot de passe"
+                            onClick={() => {
+                              setPwdTarget(a);
+                              setPwdValue("");
+                            }}
+                          >
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Supprimer"
+                            onClick={() => setDelTarget(a)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Créer un admin d'unité</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs uppercase text-muted-foreground">Dépôt</label>
+              <Select value={nDepot} onValueChange={setNDepot}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {UNIT_DEPOTS.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs uppercase text-muted-foreground">Code de connexion</label>
+              <Input
+                value={nCode}
+                onChange={(e) => setNCode(e.target.value.toUpperCase())}
+                placeholder="EX: FAID-ADM"
+                className="uppercase"
+              />
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Lettres, chiffres et tirets uniquement. 3 à 32 caractères. Sera stocké en majuscules.
+              </p>
+            </div>
+            <div>
+              <label className="text-xs uppercase text-muted-foreground">Mot de passe initial</label>
+              <Input
+                type="text"
+                value={nPwd}
+                onChange={(e) => setNPwd(e.target.value)}
+                placeholder="Min. 8 caractères"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Annuler</Button>
+            <Button onClick={submitCreate}>Créer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pwdTarget} onOpenChange={(o) => !o && setPwdTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Réinitialiser le mot de passe</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Pour <strong>{pwdTarget?.login_code}</strong>
+          </p>
+          <Input
+            type="text"
+            placeholder="Nouveau mot de passe (min. 8 caractères)"
+            value={pwdValue}
+            onChange={(e) => setPwdValue(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPwdTarget(null)}>Annuler</Button>
+            <Button onClick={confirmReset}>Réinitialiser</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!delTarget} onOpenChange={(o) => !o && setDelTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cet admin d'unité ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{delTarget?.login_code}</strong> ne pourra plus se connecter.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
