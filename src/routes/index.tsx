@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award, Activity } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { getParticipationStatsFn } from "@/lib/stats.functions";
+import { WinnerTeamPicker } from "@/components/WinnerTeamPicker";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
@@ -105,6 +106,14 @@ function Home() {
       <Countdown />
 
       <ParticipationLive />
+
+      {user && (
+        <section className="container mx-auto px-4 py-6">
+          <WinnerTeamPicker />
+        </section>
+      )}
+
+
 
 
       {!user && (

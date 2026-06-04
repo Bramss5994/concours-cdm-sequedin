@@ -257,6 +257,65 @@ export type Database = {
         }
         Relationships: []
       }
+      winner_predictions: {
+        Row: {
+          created_at: string
+          final_locked_at: string | null
+          final_team_id: string | null
+          initial_locked_at: string | null
+          initial_team_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          final_locked_at?: string | null
+          final_team_id?: string | null
+          initial_locked_at?: string | null
+          initial_team_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          final_locked_at?: string | null
+          final_team_id?: string | null
+          initial_locked_at?: string | null
+          initial_team_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "winner_predictions_final_team_id_fkey"
+            columns: ["final_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "winner_predictions_initial_team_id_fkey"
+            columns: ["initial_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "winner_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "winner_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       leaderboard: {
@@ -282,6 +341,13 @@ export type Database = {
           id: string
           num_paie: string
           prenom: string
+        }[]
+      }
+      get_winner_bonuses: {
+        Args: never
+        Returns: {
+          bonus: number
+          user_id: string
         }[]
       }
       has_role: {
