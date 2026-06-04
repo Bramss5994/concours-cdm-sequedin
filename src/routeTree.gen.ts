@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UniteRouteImport } from './routes/unite'
 import { Route as TopScorerRouteImport } from './routes/top-scorer'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReglementRouteImport } from './routes/reglement'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -37,6 +38,11 @@ const TopScorerRoute = TopScorerRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReglementRoute = ReglementRouteImport.update({
+  id: '/reglement',
+  path: '/reglement',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
+  '/reglement': typeof ReglementRoute
   '/reset-password': typeof ResetPasswordRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
+  '/reglement': typeof ReglementRoute
   '/reset-password': typeof ResetPasswordRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/matches': typeof MatchesRoute
   '/profile': typeof ProfileRoute
+  '/reglement': typeof ReglementRoute
   '/reset-password': typeof ResetPasswordRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/matches'
     | '/profile'
+    | '/reglement'
     | '/reset-password'
     | '/top-scorer'
     | '/unite'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/matches'
     | '/profile'
+    | '/reglement'
     | '/reset-password'
     | '/top-scorer'
     | '/unite'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/matches'
     | '/profile'
+    | '/reglement'
     | '/reset-password'
     | '/top-scorer'
     | '/unite'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   MatchesRoute: typeof MatchesRoute
   ProfileRoute: typeof ProfileRoute
+  ReglementRoute: typeof ReglementRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopScorerRoute: typeof TopScorerRoute
   UniteRoute: typeof UniteRouteWithChildren
@@ -230,6 +243,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reglement': {
+      id: '/reglement'
+      path: '/reglement'
+      fullPath: '/reglement'
+      preLoaderRoute: typeof ReglementRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -335,6 +355,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   MatchesRoute: MatchesRoute,
   ProfileRoute: ProfileRoute,
+  ReglementRoute: ReglementRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TopScorerRoute: TopScorerRoute,
   UniteRoute: UniteRouteWithChildren,
