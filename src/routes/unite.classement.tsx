@@ -150,7 +150,15 @@ function UniteClassementPage() {
                     <th className="px-3 py-2 text-left">#</th>
                     <th className="px-3 py-2 text-left">Participant</th>
                     {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
-                    <th className="px-3 py-2 text-right">Points</th>
+                    {stage === "all" && (
+                      <>
+                        <th className="px-3 py-2 text-right">Groupes</th>
+                        <th className="px-3 py-2 text-right">Phases finales</th>
+                        <th className="px-3 py-2 text-right">Finale</th>
+                        <th className="px-3 py-2 text-right">Bonus</th>
+                      </>
+                    )}
+                    <th className="px-3 py-2 text-right">Total</th>
                     <th className="px-3 py-2 text-right">Scores exacts</th>
                     <th className="px-3 py-2 text-right">Bons vainqueurs</th>
                   </tr>
@@ -163,7 +171,15 @@ function UniteClassementPage() {
                       </td>
                       <td className="px-3 py-2">{r.name}</td>
                       {isSuper && <td className="px-3 py-2"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
-                      <td className="px-3 py-2 text-right font-bold">{r.pts}</td>
+                      {stage === "all" && (
+                        <>
+                          <td className="px-3 py-2 text-right tabular-nums">{r.groupPts}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{r.koPts}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{r.finalPts}</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-amber-600 dark:text-amber-400">{r.bonus}</td>
+                        </>
+                      )}
+                      <td className="px-3 py-2 text-right font-bold tabular-nums">{r.pts}</td>
                       <td className="px-3 py-2 text-right">{r.exact}</td>
                       <td className="px-3 py-2 text-right">{r.good}</td>
                     </tr>
