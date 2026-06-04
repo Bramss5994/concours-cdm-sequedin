@@ -10,7 +10,7 @@ import { getParticipationStatsFn } from "@/lib/stats.functions";
 import { WinnerTeamPicker } from "@/components/WinnerTeamPicker";
 import { TopScorerPicker } from "@/components/TopScorerPicker";
 
-import fifaWc2026 from "@/assets/logo-inter-depots.png.asset.json";
+import fifaWc2026 from "@/assets/logo-keolis-ilevia.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
 import logoFaidherbe from "@/assets/logo-faidherbe.png.asset.json";
 import logoWattrelos from "@/assets/logo-wattrelos.png.asset.json";
