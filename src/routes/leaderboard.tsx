@@ -92,11 +92,12 @@ function Leaderboard() {
     if (!r || !r.profiles) return [];
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
     const bonusById = new Map<string, number>((r.bonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
+    const scorerBonusById = new Map<string, number>((r.scorerBonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
     const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; bonus: number; }>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
-      const bonus = stage === "all" ? (bonusById.get(p.id) || 0) : 0;
+      const bonus = stage === "all" ? (bonusById.get(p.id) || 0) + (scorerBonusById.get(p.id) || 0) : 0;
       stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, bonus });
     }
     for (const pred of r.predictions) {
