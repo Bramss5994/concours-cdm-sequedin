@@ -90,6 +90,44 @@ export type Database = {
           },
         ]
       }
+      players: {
+        Row: {
+          club: string | null
+          created_at: string
+          id: string
+          is_top_scorer: boolean
+          name: string
+          position: string
+          team_id: string
+        }
+        Insert: {
+          club?: string | null
+          created_at?: string
+          id?: string
+          is_top_scorer?: boolean
+          name: string
+          position: string
+          team_id: string
+        }
+        Update: {
+          club?: string | null
+          created_at?: string
+          id?: string
+          is_top_scorer?: boolean
+          name?: string
+          position?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       predictions: {
         Row: {
           exact_score: boolean
@@ -205,6 +243,49 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      top_scorer_predictions: {
+        Row: {
+          created_at: string
+          player_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          player_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          player_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "top_scorer_predictions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "top_scorer_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "leaderboard"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "top_scorer_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unit_admins: {
         Row: {
@@ -341,6 +422,13 @@ export type Database = {
           id: string
           num_paie: string
           prenom: string
+        }[]
+      }
+      get_top_scorer_bonuses: {
+        Args: never
+        Returns: {
+          bonus: number
+          user_id: string
         }[]
       }
       get_winner_bonuses: {

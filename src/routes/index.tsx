@@ -8,6 +8,7 @@ import { Trophy, Users, BarChart3, Calendar, Clock, Lock, Gift, Medal, Award, Ac
 import { useAuth } from "@/lib/auth";
 import { getParticipationStatsFn } from "@/lib/stats.functions";
 import { WinnerTeamPicker } from "@/components/WinnerTeamPicker";
+import { TopScorerPicker } from "@/components/TopScorerPicker";
 
 import fifaWc2026 from "@/assets/fifa-wc-2026.png.asset.json";
 import logoSequedin from "@/assets/logo-sequedin.avif.asset.json";
@@ -108,8 +109,9 @@ function Home() {
       <ParticipationLive />
 
       {user && (
-        <section className="container mx-auto px-4 py-6">
+        <section className="container mx-auto grid gap-4 px-4 py-6 md:grid-cols-2">
           <WinnerTeamPicker />
+          <TopScorerPicker />
         </section>
       )}
 
