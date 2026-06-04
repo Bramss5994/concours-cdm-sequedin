@@ -3,7 +3,7 @@ import { Trophy, Calendar, BarChart3, User as UserIcon, Shield, LogOut, LogIn, M
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import logoIlevia from "@/assets/logo-keolis-ilevia.png.asset.json";
+import logoIlevia from "@/assets/logo-concours-crest.png.asset.json";
 
 export function Nav() {
   const { user, isAdmin, signOut } = useAuth();
