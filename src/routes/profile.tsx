@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatFR } from "@/lib/time";
 import { FavoriteTeamPicker } from "@/components/FavoriteTeamPicker";
+import { WinnerTeamPicker } from "@/components/WinnerTeamPicker";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { BadgesGrid } from "@/components/BadgesGrid";
@@ -294,7 +295,8 @@ function Profile() {
         </>
       )}
 
-      <div className="mt-6">
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <WinnerTeamPicker />
         <FavoriteTeamPicker />
       </div>
 
