@@ -20,6 +20,7 @@ export function Nav() {
     { to: "/", label: "Accueil", icon: Trophy },
     { to: "/matches", label: "Matchs", icon: Calendar },
     { to: "/leaderboard", label: "Classement", icon: BarChart3 },
+    { to: "/top-scorer", label: "Soulier d'Or", icon: Target },
     ...(user ? [{ to: "/profile", label: "Mon profil", icon: UserIcon }] : []),
     ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : []),
   ];
