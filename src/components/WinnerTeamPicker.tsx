@@ -184,6 +184,10 @@ export function WinnerTeamPicker() {
           +10 pts si votre équipe initiale gagne. Après les phases de groupes vous pourrez
           confirmer (+5 bonus) ou changer (vous perdez les 10, mais gagnez +5 si la nouvelle équipe est championne).
         </p>
+        <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          Attention : le choix initial est définitivement verrouillé dès le coup d'envoi du 1er match de la Coupe du Monde.
+        </p>
 
         {/* INITIAL PICK */}
         <div className="mt-4 rounded-md border bg-card/50 p-3">
