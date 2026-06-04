@@ -109,8 +109,9 @@ function Home() {
       <ParticipationLive />
 
       {user && (
-        <section className="container mx-auto px-4 py-6">
+        <section className="container mx-auto grid gap-4 px-4 py-6 md:grid-cols-2">
           <WinnerTeamPicker />
+          <TopScorerPicker />
         </section>
       )}
 

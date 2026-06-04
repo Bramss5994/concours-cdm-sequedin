@@ -69,13 +69,20 @@ function Leaderboard() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
     queryFn: async () => {
-      const [{ data: profiles }, { data: predictions }, { data: matches }, { data: bonuses }] = await Promise.all([
+      const [{ data: profiles }, { data: predictions }, { data: matches }, { data: bonuses }, { data: scorerBonuses }] = await Promise.all([
         supabase.rpc("get_public_profiles"),
         supabase.from("predictions").select("user_id, match_id, points, exact_score, good_winner"),
         supabase.from("matches").select("id, stage, finished"),
         supabase.rpc("get_winner_bonuses"),
+        supabase.rpc("get_top_scorer_bonuses"),
       ]);
-      return { profiles: profiles || [], predictions: predictions || [], matches: matches || [], bonuses: bonuses || [] };
+      return {
+        profiles: profiles || [],
+        predictions: predictions || [],
+        matches: matches || [],
+        bonuses: bonuses || [],
+        scorerBonuses: scorerBonuses || [],
+      };
     },
   });
 
