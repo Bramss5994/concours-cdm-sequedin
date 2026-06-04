@@ -343,6 +343,13 @@ export type Database = {
           prenom: string
         }[]
       }
+      get_winner_bonuses: {
+        Args: never
+        Returns: {
+          bonus: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
