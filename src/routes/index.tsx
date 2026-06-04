@@ -311,8 +311,8 @@ function Home() {
                     <span className="text-xs font-bold uppercase text-orange-900 dark:text-orange-300">3e</span>
                   </div>
                 </div>
-                <div className="mt-4 text-2xl font-extrabold text-amber-950 dark:text-amber-50">Restaurant offert</div>
-                <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">pour le podium complet de chaque unité</p>
+                <div className="mt-4 text-2xl font-extrabold text-amber-950 dark:text-amber-50">Des lots à gagner</div>
+                <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-100/80">pour le podium de chaque unité</p>
               </CardContent>
             </Card>
           </motion.div>
