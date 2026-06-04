@@ -30,7 +30,7 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
-          <img src={logoIlevia.url} alt="Keolis Lille Ilévia" className="h-8 w-auto" />
+          <img src={logoIlevia.url} alt="Concours Pronostics Coupe du Monde 2026" className="h-10 w-auto" />
           <span className="hidden sm:inline">Pronostics CDM 2026</span>
         </Link>
 
