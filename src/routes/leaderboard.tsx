@@ -93,12 +93,12 @@ function Leaderboard() {
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
     const bonusById = new Map<string, number>((r.bonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
     const scorerBonusById = new Map<string, number>((r.scorerBonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
-    const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; bonus: number; }>();
+    const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; bonus: number; groupPts: number; koPts: number; finalPts: number; }>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
       const bonus = stage === "all" ? (bonusById.get(p.id) || 0) + (scorerBonusById.get(p.id) || 0) : 0;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, bonus });
+      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, bonus, groupPts: 0, koPts: 0, finalPts: 0 });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);
@@ -106,7 +106,11 @@ function Leaderboard() {
       if (stage !== "all" && m.stage !== stage) continue;
       const s = stats.get(pred.user_id);
       if (!s) continue;
-      s.pts += pred.points || 0;
+      const pts = pred.points || 0;
+      s.pts += pts;
+      if (m.stage === "group") s.groupPts += pts;
+      else if (m.stage === "final") s.finalPts += pts;
+      else s.koPts += pts;
       if (pred.exact_score) s.exact++;
       if (pred.good_winner) s.good++;
     }
