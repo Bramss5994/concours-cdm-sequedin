@@ -424,6 +424,20 @@ export type Database = {
           prenom: string
         }[]
       }
+      get_top_scorer_board: {
+        Args: never
+        Returns: {
+          bonus: number
+          depot: Database["public"]["Enums"]["depot"]
+          num_paie: string
+          player_club: string
+          player_id: string
+          player_name: string
+          prenom: string
+          team_name: string
+          user_id: string
+        }[]
+      }
       get_top_scorer_bonuses: {
         Args: never
         Returns: {
