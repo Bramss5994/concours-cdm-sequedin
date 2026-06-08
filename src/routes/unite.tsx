@@ -286,7 +286,7 @@ function UniteDashboard() {
                           <Badge variant="outline">{DEPOT_LABEL[u.depot] ?? u.depot}</Badge>
                         </td>
                       )}
-                      <td className="px-3 py-2 text-xs">{u.email}</td>
+                      <td className="px-3 py-2 text-xs">{u.email && !u.email.endsWith(".local") ? u.email : ""}</td>
                       <td className="px-3 py-2 text-right font-semibold">{u.points}</td>
                       <td className="px-3 py-2 text-center">
                         <Switch

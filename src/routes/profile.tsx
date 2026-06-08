@@ -163,7 +163,7 @@ function Profile() {
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold sm:text-3xl">Mon profil</h1>
-      {data?.profile && <p className="text-muted-foreground">{data.profile.prenom} {data.profile.num_paie} · {data.profile.email}</p>}
+      {data?.profile && <p className="text-muted-foreground">{data.profile.prenom} {data.profile.num_paie}{data.profile.email && !data.profile.email.endsWith(".local") ? ` · ${data.profile.email}` : ""}</p>}
 
       {stats && (
         <>
