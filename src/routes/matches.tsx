@@ -355,7 +355,7 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
             <Input type="number" min={0} max={20} value={scoreB} onChange={(e) => setScoreB(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
           </div>
           <div className="flex items-center gap-2">
-            {codeB && <img srcSet={flagSrcSet(codeB)} src={`https://flagcdn.com/w40/${codeB}.png`} alt={nameB} className="h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
+            {codeB && <img srcSet={flagSrcSet(codeB)} src={`https://flagcdn.com/w40/${codeB}.png`} alt={nameB} className="flag-wave h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
             <span className="font-semibold truncate">{nameB}</span>
           </div>
         </div>
