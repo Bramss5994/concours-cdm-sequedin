@@ -45,7 +45,8 @@ import {
   isSequedinSuperAdminFn,
 } from "@/lib/super-admin.functions";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trash2, KeyRound, Download, ShieldPlus, Eye } from "lucide-react";
+import { Trash2, KeyRound, Download, ShieldPlus, Eye, Target, Crown } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
