@@ -45,8 +45,10 @@ function TopScorerBoard() {
   });
 
   useEffect(() => {
-    if (!isAdmin && myDepot) setDepotFilter(myDepot);
+    if (isAdmin) setDepotFilter("all");
+    else if (myDepot) setDepotFilter(myDepot);
   }, [isAdmin, myDepot]);
+
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["top-scorer-board"],
