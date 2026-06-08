@@ -214,7 +214,7 @@ function Profile() {
           {favoriteTeam && (
             <Card className="mt-3">
               <CardContent className="flex items-center gap-3 p-4">
-                <img src={`https://flagcdn.com/w80/${favoriteTeam.code}.png`} alt={favoriteTeam.name} className="h-10 w-14 rounded-sm object-cover ring-1 ring-border" />
+                <img src={`https://flagcdn.com/w80/${favoriteTeam.code}.png`} alt={favoriteTeam.name} className="flag-wave h-10 w-14 rounded-sm object-cover ring-1 ring-border" />
                 <div>
                   <div className="text-xs uppercase text-muted-foreground">Équipe fétiche</div>
                   <div className="font-semibold">{favoriteTeam.name}</div>
