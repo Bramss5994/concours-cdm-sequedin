@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Shield } from "lucide-react";
+import { Shield, ArrowLeft } from "lucide-react";
 import { loginUnitAdmin, getUnitAdminSession } from "@/lib/unit-admin.functions";
 
 export const Route = createFileRoute("/unite/login")({
@@ -44,7 +44,14 @@ function UniteLoginPage() {
   }
 
   return (
-    <div className="container mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
+    <div className="container mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 py-10">
+      <div className="mb-4 w-full">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/">
+            <ArrowLeft className="mr-1 h-4 w-4" /> Retour à l'accueil
+          </Link>
+        </Button>
+      </div>
       <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
