@@ -140,16 +140,22 @@ function ReglementPage() {
 
       <Section icon={ShieldCheck} title="6. Classements">
         <p>
-          Deux classements sont publiés en temps réel sur le site :
+          <span className="font-semibold text-foreground">Chaque unité possède son propre classement.</span>{" "}
+          Il n'existe pas de classement toutes unités confondues : seul le
+          classement interne à votre dépôt (Sequedin, Faidherbe, Tram,
+          Wattrelos, PC Bus, COPEM ou Support) détermine le podium et la
+          remise des lots.
         </p>
-        <ul className="ml-5 list-disc space-y-1">
-          <li>Le <span className="font-semibold text-foreground">classement général</span>, tous collaborateurs confondus.</li>
-          <li>Le <span className="font-semibold text-foreground">classement par unité</span>, qui détermine le podium de chaque dépôt.</li>
-        </ul>
         <p>
-          En cas d'égalité de points en fin de concours, les participants sont
-          départagés successivement par : nombre de scores exacts, puis nombre
-          de bonnes équipes gagnantes, puis date la plus précoce d'inscription.
+          Ce classement par unité est publié en temps réel sur le site et mis
+          à jour automatiquement après chaque match.
+        </p>
+        <p>
+          En cas d'égalité de points en fin de concours, les participants
+          d'une même unité sont départagés successivement par : nombre de
+          scores exacts, puis nombre de bonnes équipes gagnantes, puis date
+          la plus précoce d'inscription.
+
 
         </p>
       </Section>
