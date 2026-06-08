@@ -140,7 +140,7 @@ export function TopScorerPicker() {
                 <img
                   src={`https://flagcdn.com/w40/${teamById.get(pickedPlayer.team_id)!.code}.png`}
                   alt=""
-                  className="flag-wave h-5 w-7 rounded-sm object-cover ring-1 ring-border"
+                  className="h-5 w-7 rounded-sm object-cover ring-1 ring-border"
                 />
               )}
               <div>
