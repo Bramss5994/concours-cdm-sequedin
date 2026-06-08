@@ -118,11 +118,13 @@ function ReglementPage() {
 
       <Section icon={BarePoints} title="5. Barème des points">
         <ul className="ml-5 list-disc space-y-1">
-          <li><span className="font-semibold text-foreground">Score exact</span> : 3 points</li>
-          <li><span className="font-semibold text-foreground">Bonne équipe gagnante (ou match nul) + bon écart</span> : 2 points</li>
-          <li><span className="font-semibold text-foreground">Bonne équipe gagnante (ou match nul) seule</span> : 1 point</li>
+          <li><span className="font-semibold text-foreground">Score exact</span> : 3 points (hors match nul)</li>
+          <li><span className="font-semibold text-foreground">Bonne équipe gagnante + bon écart</span> : 2 points</li>
+          <li><span className="font-semibold text-foreground">Bonne équipe gagnante seule</span> : 1 point</li>
+          <li><span className="font-semibold text-foreground">Match nul correctement pronostiqué</span> : 1 point</li>
           <li><span className="font-semibold text-foreground">Mauvais pronostic</span> : 0 point</li>
         </ul>
+
         <p>
           Bonus longue durée : des points additionnels sont attribués si vous
           avez correctement pronostiqué l'équipe gagnante finale de la Coupe du
