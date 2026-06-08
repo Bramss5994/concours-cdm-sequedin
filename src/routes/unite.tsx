@@ -196,14 +196,14 @@ function UniteDashboard() {
             </Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
-            <a href="/winner-board" target="_blank" rel="noreferrer">
+            <Link to="/unite/winner-board">
               <Crown className="mr-1 h-4 w-4" /> Équipe gagnante
-            </a>
+            </Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
-            <a href="/top-scorer" target="_blank" rel="noreferrer">
+            <Link to="/unite/top-scorer">
               <Target className="mr-1 h-4 w-4" /> Soulier d'Or
-            </a>
+            </Link>
           </Button>
 
           <Button variant="outline" size="sm" onClick={handleLogout}>
