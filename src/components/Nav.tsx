@@ -1,5 +1,5 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { Trophy, Calendar, BarChart3, User as UserIcon, Shield, LogOut, LogIn, Menu, X, Target, ScrollText } from "lucide-react";
+import { Trophy, Calendar, BarChart3, User as UserIcon, Shield, LogOut, LogIn, Menu, X, Target, ScrollText, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -21,6 +21,7 @@ export function Nav() {
     { to: "/matches", label: "Matchs", icon: Calendar },
     { to: "/leaderboard", label: "Classement", icon: BarChart3 },
     { to: "/top-scorer", label: "Soulier d'Or", icon: Target },
+    { to: "/winner-board", label: "Équipe gagnante", icon: Crown },
     { to: "/reglement", label: "Règlement", icon: ScrollText },
     ...(user ? [{ to: "/profile", label: "Mon profil", icon: UserIcon }] : []),
     ...(isAdmin ? [{ to: "/admin", label: "Admin", icon: Shield }] : []),

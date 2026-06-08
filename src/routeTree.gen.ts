@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WinnerBoardRouteImport } from './routes/winner-board'
 import { Route as UniteRouteImport } from './routes/unite'
 import { Route as TopScorerRouteImport } from './routes/top-scorer'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -25,6 +26,11 @@ import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
 import { Route as UniteClassementRouteImport } from './routes/unite.classement'
 import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
+const WinnerBoardRoute = WinnerBoardRouteImport.update({
+  id: '/winner-board',
+  path: '/winner-board',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UniteRoute = UniteRouteImport.update({
   id: '/unite',
   path: '/unite',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
+  '/winner-board': typeof WinnerBoardRoute
   '/unite/classement': typeof UniteClassementRoute
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
+  '/winner-board': typeof WinnerBoardRoute
   '/unite/classement': typeof UniteClassementRoute
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
+  '/winner-board': typeof WinnerBoardRoute
   '/unite/classement': typeof UniteClassementRoute
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/top-scorer'
     | '/unite'
+    | '/winner-board'
     | '/unite/classement'
     | '/unite/gestion'
     | '/unite/login'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/top-scorer'
     | '/unite'
+    | '/winner-board'
     | '/unite/classement'
     | '/unite/gestion'
     | '/unite/login'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/top-scorer'
     | '/unite'
+    | '/winner-board'
     | '/unite/classement'
     | '/unite/gestion'
     | '/unite/login'
@@ -219,11 +231,19 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TopScorerRoute: typeof TopScorerRoute
   UniteRoute: typeof UniteRouteWithChildren
+  WinnerBoardRoute: typeof WinnerBoardRoute
   ApiPublicHooksSyncScoresRoute: typeof ApiPublicHooksSyncScoresRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/winner-board': {
+      id: '/winner-board'
+      path: '/winner-board'
+      fullPath: '/winner-board'
+      preLoaderRoute: typeof WinnerBoardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unite': {
       id: '/unite'
       path: '/unite'
@@ -359,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TopScorerRoute: TopScorerRoute,
   UniteRoute: UniteRouteWithChildren,
+  WinnerBoardRoute: WinnerBoardRoute,
   ApiPublicHooksSyncScoresRoute: ApiPublicHooksSyncScoresRoute,
 }
 export const routeTree = rootRouteImport

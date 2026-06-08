@@ -445,6 +445,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_winner_board: {
+        Args: never
+        Returns: {
+          bonus: number
+          depot: Database["public"]["Enums"]["depot"]
+          final_team_code: string
+          final_team_id: string
+          final_team_name: string
+          initial_team_code: string
+          initial_team_id: string
+          initial_team_name: string
+          num_paie: string
+          prenom: string
+          user_id: string
+        }[]
+      }
       get_winner_bonuses: {
         Args: never
         Returns: {
