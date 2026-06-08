@@ -97,7 +97,7 @@ function UniteClassementPage() {
       if (pred.exact_score) s.exact++;
       if (pred.good_winner) s.good++;
     }
-    return [...stats.values()].sort((a, b) => b.pts - a.pts || b.exact - a.exact || b.good - a.good);
+    return [...stats.values()].sort((a, b) => b.pts - a.pts || b.good - a.good || b.exact - a.exact);
   }, [dataQ.data, stage, depotFilter]);
 
   if (!sessionQ.data) {
