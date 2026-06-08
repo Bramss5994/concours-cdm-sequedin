@@ -566,7 +566,7 @@ function AdminUsers() {
               <thead className="bg-muted/50 text-xs uppercase">
                 <tr>
                   <th className="px-3 py-2 text-left">Nom</th>
-                  <th className="px-3 py-2 text-left">Email</th>
+                  
                   <th className="px-3 py-2 text-left">Dépôt</th>
                   <th className="px-3 py-2 text-center">Actif</th>
                   <th className="px-3 py-2 text-center">Admin</th>
@@ -577,7 +577,7 @@ function AdminUsers() {
                 {filtered.map((u: any) => (
                   <tr key={u.id} className="border-t">
                     <td className="px-3 py-2">{u.prenom} <span className="text-xs text-muted-foreground">{u.num_paie}</span></td>
-                    <td className="px-3 py-2 text-xs">{u.email && !u.email.endsWith(".local") ? u.email : ""}</td>
+                    
                     <td className="px-3 py-2 text-xs">{u.depot}</td>
                     <td className="px-3 py-2 text-center"><Switch checked={u.active} onCheckedChange={(v) => toggleActive(u.id, v)} /></td>
                     <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
