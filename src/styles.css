@@ -189,3 +189,34 @@
 .animate-shine {
   animation: shine 3.5s ease-in-out infinite;
 }
+
+/* Drapeaux animés au vent */
+@keyframes flag-wave {
+  0%, 100% {
+    transform: perspective(120px) rotateY(0deg) skewY(0deg) scale(1);
+    filter: brightness(1);
+  }
+  25% {
+    transform: perspective(120px) rotateY(-8deg) skewY(-1.5deg) scale(1.02);
+    filter: brightness(1.05);
+  }
+  50% {
+    transform: perspective(120px) rotateY(0deg) skewY(1.5deg) scale(1);
+    filter: brightness(0.97);
+  }
+  75% {
+    transform: perspective(120px) rotateY(8deg) skewY(-0.8deg) scale(1.02);
+    filter: brightness(1.03);
+  }
+}
+.flag-wave {
+  transform-origin: left center;
+  animation: flag-wave 2.8s ease-in-out infinite;
+  will-change: transform, filter;
+}
+.flag-wave:hover {
+  animation-duration: 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flag-wave { animation: none; }
+}

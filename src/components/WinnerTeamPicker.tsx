@@ -207,7 +207,7 @@ export function WinnerTeamPicker() {
               <img
                 src={`https://flagcdn.com/w40/${initialTeam.code}.png`}
                 alt=""
-                className="h-5 w-7 rounded-sm object-cover ring-1 ring-border"
+                className="flag-wave h-5 w-7 rounded-sm object-cover ring-1 ring-border"
               />
               <span className="font-medium">{initialTeam.name}</span>
               {initialEliminated && (
@@ -266,7 +266,7 @@ export function WinnerTeamPicker() {
                 <img
                   src={`https://flagcdn.com/w40/${finalTeam.code}.png`}
                   alt=""
-                  className="h-5 w-7 rounded-sm object-cover ring-1 ring-border"
+                  className="flag-wave h-5 w-7 rounded-sm object-cover ring-1 ring-border"
                 />
                 <span className="font-medium">{finalTeam.name}</span>
                 {pick.final_team_id === pick.initial_team_id ? (
