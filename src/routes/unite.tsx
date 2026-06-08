@@ -268,7 +268,7 @@ function UniteDashboard() {
                   <tr>
                     <th className="px-3 py-2 text-left">Nom</th>
                     {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
-                    <th className="px-3 py-2 text-left">Email</th>
+                    
                     <th className="px-3 py-2 text-right">Points</th>
                     <th className="px-3 py-2 text-center">Actif</th>
                     <th className="px-3 py-2 text-right">Actions</th>
@@ -286,7 +286,7 @@ function UniteDashboard() {
                           <Badge variant="outline">{DEPOT_LABEL[u.depot] ?? u.depot}</Badge>
                         </td>
                       )}
-                      <td className="px-3 py-2 text-xs">{u.email && !u.email.endsWith(".local") ? u.email : ""}</td>
+                      
                       <td className="px-3 py-2 text-right font-semibold">{u.points}</td>
                       <td className="px-3 py-2 text-center">
                         <Switch
