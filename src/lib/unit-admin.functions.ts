@@ -538,5 +538,21 @@ export const getUnitLeaderboardFn = createServerFn({ method: "GET" })
     };
   });
 
+export const getUnitWinnerBoardFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc("get_winner_board");
+    if (error) throw new Error(error.message);
+    return { rows: data ?? [] };
+  });
 
+export const getUnitTopScorerBoardFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc("get_top_scorer_board");
+    if (error) throw new Error(error.message);
+    return { rows: data ?? [] };
+  });
 
