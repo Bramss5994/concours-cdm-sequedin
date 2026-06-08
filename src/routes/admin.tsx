@@ -516,7 +516,7 @@ function AdminUsers() {
   function exportCSV() {
     const headers = ["prenom", "num_paie", "email", "depot", "active", "admin", "created_at"];
     const rows = filtered.map((u: any) => [
-      u.prenom, u.num_paie, u.email, u.depot, u.active ? "oui" : "non",
+      u.prenom, u.num_paie, u.email && !u.email.endsWith(".local") ? u.email : "", u.depot, u.active ? "oui" : "non",
       u.roles.includes("admin") ? "oui" : "non", u.created_at,
     ]);
     const csv = [headers, ...rows]
@@ -577,7 +577,7 @@ function AdminUsers() {
                 {filtered.map((u: any) => (
                   <tr key={u.id} className="border-t">
                     <td className="px-3 py-2">{u.prenom} <span className="text-xs text-muted-foreground">{u.num_paie}</span></td>
-                    <td className="px-3 py-2 text-xs">{u.email}</td>
+                    <td className="px-3 py-2 text-xs">{u.email && !u.email.endsWith(".local") ? u.email : ""}</td>
                     <td className="px-3 py-2 text-xs">{u.depot}</td>
                     <td className="px-3 py-2 text-center"><Switch checked={u.active} onCheckedChange={(v) => toggleActive(u.id, v)} /></td>
                     <td className="px-3 py-2 text-center"><Switch checked={u.roles.includes("admin")} onCheckedChange={(v) => toggleAdmin(u.id, v)} /></td>
