@@ -99,11 +99,12 @@ function ReglementPage() {
       </Section>
 
       <Section icon={Clock} title="4. Verrouillage des pronostics">
-        <p>
-          Chaque pronostic de match est verrouillé au coup d'envoi de la
-          rencontre concernée. Aucune modification n'est possible une fois le
-          match commencé.
-        </p>
+        <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span>
+            <span className="font-semibold">Chaque pronostic de match est verrouillé 1 heure avant le coup d'envoi</span> de la rencontre. Passé ce délai, plus aucune création ni modification n'est possible pour ce match.
+          </span>
+        </div>
         <p>
           Le pronostic « équipe gagnante de la Coupe du Monde » est verrouillé
           dès le premier match de la compétition. Le pronostic « Soulier d'Or »
@@ -111,21 +112,21 @@ function ReglementPage() {
         </p>
         <div className="flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-50 px-3 py-2 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
           <Lock className="h-4 w-4 shrink-0" />
-          <span>Un pronostic non saisi avant le coup d'envoi rapporte 0 point.</span>
+          <span>Un pronostic non saisi au moins 1 h avant le coup d'envoi rapporte 0 point.</span>
         </div>
       </Section>
 
       <Section icon={BarePoints} title="5. Barème des points">
         <ul className="ml-5 list-disc space-y-1">
           <li><span className="font-semibold text-foreground">Score exact</span> : 3 points</li>
-          <li><span className="font-semibold text-foreground">Bon vainqueur (ou match nul) + bon écart</span> : 2 points</li>
-          <li><span className="font-semibold text-foreground">Bon vainqueur (ou match nul) seul</span> : 1 point</li>
+          <li><span className="font-semibold text-foreground">Bonne équipe gagnante (ou match nul) + bon écart</span> : 2 points</li>
+          <li><span className="font-semibold text-foreground">Bonne équipe gagnante (ou match nul) seule</span> : 1 point</li>
           <li><span className="font-semibold text-foreground">Mauvais pronostic</span> : 0 point</li>
         </ul>
         <p>
           Bonus longue durée : des points additionnels sont attribués si vous
-          avez correctement pronostiqué le vainqueur final de la Coupe du Monde
-          et/ou le Soulier d'Or.
+          avez correctement pronostiqué l'équipe gagnante finale de la Coupe du
+          Monde et/ou le Soulier d'Or.
         </p>
         <p>
           Les classements sont mis à jour automatiquement après chaque match.
@@ -133,6 +134,7 @@ function ReglementPage() {
           jamais saisis ni modifiables par les participants.
         </p>
       </Section>
+
 
       <Section icon={ShieldCheck} title="6. Classements">
         <p>
