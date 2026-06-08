@@ -45,7 +45,8 @@ import {
   isSequedinSuperAdminFn,
 } from "@/lib/super-admin.functions";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Trash2, KeyRound, Download, ShieldPlus, Eye } from "lucide-react";
+import { Trash2, KeyRound, Download, ShieldPlus, Eye, Target, Crown } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
@@ -69,8 +70,19 @@ function AdminPage() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold sm:text-3xl">Administration</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold sm:text-3xl">Administration</h1>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="secondary" size="sm">
+            <Link to="/winner-board"><Crown className="mr-1 h-4 w-4" /> Classement équipe gagnante</Link>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
+            <Link to="/top-scorer"><Target className="mr-1 h-4 w-4" /> Classement Soulier d'Or</Link>
+          </Button>
+        </div>
+      </div>
       <Tabs defaultValue="stats" className="mt-4">
+
         <TabsList>
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="results">Matchs</TabsTrigger>

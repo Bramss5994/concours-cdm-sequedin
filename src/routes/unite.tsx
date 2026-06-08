@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3 } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown } from "lucide-react";
 import { formatFR } from "@/lib/time";
 import {
   getUnitAdminSession,
@@ -195,6 +195,17 @@ function UniteDashboard() {
               <BarChart3 className="mr-1 h-4 w-4" /> Classement
             </Link>
           </Button>
+          <Button asChild variant="secondary" size="sm">
+            <a href="/winner-board" target="_blank" rel="noreferrer">
+              <Crown className="mr-1 h-4 w-4" /> Équipe gagnante
+            </a>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
+            <a href="/top-scorer" target="_blank" rel="noreferrer">
+              <Target className="mr-1 h-4 w-4" /> Soulier d'Or
+            </a>
+          </Button>
+
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="mr-1 h-4 w-4" /> Déconnexion
           </Button>
