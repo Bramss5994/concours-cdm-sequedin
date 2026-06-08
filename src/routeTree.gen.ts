@@ -20,6 +20,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UniteWinnerBoardRouteImport } from './routes/unite.winner-board'
 import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
 import { Route as UniteLoginRouteImport } from './routes/unite.login'
 import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
@@ -81,6 +82,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UniteWinnerBoardRoute = UniteWinnerBoardRouteImport.update({
+  id: '/winner-board',
+  path: '/winner-board',
+  getParentRoute: () => UniteRoute,
+} as any)
 const UniteMatchsRoute = UniteMatchsRouteImport.update({
   id: '/matchs',
   path: '/matchs',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
+  '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesByTo {
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
+  '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesById {
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
+  '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRouteTypes {
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
+    | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
+    | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
   id:
     | '__root__'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
+    | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
   fileRoutesById: FileRoutesById
 }
@@ -314,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unite/winner-board': {
+      id: '/unite/winner-board'
+      path: '/winner-board'
+      fullPath: '/unite/winner-board'
+      preLoaderRoute: typeof UniteWinnerBoardRouteImport
+      parentRoute: typeof UniteRoute
+    }
     '/unite/matchs': {
       id: '/unite/matchs'
       path: '/matchs'
@@ -357,6 +376,7 @@ interface UniteRouteChildren {
   UniteGestionRoute: typeof UniteGestionRoute
   UniteLoginRoute: typeof UniteLoginRoute
   UniteMatchsRoute: typeof UniteMatchsRoute
+  UniteWinnerBoardRoute: typeof UniteWinnerBoardRoute
 }
 
 const UniteRouteChildren: UniteRouteChildren = {
@@ -364,6 +384,7 @@ const UniteRouteChildren: UniteRouteChildren = {
   UniteGestionRoute: UniteGestionRoute,
   UniteLoginRoute: UniteLoginRoute,
   UniteMatchsRoute: UniteMatchsRoute,
+  UniteWinnerBoardRoute: UniteWinnerBoardRoute,
 }
 
 const UniteRouteWithChildren = UniteRoute._addFileChildren(UniteRouteChildren)
@@ -385,3 +406,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
