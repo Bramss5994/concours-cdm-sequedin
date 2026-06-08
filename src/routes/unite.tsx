@@ -195,6 +195,17 @@ function UniteDashboard() {
               <BarChart3 className="mr-1 h-4 w-4" /> Classement
             </Link>
           </Button>
+          <Button asChild variant="secondary" size="sm">
+            <a href="/winner-board" target="_blank" rel="noreferrer">
+              <Crown className="mr-1 h-4 w-4" /> Équipe gagnante
+            </a>
+          </Button>
+          <Button asChild variant="secondary" size="sm">
+            <a href="/top-scorer" target="_blank" rel="noreferrer">
+              <Target className="mr-1 h-4 w-4" /> Soulier d'Or
+            </a>
+          </Button>
+
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="mr-1 h-4 w-4" /> Déconnexion
           </Button>
