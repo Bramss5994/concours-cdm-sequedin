@@ -44,7 +44,14 @@ function UniteLoginPage() {
   }
 
   return (
-    <div className="container mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
+    <div className="container mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-4 py-10">
+      <div className="mb-4 w-full">
+        <Button asChild variant="ghost" size="sm">
+          <Link to="/">
+            <ArrowLeft className="mr-1 h-4 w-4" /> Retour à l'accueil
+          </Link>
+        </Button>
+      </div>
       <Card className="w-full">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
