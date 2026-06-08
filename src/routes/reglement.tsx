@@ -147,7 +147,8 @@ function ReglementPage() {
         <p>
           En cas d'égalité de points en fin de concours, les participants sont
           départagés successivement par : nombre de scores exacts, puis nombre
-          de bons vainqueurs, puis date la plus précoce d'inscription.
+          de bonnes équipes gagnantes, puis date la plus précoce d'inscription.
+
         </p>
       </Section>
 
