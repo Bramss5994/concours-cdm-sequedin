@@ -20,6 +20,8 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UniteWinnerBoardRouteImport } from './routes/unite.winner-board'
+import { Route as UniteTopScorerRouteImport } from './routes/unite.top-scorer'
 import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
 import { Route as UniteLoginRouteImport } from './routes/unite.login'
 import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
@@ -81,6 +83,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UniteWinnerBoardRoute = UniteWinnerBoardRouteImport.update({
+  id: '/winner-board',
+  path: '/winner-board',
+  getParentRoute: () => UniteRoute,
+} as any)
+const UniteTopScorerRoute = UniteTopScorerRouteImport.update({
+  id: '/top-scorer',
+  path: '/top-scorer',
+  getParentRoute: () => UniteRoute,
+} as any)
 const UniteMatchsRoute = UniteMatchsRouteImport.update({
   id: '/matchs',
   path: '/matchs',
@@ -124,6 +136,8 @@ export interface FileRoutesByFullPath {
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
+  '/unite/top-scorer': typeof UniteTopScorerRoute
+  '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesByTo {
@@ -142,6 +156,8 @@ export interface FileRoutesByTo {
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
+  '/unite/top-scorer': typeof UniteTopScorerRoute
+  '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRoutesById {
@@ -161,6 +177,8 @@ export interface FileRoutesById {
   '/unite/gestion': typeof UniteGestionRoute
   '/unite/login': typeof UniteLoginRoute
   '/unite/matchs': typeof UniteMatchsRoute
+  '/unite/top-scorer': typeof UniteTopScorerRoute
+  '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
 }
 export interface FileRouteTypes {
@@ -181,6 +199,8 @@ export interface FileRouteTypes {
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
+    | '/unite/top-scorer'
+    | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -199,6 +219,8 @@ export interface FileRouteTypes {
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
+    | '/unite/top-scorer'
+    | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
   id:
     | '__root__'
@@ -217,6 +239,8 @@ export interface FileRouteTypes {
     | '/unite/gestion'
     | '/unite/login'
     | '/unite/matchs'
+    | '/unite/top-scorer'
+    | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
   fileRoutesById: FileRoutesById
 }
@@ -314,6 +338,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unite/winner-board': {
+      id: '/unite/winner-board'
+      path: '/winner-board'
+      fullPath: '/unite/winner-board'
+      preLoaderRoute: typeof UniteWinnerBoardRouteImport
+      parentRoute: typeof UniteRoute
+    }
+    '/unite/top-scorer': {
+      id: '/unite/top-scorer'
+      path: '/top-scorer'
+      fullPath: '/unite/top-scorer'
+      preLoaderRoute: typeof UniteTopScorerRouteImport
+      parentRoute: typeof UniteRoute
+    }
     '/unite/matchs': {
       id: '/unite/matchs'
       path: '/matchs'
@@ -357,6 +395,8 @@ interface UniteRouteChildren {
   UniteGestionRoute: typeof UniteGestionRoute
   UniteLoginRoute: typeof UniteLoginRoute
   UniteMatchsRoute: typeof UniteMatchsRoute
+  UniteTopScorerRoute: typeof UniteTopScorerRoute
+  UniteWinnerBoardRoute: typeof UniteWinnerBoardRoute
 }
 
 const UniteRouteChildren: UniteRouteChildren = {
@@ -364,6 +404,8 @@ const UniteRouteChildren: UniteRouteChildren = {
   UniteGestionRoute: UniteGestionRoute,
   UniteLoginRoute: UniteLoginRoute,
   UniteMatchsRoute: UniteMatchsRoute,
+  UniteTopScorerRoute: UniteTopScorerRoute,
+  UniteWinnerBoardRoute: UniteWinnerBoardRoute,
 }
 
 const UniteRouteWithChildren = UniteRoute._addFileChildren(UniteRouteChildren)
