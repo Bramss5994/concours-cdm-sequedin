@@ -34,7 +34,7 @@ export function TopScorerPicker() {
     queryFn: async () => {
       const { data } = await supabase
         .from("players")
-        .select("id, name, position, club, team_id, is_top_scorer")
+        .select("id, name, position, club, team_id, is_top_scorer, goals, assists")
         .order("name");
       return (data || []) as Player[];
     },
