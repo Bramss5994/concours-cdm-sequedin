@@ -238,3 +238,46 @@ export function TopScorerPicker() {
     </Card>
   );
 }
+
+        {liveRanking.length > 0 && (
+          <div className="mt-4 rounded-md border bg-card/40 p-3">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Goal className="h-3.5 w-3.5 text-emerald-500" /> Classement des buteurs en direct
+            </div>
+            <ul className="space-y-1">
+              {liveRanking.map((p, i) => {
+                const team = teamById.get(p.team_id);
+                const isPicked = pick?.player_id === p.id;
+                return (
+                  <li
+                    key={p.id}
+                    className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
+                      isPicked ? "bg-emerald-500/10 ring-1 ring-emerald-500/30" : ""
+                    }`}
+                  >
+                    <span className="w-5 text-right font-mono text-xs text-muted-foreground">
+                      {i + 1}.
+                    </span>
+                    {team && (
+                      <img
+                        src={`https://flagcdn.com/w20/${team.code}.png`}
+                        alt=""
+                        className="h-4 w-6 rounded-sm object-cover ring-1 ring-border"
+                      />
+                    )}
+                    <span className="flex-1 truncate font-medium">{p.name}</span>
+                    <span className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                      {p.goals}
+                    </span>
+                    {p.assists > 0 && (
+                      <span className="text-xs text-muted-foreground">+{p.assists} PD</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              Mis à jour automatiquement chaque jour pendant le tournoi.
+            </p>
+          </div>
+        )}
