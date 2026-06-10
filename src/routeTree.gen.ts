@@ -26,6 +26,7 @@ import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
 import { Route as UniteLoginRouteImport } from './routes/unite.login'
 import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
 import { Route as UniteClassementRouteImport } from './routes/unite.classement'
+import { Route as ApiPublicHooksSyncTopscorersRouteImport } from './routes/api/public/hooks/sync-topscorers'
 import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
 const WinnerBoardRoute = WinnerBoardRouteImport.update({
@@ -113,6 +114,12 @@ const UniteClassementRoute = UniteClassementRouteImport.update({
   path: '/classement',
   getParentRoute: () => UniteRoute,
 } as any)
+const ApiPublicHooksSyncTopscorersRoute =
+  ApiPublicHooksSyncTopscorersRouteImport.update({
+    id: '/api/public/hooks/sync-topscorers',
+    path: '/api/public/hooks/sync-topscorers',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksSyncScoresRoute =
   ApiPublicHooksSyncScoresRouteImport.update({
     id: '/api/public/hooks/sync-scores',
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/unite/top-scorer': typeof UniteTopScorerRoute
   '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
+  '/api/public/hooks/sync-topscorers': typeof ApiPublicHooksSyncTopscorersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,6 +167,7 @@ export interface FileRoutesByTo {
   '/unite/top-scorer': typeof UniteTopScorerRoute
   '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
+  '/api/public/hooks/sync-topscorers': typeof ApiPublicHooksSyncTopscorersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,6 +189,7 @@ export interface FileRoutesById {
   '/unite/top-scorer': typeof UniteTopScorerRoute
   '/unite/winner-board': typeof UniteWinnerBoardRoute
   '/api/public/hooks/sync-scores': typeof ApiPublicHooksSyncScoresRoute
+  '/api/public/hooks/sync-topscorers': typeof ApiPublicHooksSyncTopscorersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/unite/top-scorer'
     | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
+    | '/api/public/hooks/sync-topscorers'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/unite/top-scorer'
     | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
+    | '/api/public/hooks/sync-topscorers'
   id:
     | '__root__'
     | '/'
@@ -242,6 +254,7 @@ export interface FileRouteTypes {
     | '/unite/top-scorer'
     | '/unite/winner-board'
     | '/api/public/hooks/sync-scores'
+    | '/api/public/hooks/sync-topscorers'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +270,7 @@ export interface RootRouteChildren {
   UniteRoute: typeof UniteRouteWithChildren
   WinnerBoardRoute: typeof WinnerBoardRoute
   ApiPublicHooksSyncScoresRoute: typeof ApiPublicHooksSyncScoresRoute
+  ApiPublicHooksSyncTopscorersRoute: typeof ApiPublicHooksSyncTopscorersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -380,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UniteClassementRouteImport
       parentRoute: typeof UniteRoute
     }
+    '/api/public/hooks/sync-topscorers': {
+      id: '/api/public/hooks/sync-topscorers'
+      path: '/api/public/hooks/sync-topscorers'
+      fullPath: '/api/public/hooks/sync-topscorers'
+      preLoaderRoute: typeof ApiPublicHooksSyncTopscorersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/sync-scores': {
       id: '/api/public/hooks/sync-scores'
       path: '/api/public/hooks/sync-scores'
@@ -423,6 +444,7 @@ const rootRouteChildren: RootRouteChildren = {
   UniteRoute: UniteRouteWithChildren,
   WinnerBoardRoute: WinnerBoardRoute,
   ApiPublicHooksSyncScoresRoute: ApiPublicHooksSyncScoresRoute,
+  ApiPublicHooksSyncTopscorersRoute: ApiPublicHooksSyncTopscorersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

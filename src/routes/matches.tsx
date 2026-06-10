@@ -29,6 +29,15 @@ const staggerContainer = {
 };
 
 type Team = { id: string; code: string; name: string; group_letter: string | null };
+type Goalscorer = {
+  minute: number | null;
+  extra: number | null;
+  team: string;
+  player: string;
+  api_player_id: number | null;
+  assist: string | null;
+  type: "goal" | "penalty" | "own" | "missed";
+};
 type Match = {
   id: string; stage: string; group_letter: string | null; matchday: number | null;
   kickoff_at: string; stadium: string | null;
@@ -36,6 +45,7 @@ type Match = {
   team_a_placeholder: string | null; team_b_placeholder: string | null;
   score_a: number | null; score_b: number | null; finished: boolean;
   team_a: Team | null; team_b: Team | null;
+  goalscorers?: Goalscorer[] | null;
 };
 type Prediction = { match_id: string; score_a: number; score_b: number; points: number };
 
@@ -406,6 +416,31 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
               </Badge>
             )}
           </motion.div>
+        )}
+
+        {match.goalscorers && match.goalscorers.length > 0 && (
+          <div className="mt-3 rounded-md border bg-card/40 p-2.5 text-xs">
+            <div className="mb-1 flex items-center gap-1 font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>⚽</span> Buteurs
+            </div>
+            <ul className="space-y-0.5">
+              {match.goalscorers.map((g, i) => (
+                <li key={i} className="flex items-center justify-between gap-2">
+                  <span className="truncate">
+                    <span className="font-medium">{g.player}</span>
+                    {g.type === "own" && <span className="ml-1 text-destructive">(c.s.c.)</span>}
+                    {g.type === "penalty" && <span className="ml-1 text-muted-foreground">(p.)</span>}
+                    <span className="ml-1 text-muted-foreground">· {g.team}</span>
+                  </span>
+                  {g.minute != null && (
+                    <span className="shrink-0 font-mono text-muted-foreground">
+                      {g.minute}{g.extra ? `+${g.extra}` : ""}'
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         <div className="mt-3 flex items-center justify-between gap-2">

@@ -1,15 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { getLiveScores, kickoffKeyFromISO } from "@/lib/livescores.functions";
+import { getLiveScores, getFixtureEvents, kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.functions";
 
 /**
  * Agent IA "mise à jour des scores".
  * Endpoint public déclenché par pg_cron toutes les 15 minutes.
- * Récupère les fixtures CDM 2026 via API-Football, et pour chaque match
- * terminé (FT / AET / PEN) met à jour score_a, score_b, finished dans la
- * table matches. Le trigger matches_after_result recalcule alors les points.
  *
- * Sécurité : vérifie l'apikey publishable Supabase (cf. pattern pg_cron + apikey).
+ * Pour chaque match CDM 2026 :
+ *  - associe l'api_fixture_id (une fois pour toutes, par horaire UTC + noms d'équipes)
+ *  - pour les matchs en cours ou terminés : récupère les buteurs via /fixtures/events
+ *    et les stocke dans matches.goalscorers (JSONB)
+ *  - pour les matchs terminés (FT / AET / PEN) : met à jour score_a, score_b, finished
+ *    → le trigger matches_after_result recalcule alors les points.
+ *
+ * Sécurité : header x-webhook-secret = SYNC_WEBHOOK_SECRET.
  */
 export const Route = createFileRoute("/api/public/hooks/sync-scores")({
   server: {
@@ -21,45 +24,41 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           return new Response("Unauthorized", { status: 401 });
         }
 
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
         const live = await getLiveScores();
         if (live.error) {
           return Response.json({ ok: false, error: live.error }, { status: 502 });
         }
 
-        // Garder seulement les matchs terminés (résultat définitif).
-        const finished = live.fixtures.filter(
-          (f) => f.isFinished && f.scoreHome !== null && f.scoreAway !== null,
-        );
-
-        // Charger les matchs non encore validés.
         const { data: dbMatches, error: dbErr } = await supabaseAdmin
           .from("matches")
-          .select("id, kickoff_at, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)")
-          .eq("finished", false);
+          .select(
+            "id, kickoff_at, finished, score_a, score_b, api_fixture_id, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)",
+          );
         if (dbErr) {
           return Response.json({ ok: false, error: dbErr.message }, { status: 500 });
         }
 
-        const updates: Array<{ id: string; score_a: number; score_b: number; match: string }> = [];
-        const errors: string[] = [];
-
-        // Index des fixtures terminées par clé d'horaire UTC (minute).
-        const byKickoff = new Map<string, typeof finished>();
-        for (const f of finished) {
+        // Index fixtures par clé d'horaire UTC
+        const byKickoff = new Map<string, typeof live.fixtures>();
+        for (const f of live.fixtures) {
           const arr = byKickoff.get(f.kickoffKey) || [];
           arr.push(f);
           byKickoff.set(f.kickoffKey, arr);
         }
+
+        const scoreUpdates: any[] = [];
+        const goalUpdates: any[] = [];
+        const errors: string[] = [];
 
         for (const m of dbMatches || []) {
           const key = kickoffKeyFromISO(m.kickoff_at);
           const candidates = byKickoff.get(key);
           if (!candidates || candidates.length === 0) continue;
 
-          // S'il y a plusieurs matchs au même horaire, on tente d'apparier
-          // par nom d'équipe (en comparant les premiers caractères, FR vs EN).
-          const nameA = (m.team_a as any)?.name?.toLowerCase() || "";
-          const nameB = (m.team_b as any)?.name?.toLowerCase() || "";
+          const nameA = ((m.team_a as any)?.name || "").toLowerCase();
+          const nameB = ((m.team_b as any)?.name || "").toLowerCase();
           const pick =
             candidates.length === 1
               ? candidates[0]
@@ -72,32 +71,68 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
                   );
                 }) || candidates[0];
 
-          const { error: upErr } = await supabaseAdmin
-            .from("matches")
-            .update({
-              score_a: pick.scoreHome!,
-              score_b: pick.scoreAway!,
-              finished: true,
-            })
-            .eq("id", m.id);
-          if (upErr) {
-            errors.push(`${m.id}: ${upErr.message}`);
-          } else {
-            updates.push({
-              id: m.id,
-              score_a: pick.scoreHome!,
-              score_b: pick.scoreAway!,
-              match: `${pick.teamHome} ${pick.scoreHome}-${pick.scoreAway} ${pick.teamAway}`,
-            });
+          // 1) sauve l'api_fixture_id si absent
+          if (!m.api_fixture_id) {
+            const { error: e } = await supabaseAdmin
+              .from("matches")
+              .update({ api_fixture_id: pick.apiFixtureId })
+              .eq("id", m.id);
+            if (e) errors.push(`fixtureId ${m.id}: ${e.message}`);
+          }
+
+          // 2) buteurs pour les matchs en cours ou terminés
+          if (pick.isLive || pick.isFinished) {
+            const ev = await getFixtureEvents({ data: { fixtureId: pick.apiFixtureId } });
+            if (ev.error) {
+              errors.push(`events ${m.id}: ${ev.error}`);
+            } else {
+              const payload = ev.goals.map((g: GoalEvent) => ({
+                minute: g.minute,
+                extra: g.extra,
+                team: g.team,
+                player: g.player,
+                api_player_id: g.apiPlayerId,
+                assist: g.assist,
+                type: g.type,
+              }));
+              const { error: e } = await supabaseAdmin
+                .from("matches")
+                .update({ goalscorers: payload })
+                .eq("id", m.id);
+              if (e) errors.push(`goalscorers ${m.id}: ${e.message}`);
+              else goalUpdates.push({ id: m.id, count: payload.length });
+            }
+          }
+
+          // 3) score final pour les matchs terminés non encore validés
+          if (
+            pick.isFinished &&
+            pick.scoreHome !== null &&
+            pick.scoreAway !== null &&
+            !m.finished
+          ) {
+            const { error: e } = await supabaseAdmin
+              .from("matches")
+              .update({ score_a: pick.scoreHome, score_b: pick.scoreAway, finished: true })
+              .eq("id", m.id);
+            if (e) errors.push(`score ${m.id}: ${e.message}`);
+            else
+              scoreUpdates.push({
+                id: m.id,
+                score_a: pick.scoreHome,
+                score_b: pick.scoreAway,
+                match: `${pick.teamHome} ${pick.scoreHome}-${pick.scoreAway} ${pick.teamAway}`,
+              });
           }
         }
 
         return Response.json({
           ok: true,
-          checkedFixtures: finished.length,
+          checkedFixtures: live.fixtures.length,
           checkedDbMatches: (dbMatches || []).length,
-          updated: updates.length,
-          updates,
+          scoreUpdates: scoreUpdates.length,
+          goalUpdates: goalUpdates.length,
+          scoreDetails: scoreUpdates,
           errors,
           syncedAt: new Date().toISOString(),
         });
