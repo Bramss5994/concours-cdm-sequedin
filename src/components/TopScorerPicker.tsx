@@ -234,10 +234,6 @@ export function TopScorerPicker() {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
 
         {liveRanking.length > 0 && (
           <div className="mt-4 rounded-md border bg-card/40 p-3">
@@ -281,3 +277,7 @@ export function TopScorerPicker() {
             </p>
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
