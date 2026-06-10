@@ -16,6 +16,8 @@ type Player = {
   club: string | null;
   team_id: string;
   is_top_scorer: boolean;
+  goals: number;
+  assists: number;
 };
 type Team = { id: string; code: string; name: string };
 
