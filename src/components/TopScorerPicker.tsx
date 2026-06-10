@@ -97,6 +97,15 @@ export function TopScorerPicker() {
   const pickedPlayer = pick ? players.find((p) => p.id === pick.player_id) : null;
   const topScorer = players.find((p) => p.is_top_scorer) || null;
 
+  const liveRanking = useMemo(
+    () =>
+      [...players]
+        .filter((p) => p.goals > 0)
+        .sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name))
+        .slice(0, 10),
+    [players],
+  );
+
   const save = useMutation({
     mutationFn: async (playerId: string) => {
       const { error } = await supabase
