@@ -16,8 +16,10 @@ export type Database = {
     Tables: {
       matches: {
         Row: {
+          api_fixture_id: number | null
           created_at: string
           finished: boolean
+          goalscorers: Json
           group_letter: string | null
           id: string
           kickoff_at: string
@@ -33,8 +35,10 @@ export type Database = {
           winner_team_id: string | null
         }
         Insert: {
+          api_fixture_id?: number | null
           created_at?: string
           finished?: boolean
+          goalscorers?: Json
           group_letter?: string | null
           id?: string
           kickoff_at: string
@@ -50,8 +54,10 @@ export type Database = {
           winner_team_id?: string | null
         }
         Update: {
+          api_fixture_id?: number | null
           created_at?: string
           finished?: boolean
+          goalscorers?: Json
           group_letter?: string | null
           id?: string
           kickoff_at?: string
@@ -92,8 +98,11 @@ export type Database = {
       }
       players: {
         Row: {
+          api_player_id: number | null
+          assists: number
           club: string | null
           created_at: string
+          goals: number
           id: string
           is_top_scorer: boolean
           name: string
@@ -101,8 +110,11 @@ export type Database = {
           team_id: string
         }
         Insert: {
+          api_player_id?: number | null
+          assists?: number
           club?: string | null
           created_at?: string
+          goals?: number
           id?: string
           is_top_scorer?: boolean
           name: string
@@ -110,8 +122,11 @@ export type Database = {
           team_id: string
         }
         Update: {
+          api_player_id?: number | null
+          assists?: number
           club?: string | null
           created_at?: string
+          goals?: number
           id?: string
           is_top_scorer?: boolean
           name?: string
