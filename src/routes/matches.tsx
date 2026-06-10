@@ -29,6 +29,15 @@ const staggerContainer = {
 };
 
 type Team = { id: string; code: string; name: string; group_letter: string | null };
+type Goalscorer = {
+  minute: number | null;
+  extra: number | null;
+  team: string;
+  player: string;
+  api_player_id: number | null;
+  assist: string | null;
+  type: "goal" | "penalty" | "own" | "missed";
+};
 type Match = {
   id: string; stage: string; group_letter: string | null; matchday: number | null;
   kickoff_at: string; stadium: string | null;
@@ -36,6 +45,7 @@ type Match = {
   team_a_placeholder: string | null; team_b_placeholder: string | null;
   score_a: number | null; score_b: number | null; finished: boolean;
   team_a: Team | null; team_b: Team | null;
+  goalscorers?: Goalscorer[] | null;
 };
 type Prediction = { match_id: string; score_a: number; score_b: number; points: number };
 
