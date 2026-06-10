@@ -40,6 +40,7 @@ function teamLabel(m: any, side: "a" | "b") {
 
 function formatKick(iso: string) {
   return new Date(iso).toLocaleString("fr-FR", {
+    timeZone: "Europe/Paris",
     weekday: "short",
     day: "2-digit",
     month: "short",

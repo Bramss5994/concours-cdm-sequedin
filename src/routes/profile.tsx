@@ -96,7 +96,7 @@ function Profile() {
       cum += x.p.points || 0;
       return {
         idx: i + 1,
-        label: new Date(x.m.kickoff_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+        label: new Date(x.m.kickoff_at).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", day: "2-digit", month: "2-digit" }),
         points: cum,
       };
     });
