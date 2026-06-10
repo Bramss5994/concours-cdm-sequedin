@@ -159,10 +159,21 @@ function MatchesPage() {
 }
 
 function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
+  const parisDateKey = (iso: string) => {
+    // YYYY-MM-DD in Europe/Paris timezone
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Paris",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(new Date(iso));
+    const y = parts.find((p) => p.type === "year")!.value;
+    const m = parts.find((p) => p.type === "month")!.value;
+    const d = parts.find((p) => p.type === "day")!.value;
+    return `${y}-${m}-${d}`;
+  };
   const byDate = useMemo(() => {
     const map = new Map<string, Match[]>();
     for (const m of matches) {
-      const key = new Date(m.kickoff_at).toISOString().slice(0, 10);
+      const key = parisDateKey(m.kickoff_at);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(m);
     }
@@ -172,7 +183,7 @@ function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; 
   return (
     <div className="space-y-6">
       {byDate.map(([day, list]) => {
-        const label = new Date(day + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const label = new Date(day + "T12:00:00Z").toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" });
         return (
           <motion.section
             key={day}
