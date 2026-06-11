@@ -346,6 +346,8 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
   const qc = useQueryClient();
   const { user } = useAuth();
   const liveOn = isLiveStatus(match.live_status);
+  const showLiveScore = liveOn && match.live_score_a != null && match.live_score_b != null;
+  const showFinalScore = !showLiveScore && match.finished && match.score_a != null && match.score_b != null;
   const locked = isLocked(match.kickoff_at);
   const [scoreA, setScoreA] = useState<string>(prediction ? String(prediction.score_a) : "");
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
@@ -393,9 +395,17 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
             {codeA && <img srcSet={flagSrcSet(codeA)} src={`https://flagcdn.com/w40/${codeA}.png`} alt={nameA} className="h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
           </div>
           <div className="flex items-center gap-1">
-            <Input type="number" min={0} max={20} value={scoreA} onChange={(e) => setScoreA(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
-            <span className="text-muted-foreground">-</span>
-            <Input type="number" min={0} max={20} value={scoreB} onChange={(e) => setScoreB(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
+            {showLiveScore || showFinalScore ? (
+              <div className={`min-w-16 rounded-md border px-3 py-1.5 text-center font-bold tabular-nums ${showLiveScore ? "border-destructive/40 bg-destructive/10 text-destructive" : "bg-muted"}`}>
+                {showLiveScore ? `${match.live_score_a} - ${match.live_score_b}` : `${match.score_a} - ${match.score_b}`}
+              </div>
+            ) : (
+              <>
+                <Input type="number" min={0} max={20} value={scoreA} onChange={(e) => setScoreA(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
+                <span className="text-muted-foreground">-</span>
+                <Input type="number" min={0} max={20} value={scoreB} onChange={(e) => setScoreB(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {codeB && <img srcSet={flagSrcSet(codeB)} src={`https://flagcdn.com/w40/${codeB}.png`} alt={nameB} className="h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
