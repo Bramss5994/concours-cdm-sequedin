@@ -12,14 +12,14 @@ import { getLiveScores, getFixtureEvents, kickoffKeyFromISO, type GoalEvent } fr
  *  - pour les matchs terminés (FT / AET / PEN) : met à jour score_a, score_b, finished
  *    → le trigger matches_after_result recalcule alors les points.
  *
- * Sécurité : header x-webhook-secret = SYNC_WEBHOOK_SECRET.
+ * Sécurité : header apikey = clé publique backend.
  */
 export const Route = createFileRoute("/api/public/hooks/sync-scores")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const provided = request.headers.get("x-webhook-secret");
-        const expected = process.env.SYNC_WEBHOOK_SECRET;
+        const provided = request.headers.get("apikey");
+        const expected = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
         if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
