@@ -23,6 +23,11 @@ export type Database = {
           group_letter: string | null
           id: string
           kickoff_at: string
+          live_elapsed: number | null
+          live_score_a: number | null
+          live_score_b: number | null
+          live_status: string | null
+          live_updated_at: string | null
           matchday: number | null
           score_a: number | null
           score_b: number | null
@@ -42,6 +47,11 @@ export type Database = {
           group_letter?: string | null
           id?: string
           kickoff_at: string
+          live_elapsed?: number | null
+          live_score_a?: number | null
+          live_score_b?: number | null
+          live_status?: string | null
+          live_updated_at?: string | null
           matchday?: number | null
           score_a?: number | null
           score_b?: number | null
@@ -61,6 +71,11 @@ export type Database = {
           group_letter?: string | null
           id?: string
           kickoff_at?: string
+          live_elapsed?: number | null
+          live_score_a?: number | null
+          live_score_b?: number | null
+          live_status?: string | null
+          live_updated_at?: string | null
           matchday?: number | null
           score_a?: number | null
           score_b?: number | null
