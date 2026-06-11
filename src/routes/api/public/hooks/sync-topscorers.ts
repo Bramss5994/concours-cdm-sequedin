@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { fetchTopScorers } from "@/lib/livescores.functions";
 
 /**
  * Agent IA "mise à jour des buteurs".
@@ -26,6 +25,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { fetchTopScorers } = await import("@/lib/livescores.server");
 
         const top = await fetchTopScorers();
         if (top.error) {
