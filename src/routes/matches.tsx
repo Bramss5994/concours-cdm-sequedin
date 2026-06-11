@@ -13,8 +13,18 @@ import { Lock, CheckCircle2, MapPin, Trophy, Radio } from "lucide-react";
 import { flagSrcSet } from "@/lib/flag";
 import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
 import { getChannels } from "@/lib/broadcast";
-import { useLiveScores, kickoffKeyFromISO, type LiveFixture } from "@/hooks/use-live-scores";
 import { toast } from "sonner";
+
+const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "SUSP", "INT"]);
+const FINISHED_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
+const STATUS_LABEL: Record<string, string> = {
+  "1H": "1ère mi-temps", HT: "Mi-temps", "2H": "2ème mi-temps", ET: "Prolongation",
+  BT: "Pause prolong.", P: "Tirs au but", SUSP: "Suspendu", INT: "Interrompu", LIVE: "En direct",
+  FT: "Terminé", AET: "Terminé (a.p.)", PEN: "Terminé (t.a.b.)",
+};
+function isLiveStatus(s?: string | null) { return !!s && LIVE_STATUSES.has(s); }
+function isFinishedStatus(s?: string | null) { return !!s && FINISHED_STATUSES.has(s); }
+function statusLabel(s?: string | null) { return (s && STATUS_LABEL[s]) || s || ""; }
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
@@ -46,7 +56,13 @@ type Match = {
   score_a: number | null; score_b: number | null; finished: boolean;
   team_a: Team | null; team_b: Team | null;
   goalscorers?: Goalscorer[] | null;
+  live_status?: string | null;
+  live_elapsed?: number | null;
+  live_score_a?: number | null;
+  live_score_b?: number | null;
+  live_updated_at?: string | null;
 };
+
 type Prediction = { match_id: string; score_a: number; score_b: number; points: number };
 
 const STAGES: { value: string; label: string }[] = [
@@ -75,7 +91,14 @@ function MatchesPage() {
       if (error) throw error;
       return data as unknown as Match[];
     },
+    refetchInterval: (q) => {
+      const list = (q.state.data as Match[] | undefined) || [];
+      const hasLive = list.some((m) => isLiveStatus(m.live_status));
+      return hasLive ? 30_000 : 5 * 60_000;
+    },
+    refetchOnWindowFocus: true,
   });
+
 
   const { data: predictions = [] } = useQuery({
     queryKey: ["predictions", user?.id],
@@ -322,8 +345,7 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
 function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
-  const { byKickoff } = useLiveScores();
-  const live: LiveFixture | undefined = byKickoff[kickoffKeyFromISO(match.kickoff_at)];
+  const liveOn = isLiveStatus(match.live_status);
   const locked = isLocked(match.kickoff_at);
   const [scoreA, setScoreA] = useState<string>(prediction ? String(prediction.score_a) : "");
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
@@ -381,7 +403,7 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
           </div>
         </div>
 
-        {live && live.isLive && (
+        {liveOn && (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -390,16 +412,17 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
           >
             <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-destructive">
               <Radio className="h-3 w-3 animate-pulse" /> Live
-              {live.elapsed != null && <span className="font-mono">{live.elapsed}'</span>}
-              <span className="font-normal normal-case text-muted-foreground">· {live.statusLabel}</span>
+              {match.live_elapsed != null && <span className="font-mono">{match.live_elapsed}'</span>}
+              <span className="font-normal normal-case text-muted-foreground">· {statusLabel(match.live_status)}</span>
             </span>
             <span className="font-bold tabular-nums">
-              {live.scoreHome != null && live.scoreAway != null
-                ? `${live.scoreHome} - ${live.scoreAway}`
+              {match.live_score_a != null && match.live_score_b != null
+                ? `${match.live_score_a} - ${match.live_score_b}`
                 : "Score en cours"}
             </span>
           </motion.div>
         )}
+
 
         {match.finished && match.score_a != null && match.score_b != null && (
           <motion.div

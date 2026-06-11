@@ -80,7 +80,23 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             if (e) errors.push(`fixtureId ${m.id}: ${e.message}`);
           }
 
-          // 2) buteurs pour les matchs en cours ou terminés
+          // 2) live state (status / elapsed / score courant) pour tous les matchs
+          //    pertinents (en cours, terminés ou imminents)
+          {
+            const { error: e } = await supabaseAdmin
+              .from("matches")
+              .update({
+                live_status: pick.status,
+                live_elapsed: pick.elapsed,
+                live_score_a: pick.scoreHome,
+                live_score_b: pick.scoreAway,
+                live_updated_at: new Date().toISOString(),
+              })
+              .eq("id", m.id);
+            if (e) errors.push(`live ${m.id}: ${e.message}`);
+          }
+
+          // 3) buteurs pour les matchs en cours ou terminés
           if (pick.isLive || pick.isFinished) {
             const ev = await getFixtureEvents({ data: { fixtureId: pick.apiFixtureId } });
             if (ev.error) {
@@ -104,7 +120,8 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             }
           }
 
-          // 3) score final pour les matchs terminés non encore validés
+          // 4) score final pour les matchs terminés non encore validés
+
           if (
             pick.isFinished &&
             pick.scoreHome !== null &&
