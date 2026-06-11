@@ -282,15 +282,23 @@ export const listUnitMatchesFn = createServerFn({ method: "GET" })
     const teamMap = new Map((teams ?? []).map((t) => [t.id, t]));
     const depotUserIds = new Set((profiles ?? []).map((p) => p.id));
 
-    const { data: preds, error: e4 } = await supabaseAdmin
-      .from("predictions")
-      .select("match_id, user_id");
-    if (e4) throw new Error(e4.message);
-
     const countBy = new Map<string, number>();
-    for (const p of preds ?? []) {
-      if (!depotUserIds.has(p.user_id)) continue;
-      countBy.set(p.match_id, (countBy.get(p.match_id) || 0) + 1);
+    const PAGE = 1000;
+    let from = 0;
+    // Paginate to avoid the default 1000-row cap which silently truncates counts.
+    while (true) {
+      const { data: preds, error: e4 } = await supabaseAdmin
+        .from("predictions")
+        .select("match_id, user_id")
+        .range(from, from + PAGE - 1);
+      if (e4) throw new Error(e4.message);
+      const batch = preds ?? [];
+      for (const p of batch) {
+        if (!depotUserIds.has(p.user_id)) continue;
+        countBy.set(p.match_id, (countBy.get(p.match_id) || 0) + 1);
+      }
+      if (batch.length < PAGE) break;
+      from += PAGE;
     }
 
     return (matches ?? []).map((m) => ({
