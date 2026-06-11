@@ -38,7 +38,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
         const { data: dbMatches, error: dbErr } = await supabaseAdmin
           .from("matches")
           .select(
-            "id, kickoff_at, finished, score_a, score_b, api_fixture_id, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)",
+            "id, kickoff_at, finished, score_a, score_b, api_fixture_id, goalscorers, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)",
           );
         if (dbErr) {
           return Response.json({ ok: false, error: dbErr.message }, { status: 500 });
