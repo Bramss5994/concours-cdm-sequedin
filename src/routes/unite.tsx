@@ -403,6 +403,9 @@ function UniteDashboard() {
         user={predTarget}
         onClose={() => setPredTarget(null)}
       />
+
+      <BonusPicksDialog user={bonusTarget} onClose={() => setBonusTarget(null)} />
+
     </div>
   );
 }
