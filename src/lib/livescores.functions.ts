@@ -86,8 +86,7 @@ async function apiFetch(path: string): Promise<{ ok: true; json: any } | { ok: f
   }
 }
 
-export const getLiveScores = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ fixtures: LiveFixture[]; fetchedAt: string; error: string | null }> => {
+export async function fetchLiveScores(): Promise<{ fixtures: LiveFixture[]; fetchedAt: string; error: string | null }> {
     const r = await apiFetch(`/fixtures?league=${LEAGUE_ID}&season=${SEASON}`);
     if (!r.ok) return { fixtures: [], fetchedAt: new Date().toISOString(), error: r.error };
     const arr = (r.json.response || []) as Array<{
@@ -112,13 +111,12 @@ export const getLiveScores = createServerFn({ method: "GET" }).handler(
       };
     });
     return { fixtures, fetchedAt: new Date().toISOString(), error: null };
-  },
-);
+}
 
-export const getFixtureEvents = createServerFn({ method: "GET" })
-  .inputValidator((data) => z.object({ fixtureId: z.number().int().positive() }).parse(data))
-  .handler(async ({ data }): Promise<{ goals: GoalEvent[]; error: string | null }> => {
-    const r = await apiFetch(`/fixtures/events?fixture=${data.fixtureId}&type=Goal`);
+export const getLiveScores = createServerFn({ method: "GET" }).handler(fetchLiveScores);
+
+export async function fetchFixtureEvents(fixtureId: number): Promise<{ goals: GoalEvent[]; error: string | null }> {
+    const r = await apiFetch(`/fixtures/events?fixture=${fixtureId}&type=Goal`);
     if (!r.ok) return { goals: [], error: r.error };
     const arr = (r.json.response || []) as Array<{
       time: { elapsed: number | null; extra: number | null };
@@ -147,10 +145,13 @@ export const getFixtureEvents = createServerFn({ method: "GET" })
       })
       .filter((g) => g.type !== "missed");
     return { goals, error: null };
-  });
+}
 
-export const getTopScorers = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ scorers: TopScorer[]; fetchedAt: string; error: string | null }> => {
+export const getFixtureEvents = createServerFn({ method: "GET" })
+  .inputValidator((data) => z.object({ fixtureId: z.number().int().positive() }).parse(data))
+  .handler(async ({ data }) => fetchFixtureEvents(data.fixtureId));
+
+export async function fetchTopScorers(): Promise<{ scorers: TopScorer[]; fetchedAt: string; error: string | null }> {
     const r = await apiFetch(`/players/topscorers?league=${LEAGUE_ID}&season=${SEASON}`);
     if (!r.ok) return { scorers: [], fetchedAt: new Date().toISOString(), error: r.error };
     const arr = (r.json.response || []) as Array<{
@@ -173,8 +174,9 @@ export const getTopScorers = createServerFn({ method: "GET" }).handler(
       };
     });
     return { scorers, fetchedAt: new Date().toISOString(), error: null };
-  },
-);
+}
+
+export const getTopScorers = createServerFn({ method: "GET" }).handler(fetchTopScorers);
 
 export function kickoffKeyFromISO(iso: string): string {
   return toKickoffKey(iso);
