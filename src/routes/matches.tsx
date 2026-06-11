@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -332,6 +332,11 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    setScoreA(prediction ? String(prediction.score_a) : "");
+    setScoreB(prediction ? String(prediction.score_b) : "");
+  }, [prediction?.score_a, prediction?.score_b]);
+
   async function save() {
     if (!user) return;
     const a = Number(scoreA), b = Number(scoreB);
@@ -404,9 +409,13 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
             <span className="text-muted-foreground">Résultat officiel : </span>
             <span className="font-bold">{match.score_a} - {match.score_b}</span>
             {prediction && (
-              <Badge variant={prediction.points >= 3 ? "default" : prediction.points > 0 ? "secondary" : "outline"} className="ml-2">
-                {prediction.points} pt{prediction.points > 1 ? "s" : ""}
-              </Badge>
+              <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+                <span className="text-muted-foreground">Votre prono : </span>
+                <span className="font-bold tabular-nums">{prediction.score_a} - {prediction.score_b}</span>
+                <Badge variant={prediction.points >= 3 ? "default" : prediction.points > 0 ? "secondary" : "outline"}>
+                  {prediction.points} pt{prediction.points > 1 ? "s" : ""}
+                </Badge>
+              </div>
             )}
           </motion.div>
         )}
