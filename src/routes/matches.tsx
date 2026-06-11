@@ -345,9 +345,7 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
 function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
-  const liveOn = isLiveStatus(match.live_status);
-  const showLiveScore = liveOn && match.live_score_a != null && match.live_score_b != null;
-  const showFinalScore = !showLiveScore && match.finished && match.score_a != null && match.score_b != null;
+  const showFinalScore = match.finished && match.score_a != null && match.score_b != null;
   const locked = isLocked(match.kickoff_at);
   const [scoreA, setScoreA] = useState<string>(prediction ? String(prediction.score_a) : "");
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
@@ -395,9 +393,9 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
             {codeA && <img srcSet={flagSrcSet(codeA)} src={`https://flagcdn.com/w40/${codeA}.png`} alt={nameA} className="h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
           </div>
           <div className="flex items-center gap-1">
-            {showLiveScore || showFinalScore ? (
-              <div className={`min-w-16 rounded-md border px-3 py-1.5 text-center font-bold tabular-nums ${showLiveScore ? "border-destructive/40 bg-destructive/10 text-destructive" : "bg-muted"}`}>
-                {showLiveScore ? `${match.live_score_a} - ${match.live_score_b}` : `${match.score_a} - ${match.score_b}`}
+            {showFinalScore ? (
+              <div className="min-w-16 rounded-md border bg-muted px-3 py-1.5 text-center font-bold tabular-nums">
+                {match.score_a} - {match.score_b}
               </div>
             ) : (
               <>
@@ -413,25 +411,6 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
           </div>
         </div>
 
-        {liveOn && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mt-3 flex items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-sm"
-          >
-            <span className="flex items-center gap-1.5 text-xs font-bold uppercase text-destructive">
-              <Radio className="h-3 w-3 animate-pulse" /> Live
-              {match.live_elapsed != null && <span className="font-mono">{match.live_elapsed}'</span>}
-              <span className="font-normal normal-case text-muted-foreground">· {statusLabel(match.live_status)}</span>
-            </span>
-            <span className="font-bold tabular-nums">
-              {match.live_score_a != null && match.live_score_b != null
-                ? `${match.live_score_a} - ${match.live_score_b}`
-                : "Score en cours"}
-            </span>
-          </motion.div>
-        )}
 
 
         {match.finished && match.score_a != null && match.score_b != null && (
