@@ -2,6 +2,7 @@ import { createServerFn, createMiddleware } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
 import { createHash } from "crypto";
 import { z } from "zod";
+import { fetchAllPages } from "@/lib/supabase-pagination";
 
 type UnitAdminSession = { depot: string; login_code: string };
 
@@ -124,7 +125,9 @@ export const listUnitParticipantsFn = createServerFn({ method: "GET" })
 
     const [{ data: profiles, error: e1 }, { data: preds, error: e2 }] = await Promise.all([
       profilesQuery,
-      supabaseAdmin.from("predictions").select("user_id, points"),
+      fetchAllPages<{ user_id: string; points: number | null }>((from, to) =>
+        supabaseAdmin.from("predictions").select("user_id, points").range(from, to),
+      ).then((data) => ({ data, error: null })),
     ]);
     if (e1) throw new Error(e1.message);
     if (e2) throw new Error(e2.message);
@@ -360,7 +363,9 @@ export const getSuperAdminStatsFn = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: profiles }, { data: preds }, { data: matches }] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, prenom, num_paie, active, created_at, depot"),
-      supabaseAdmin.from("predictions").select("user_id, points, match_id, updated_at"),
+      fetchAllPages<{ user_id: string; points: number | null; match_id: string; updated_at: string | null }>((from, to) =>
+        supabaseAdmin.from("predictions").select("user_id, points, match_id, updated_at").range(from, to),
+      ).then((data) => ({ data, error: null })),
       supabaseAdmin.from("matches").select("id, finished, kickoff_at"),
     ]);
     return { profiles: profiles ?? [], preds: preds ?? [], matches: matches ?? [] };
@@ -527,7 +532,15 @@ export const getUnitLeaderboardFn = createServerFn({ method: "GET" })
       { data: scorerBonuses, error: e5 },
     ] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, prenom, num_paie, depot, active"),
-      supabaseAdmin.from("predictions").select("user_id, match_id, points, exact_score, good_winner"),
+      fetchAllPages<{
+        user_id: string;
+        match_id: string;
+        points: number | null;
+        exact_score: boolean | null;
+        good_winner: boolean | null;
+      }>((from, to) =>
+        supabaseAdmin.from("predictions").select("user_id, match_id, points, exact_score, good_winner").range(from, to),
+      ).then((data) => ({ data, error: null })),
       supabaseAdmin.from("matches").select("id, stage, finished"),
       supabaseAdmin.rpc("get_winner_bonuses"),
       supabaseAdmin.rpc("get_top_scorer_bonuses"),
