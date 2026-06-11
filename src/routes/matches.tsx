@@ -15,16 +15,6 @@ import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
 import { getChannels } from "@/lib/broadcast";
 import { toast } from "sonner";
 
-const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "SUSP", "INT"]);
-const FINISHED_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
-const STATUS_LABEL: Record<string, string> = {
-  "1H": "1ère mi-temps", HT: "Mi-temps", "2H": "2ème mi-temps", ET: "Prolongation",
-  BT: "Pause prolong.", P: "Tirs au but", SUSP: "Suspendu", INT: "Interrompu", LIVE: "En direct",
-  FT: "Terminé", AET: "Terminé (a.p.)", PEN: "Terminé (t.a.b.)",
-};
-function isLiveStatus(s?: string | null) { return !!s && LIVE_STATUSES.has(s); }
-function isFinishedStatus(s?: string | null) { return !!s && FINISHED_STATUSES.has(s); }
-function statusLabel(s?: string | null) { return (s && STATUS_LABEL[s]) || s || ""; }
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
