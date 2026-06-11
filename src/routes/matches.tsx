@@ -46,11 +46,6 @@ type Match = {
   score_a: number | null; score_b: number | null; finished: boolean;
   team_a: Team | null; team_b: Team | null;
   goalscorers?: Goalscorer[] | null;
-  live_status?: string | null;
-  live_elapsed?: number | null;
-  live_score_a?: number | null;
-  live_score_b?: number | null;
-  live_updated_at?: string | null;
 };
 
 type Prediction = { match_id: string; score_a: number; score_b: number; points: number };
