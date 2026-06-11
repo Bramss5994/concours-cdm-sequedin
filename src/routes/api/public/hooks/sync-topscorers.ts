@@ -10,14 +10,17 @@ import { getTopScorers } from "@/lib/livescores.functions";
  * table `players` (matching par nom normalisé, fallback insensible aux
  * accents et à la casse).
  *
- * Sécurité : header x-webhook-secret = SYNC_WEBHOOK_SECRET.
+ * Sécurité : header apikey = clé publique backend.
  */
 export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const provided = request.headers.get("x-webhook-secret");
-        const expected = process.env.SYNC_WEBHOOK_SECRET;
+        const provided = request.headers.get("apikey");
+        const expected =
+          process.env.SUPABASE_PUBLISHABLE_KEY ||
+          process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5dmdpcWVjdW5jZG9rb2tjb3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTY5NzEsImV4cCI6MjA5NTM5Mjk3MX0.XHnWY51wmKLV558Oib2F-FUhgovzRB6Kgyc-yoiwh6M";
         if (!expected || !provided || provided !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }
