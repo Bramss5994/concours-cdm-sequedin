@@ -314,6 +314,16 @@ function UniteDashboard() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          {isSuper && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              title="Pronos bonus (équipe gagnante & soulier d'or)"
+                              onClick={() => setBonusTarget(u)}
+                            >
+                              <Sparkles className="h-4 w-4 text-amber-500" />
+                            </Button>
+                          )}
                           <Button
                             size="icon"
                             variant="ghost"
@@ -323,6 +333,7 @@ function UniteDashboard() {
                               setPwdValue("");
                             }}
                           >
+
                             <KeyRound className="h-4 w-4" />
                           </Button>
 
