@@ -25,7 +25,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown, Sparkles } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatFR } from "@/lib/time";
 import {
   getUnitAdminSession,
@@ -35,7 +36,14 @@ import {
   resetUnitParticipantPasswordFn,
   deleteUnitParticipantFn,
   getUnitParticipantPredictionsFn,
+  getBonusPickOptionsFn,
+  getUserBonusPicksFn,
+  setUserWinnerPickFn,
+  setUserTopScorerPickFn,
+  deleteUserWinnerPickFn,
+  deleteUserTopScorerPickFn,
 } from "@/lib/unit-admin.functions";
+
 
 
 export const Route = createFileRoute("/unite")({
