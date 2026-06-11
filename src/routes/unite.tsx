@@ -25,7 +25,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown, Sparkles } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatFR } from "@/lib/time";
 import {
   getUnitAdminSession,
@@ -35,7 +36,14 @@ import {
   resetUnitParticipantPasswordFn,
   deleteUnitParticipantFn,
   getUnitParticipantPredictionsFn,
+  getBonusPickOptionsFn,
+  getUserBonusPicksFn,
+  setUserWinnerPickFn,
+  setUserTopScorerPickFn,
+  deleteUserWinnerPickFn,
+  deleteUserTopScorerPickFn,
 } from "@/lib/unit-admin.functions";
+
 
 
 export const Route = createFileRoute("/unite")({
@@ -90,6 +98,8 @@ function UniteDashboard() {
   const [pwdValue, setPwdValue] = useState("");
   const [delTarget, setDelTarget] = useState<any | null>(null);
   const [predTarget, setPredTarget] = useState<any | null>(null);
+  const [bonusTarget, setBonusTarget] = useState<any | null>(null);
+
 
   const [search, setSearch] = useState("");
   const [depotFilter, setDepotFilter] = useState<string>("all");
@@ -304,6 +314,16 @@ function UniteDashboard() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
+                          {isSuper && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              title="Pronos bonus (équipe gagnante & soulier d'or)"
+                              onClick={() => setBonusTarget(u)}
+                            >
+                              <Sparkles className="h-4 w-4 text-amber-500" />
+                            </Button>
+                          )}
                           <Button
                             size="icon"
                             variant="ghost"
@@ -313,6 +333,7 @@ function UniteDashboard() {
                               setPwdValue("");
                             }}
                           >
+
                             <KeyRound className="h-4 w-4" />
                           </Button>
 
@@ -382,6 +403,9 @@ function UniteDashboard() {
         user={predTarget}
         onClose={() => setPredTarget(null)}
       />
+
+      <BonusPicksDialog user={bonusTarget} onClose={() => setBonusTarget(null)} />
+
     </div>
   );
 }
@@ -469,4 +493,174 @@ function UnitParticipantPredictionsDialog({
     </Dialog>
   );
 }
+
+function BonusPicksDialog({ user, onClose }: { user: any | null; onClose: () => void }) {
+  const qc = useQueryClient();
+  const fetchOptions = useServerFn(getBonusPickOptionsFn);
+  const fetchPicks = useServerFn(getUserBonusPicksFn);
+  const doSetWinner = useServerFn(setUserWinnerPickFn);
+  const doSetScorer = useServerFn(setUserTopScorerPickFn);
+  const doDelWinner = useServerFn(deleteUserWinnerPickFn);
+  const doDelScorer = useServerFn(deleteUserTopScorerPickFn);
+
+  const optionsQ = useQuery({
+    queryKey: ["bonus-pick-options"],
+    queryFn: () => fetchOptions(),
+    enabled: !!user,
+  });
+  const picksQ = useQuery({
+    queryKey: ["user-bonus-picks", user?.id],
+    queryFn: () => fetchPicks({ data: { userId: user.id } }),
+    enabled: !!user,
+  });
+
+  const [initialTeam, setInitialTeam] = useState<string>("");
+  const [finalTeam, setFinalTeam] = useState<string>("");
+  const [scorer, setScorer] = useState<string>("");
+
+  useEffect(() => {
+    if (picksQ.data) {
+      setInitialTeam(picksQ.data.winner?.initial_team_id ?? "");
+      setFinalTeam(picksQ.data.winner?.final_team_id ?? "");
+      setScorer(picksQ.data.topScorer?.player_id ?? "");
+    }
+  }, [picksQ.data]);
+
+  const teams = optionsQ.data?.teams ?? [];
+  const players = optionsQ.data?.players ?? [];
+
+  async function saveWinner() {
+    if (!user || !initialTeam) return toast.error("Sélectionne une équipe gagnante initiale");
+    try {
+      await doSetWinner({
+        data: {
+          userId: user.id,
+          initial_team_id: initialTeam,
+          final_team_id: finalTeam || null,
+        },
+      });
+      toast.success("Équipe gagnante enregistrée");
+      qc.invalidateQueries({ queryKey: ["user-bonus-picks", user.id] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function saveScorer() {
+    if (!user || !scorer) return toast.error("Sélectionne un joueur");
+    try {
+      await doSetScorer({ data: { userId: user.id, player_id: scorer } });
+      toast.success("Meilleur buteur enregistré");
+      qc.invalidateQueries({ queryKey: ["user-bonus-picks", user.id] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function clearWinner() {
+    if (!user) return;
+    try {
+      await doDelWinner({ data: { userId: user.id } });
+      toast.success("Choix supprimé");
+      setInitialTeam("");
+      setFinalTeam("");
+      qc.invalidateQueries({ queryKey: ["user-bonus-picks", user.id] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function clearScorer() {
+    if (!user) return;
+    try {
+      await doDelScorer({ data: { userId: user.id } });
+      toast.success("Choix supprimé");
+      setScorer("");
+      qc.invalidateQueries({ queryKey: ["user-bonus-picks", user.id] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            Pronos bonus — {user?.prenom}{" "}
+            <span className="text-xs text-muted-foreground">{user?.num_paie}</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        {optionsQ.isLoading || picksQ.isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : (
+          <div className="space-y-6">
+            <section className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Crown className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold">Équipe gagnante</h3>
+              </div>
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Choix initial</label>
+                  <Select value={initialTeam} onValueChange={setInitialTeam}>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner une équipe" /></SelectTrigger>
+                    <SelectContent>
+                      {teams.map((t: any) => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Re-vote (optionnel)</label>
+                  <Select value={finalTeam || "__none__"} onValueChange={(v) => setFinalTeam(v === "__none__" ? "" : v)}>
+                    <SelectTrigger><SelectValue placeholder="Aucun" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Aucun re-vote</SelectItem>
+                      {teams.map((t: any) => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  {picksQ.data?.winner && (
+                    <Button size="sm" variant="outline" onClick={clearWinner}>Supprimer</Button>
+                  )}
+                  <Button size="sm" onClick={saveWinner}>Enregistrer</Button>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-2 border-t pt-4">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-amber-500" />
+                <h3 className="font-semibold">Soulier d'Or</h3>
+              </div>
+              <Select value={scorer} onValueChange={setScorer}>
+                <SelectTrigger><SelectValue placeholder="Sélectionner un joueur" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {players.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}{p.team_name ? ` — ${p.team_name}` : ""}{p.club ? ` (${p.club})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex justify-end gap-2 pt-1">
+                {picksQ.data?.topScorer && (
+                  <Button size="sm" variant="outline" onClick={clearScorer}>Supprimer</Button>
+                )}
+                <Button size="sm" onClick={saveScorer}>Enregistrer</Button>
+              </div>
+            </section>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
