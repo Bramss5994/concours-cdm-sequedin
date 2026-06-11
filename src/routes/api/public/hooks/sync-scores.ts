@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.shared";
 
+const MAX_EVENT_FETCHES_PER_RUN = 2;
+const EVENT_FETCH_DELAY_MS = 8_000;
+
 /**
  * Agent IA "mise à jour des scores".
  * Endpoint public déclenché par pg_cron toutes les 15 minutes.
  *
  * Pour chaque match CDM 2026 :
  *  - associe l'api_fixture_id (une fois pour toutes, par horaire UTC + noms d'équipes)
- *  - pour les matchs en cours ou terminés : récupère les buteurs via /fixtures/events
- *    et les stocke dans matches.goalscorers (JSONB)
+ *  - pour les matchs qui viennent de se terminer : récupère quelques buteurs via /fixtures/events
+ *    sans dépasser la limite API, et les stocke dans matches.goalscorers (JSONB)
  *  - pour les matchs terminés (FT / AET / PEN) : met à jour score_a, score_b, finished
  *    → le trigger matches_after_result recalcule alors les points.
  *
@@ -55,6 +58,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
         const scoreUpdates: any[] = [];
         const goalUpdates: any[] = [];
         const errors: string[] = [];
+        let eventFetches = 0;
 
         for (const m of dbMatches || []) {
           const key = kickoffKeyFromISO(m.kickoff_at);
@@ -84,15 +88,17 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             if (e) errors.push(`fixtureId ${m.id}: ${e.message}`);
           }
 
-          // 2) buteurs : uniquement pour les matchs en cours, ou pour les
-          //    matchs terminés dont les buteurs n'ont pas encore été enregistrés.
-          //    Cela évite de saturer l'API (rate limit ~10 req/min).
+          // 2) buteurs : uniquement lorsqu'un match vient de se terminer, avec
+          //    un plafond strict par exécution pour éviter la limite API.
           const hasGoalscorers =
             Array.isArray((m as any).goalscorers) && (m as any).goalscorers.length > 0;
-          const needEvents = pick.isLive || (pick.isFinished && !hasGoalscorers);
+          const needsFinalEvents = pick.isFinished && !m.finished && !hasGoalscorers;
+          const needEvents = needsFinalEvents && eventFetches < MAX_EVENT_FETCHES_PER_RUN;
           if (needEvents) {
-            // petit throttle pour rester sous la limite de requêtes/minute
-            await new Promise((r) => setTimeout(r, 250));
+            eventFetches += 1;
+            if (eventFetches > 1) {
+              await new Promise((r) => setTimeout(r, EVENT_FETCH_DELAY_MS));
+            }
             const ev = await fetchFixtureEvents(pick.apiFixtureId);
             if (ev.error) {
               errors.push(`events ${m.id}: ${ev.error}`);
@@ -113,6 +119,8 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
               if (e) errors.push(`goalscorers ${m.id}: ${e.message}`);
               else goalUpdates.push({ id: m.id, count: payload.length });
             }
+          } else if (needsFinalEvents) {
+            errors.push(`events ${m.id}: reporté pour respecter la limite API`);
           }
 
           // 4) score final pour les matchs terminés non encore validés
@@ -142,8 +150,10 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           ok: true,
           checkedFixtures: live.fixtures.length,
           checkedDbMatches: (dbMatches || []).length,
+          updated: scoreUpdates.length,
           scoreUpdates: scoreUpdates.length,
           goalUpdates: goalUpdates.length,
+          eventFetches,
           scoreDetails: scoreUpdates,
           errors,
           syncedAt: new Date().toISOString(),
