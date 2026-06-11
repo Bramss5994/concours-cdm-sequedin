@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Lock, CheckCircle2, MapPin, Trophy, Radio } from "lucide-react";
+import { Lock, CheckCircle2, MapPin, Trophy } from "lucide-react";
 import { flagSrcSet } from "@/lib/flag";
 import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
 import { getChannels } from "@/lib/broadcast";
