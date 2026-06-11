@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getLiveScores, getFixtureEvents, kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.functions";
+import { fetchLiveScores, fetchFixtureEvents, kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.functions";
 
 /**
  * Agent IA "mise à jour des scores".
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const live = await getLiveScores();
+        const live = await fetchLiveScores();
         if (live.error) {
           return Response.json({ ok: false, error: live.error }, { status: 502 });
         }
@@ -101,7 +101,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
 
           // 3) buteurs pour les matchs en cours ou terminés
           if (pick.isLive || pick.isFinished) {
-            const ev = await getFixtureEvents({ data: { fixtureId: pick.apiFixtureId } });
+            const ev = await fetchFixtureEvents(pick.apiFixtureId);
             if (ev.error) {
               errors.push(`events ${m.id}: ${ev.error}`);
             } else {
