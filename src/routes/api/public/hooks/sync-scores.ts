@@ -84,24 +84,15 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             if (e) errors.push(`fixtureId ${m.id}: ${e.message}`);
           }
 
-          // 2) live state (status / elapsed / score courant) pour tous les matchs
-          //    pertinents (en cours, terminés ou imminents)
-          {
-            const { error: e } = await supabaseAdmin
-              .from("matches")
-              .update({
-                live_status: pick.status,
-                live_elapsed: pick.elapsed,
-                live_score_a: pick.scoreHome,
-                live_score_b: pick.scoreAway,
-                live_updated_at: new Date().toISOString(),
-              })
-              .eq("id", m.id);
-            if (e) errors.push(`live ${m.id}: ${e.message}`);
-          }
-
-          // 3) buteurs pour les matchs en cours ou terminés
-          if (pick.isLive || pick.isFinished) {
+          // 2) buteurs : uniquement pour les matchs en cours, ou pour les
+          //    matchs terminés dont les buteurs n'ont pas encore été enregistrés.
+          //    Cela évite de saturer l'API (rate limit ~10 req/min).
+          const hasGoalscorers =
+            Array.isArray((m as any).goalscorers) && (m as any).goalscorers.length > 0;
+          const needEvents = pick.isLive || (pick.isFinished && !hasGoalscorers);
+          if (needEvents) {
+            // petit throttle pour rester sous la limite de requêtes/minute
+            await new Promise((r) => setTimeout(r, 250));
             const ev = await fetchFixtureEvents(pick.apiFixtureId);
             if (ev.error) {
               errors.push(`events ${m.id}: ${ev.error}`);
