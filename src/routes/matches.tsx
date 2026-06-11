@@ -345,9 +345,7 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
 function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
-  const liveOn = isLiveStatus(match.live_status);
-  const showLiveScore = liveOn && match.live_score_a != null && match.live_score_b != null;
-  const showFinalScore = !showLiveScore && match.finished && match.score_a != null && match.score_b != null;
+  const showFinalScore = match.finished && match.score_a != null && match.score_b != null;
   const locked = isLocked(match.kickoff_at);
   const [scoreA, setScoreA] = useState<string>(prediction ? String(prediction.score_a) : "");
   const [scoreB, setScoreB] = useState<string>(prediction ? String(prediction.score_b) : "");
