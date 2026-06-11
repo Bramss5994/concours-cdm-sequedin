@@ -98,6 +98,8 @@ function UniteDashboard() {
   const [pwdValue, setPwdValue] = useState("");
   const [delTarget, setDelTarget] = useState<any | null>(null);
   const [predTarget, setPredTarget] = useState<any | null>(null);
+  const [bonusTarget, setBonusTarget] = useState<any | null>(null);
+
 
   const [search, setSearch] = useState("");
   const [depotFilter, setDepotFilter] = useState<string>("all");
