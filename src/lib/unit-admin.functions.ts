@@ -577,3 +577,127 @@ export const getUnitTopScorerBoardFn = createServerFn({ method: "GET" })
     return { rows: data ?? [] };
   });
 
+/* -------------------- SUPER ADMIN — Bonus picks on behalf of a participant -------------------- */
+
+export const getBonusPickOptionsFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: teams, error: e1 }, { data: players, error: e2 }] = await Promise.all([
+      supabaseAdmin.from("teams").select("id, name, code").order("name"),
+      supabaseAdmin.from("players").select("id, name, club, team_id, position").order("name"),
+    ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+    const teamMap = new Map((teams ?? []).map((t) => [t.id, t]));
+    return {
+      teams: teams ?? [],
+      players: (players ?? []).map((p) => ({
+        ...p,
+        team_name: p.team_id ? teamMap.get(p.team_id)?.name ?? null : null,
+      })),
+    };
+  });
+
+export const getUserBonusPicksFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: wp }, { data: tsp }] = await Promise.all([
+      supabaseAdmin
+        .from("winner_predictions")
+        .select("user_id, initial_team_id, final_team_id, updated_at")
+        .eq("user_id", data.userId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("top_scorer_predictions")
+        .select("user_id, player_id, updated_at")
+        .eq("user_id", data.userId)
+        .maybeSingle(),
+    ]);
+    return { winner: wp ?? null, topScorer: tsp ?? null };
+  });
+
+export const setUserWinnerPickFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        initial_team_id: z.string().uuid(),
+        final_team_id: z.string().uuid().nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("winner_predictions")
+      .upsert(
+        {
+          user_id: data.userId,
+          initial_team_id: data.initial_team_id,
+          final_team_id: data.final_team_id ?? null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const setUserTopScorerPickFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z.object({ userId: z.string().uuid(), player_id: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("top_scorer_predictions")
+      .upsert(
+        {
+          user_id: data.userId,
+          player_id: data.player_id,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteUserWinnerPickFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("winner_predictions")
+      .delete()
+      .eq("user_id", data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteUserTopScorerPickFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("top_scorer_predictions")
+      .delete()
+      .eq("user_id", data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
