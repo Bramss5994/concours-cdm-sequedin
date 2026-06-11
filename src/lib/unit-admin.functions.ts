@@ -127,7 +127,7 @@ export const listUnitParticipantsFn = createServerFn({ method: "GET" })
       profilesQuery,
       fetchAllPages<{ user_id: string; points: number | null }>((from, to) =>
         supabaseAdmin.from("predictions").select("user_id, points").range(from, to),
-      ).then((data) => ({ data, error: null })),
+      ).then((data) => ({ data, error: null as { message: string } | null })),
     ]);
     if (e1) throw new Error(e1.message);
     if (e2) throw new Error(e2.message);
@@ -365,7 +365,7 @@ export const getSuperAdminStatsFn = createServerFn({ method: "GET" })
       supabaseAdmin.from("profiles").select("id, prenom, num_paie, active, created_at, depot"),
       fetchAllPages<{ user_id: string; points: number | null; match_id: string; updated_at: string | null }>((from, to) =>
         supabaseAdmin.from("predictions").select("user_id, points, match_id, updated_at").range(from, to),
-      ).then((data) => ({ data, error: null })),
+      ).then((data) => ({ data, error: null as { message: string } | null })),
       supabaseAdmin.from("matches").select("id, finished, kickoff_at"),
     ]);
     return { profiles: profiles ?? [], preds: preds ?? [], matches: matches ?? [] };
@@ -540,7 +540,7 @@ export const getUnitLeaderboardFn = createServerFn({ method: "GET" })
         good_winner: boolean | null;
       }>((from, to) =>
         supabaseAdmin.from("predictions").select("user_id, match_id, points, exact_score, good_winner").range(from, to),
-      ).then((data) => ({ data, error: null })),
+      ).then((data) => ({ data, error: null as { message: string } | null })),
       supabaseAdmin.from("matches").select("id, stage, finished"),
       supabaseAdmin.rpc("get_winner_bonuses"),
       supabaseAdmin.rpc("get_top_scorer_bonuses"),
