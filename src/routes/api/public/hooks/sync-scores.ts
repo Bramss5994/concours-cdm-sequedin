@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { fetchLiveScores, fetchFixtureEvents, kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.functions";
+import { kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.shared";
 
 /**
  * Agent IA "mise à jour des scores".
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { fetchLiveScores, fetchFixtureEvents } = await import("@/lib/livescores.server");
 
         const live = await fetchLiveScores();
         if (live.error) {
