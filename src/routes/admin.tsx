@@ -48,6 +48,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { Trash2, KeyRound, Download, ShieldPlus, Eye, Target, Crown } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
+import { fetchAllPages } from "@/lib/supabase-pagination";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -104,9 +105,11 @@ function AdminStats() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [{ data: profiles }, { data: preds }, { data: matches }] = await Promise.all([
+      const [{ data: profiles }, preds, { data: matches }] = await Promise.all([
         supabase.from("profiles").select("id, prenom, num_paie, active, created_at, depot"),
-        supabase.from("predictions").select("user_id, points, match_id, updated_at"),
+        fetchAllPages((from, to) =>
+          supabase.from("predictions").select("user_id, points, match_id, updated_at").range(from, to),
+        ),
         supabase.from("matches").select("id, finished, kickoff_at"),
       ]);
       return { profiles: profiles || [], preds: preds || [], matches: matches || [] };

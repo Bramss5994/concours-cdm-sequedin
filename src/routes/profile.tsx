@@ -13,6 +13,7 @@ import { TopScorerPicker } from "@/components/TopScorerPicker";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { BadgesGrid } from "@/components/BadgesGrid";
+import { fetchAllPages } from "@/lib/supabase-pagination";
 
 export const Route = createFileRoute("/profile")({ component: Profile });
 
@@ -42,10 +43,9 @@ function Profile() {
       const sameUnit = (profiles || []).filter((p: any) => p.depot === data!.profile!.depot && p.active);
       const ids = sameUnit.map((p: any) => p.id);
       if (!ids.length) return { avg: 0, rank: null as number | null, total: 0 };
-      const { data: preds } = await supabase
-        .from("predictions")
-        .select("user_id, points")
-        .in("user_id", ids);
+      const preds = await fetchAllPages<{ user_id: string; points: number | null }>((from, to) =>
+        supabase.from("predictions").select("user_id, points").in("user_id", ids).range(from, to),
+      );
       const totals = new Map<string, number>();
       for (const id of ids) totals.set(id, 0);
       for (const p of preds || []) totals.set(p.user_id, (totals.get(p.user_id) || 0) + (p.points || 0));

@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal } from "lucide-react";
+import { fetchAllPages } from "@/lib/supabase-pagination";
 
 export const Route = createFileRoute("/leaderboard")({ component: Leaderboard });
 
@@ -69,9 +70,11 @@ function Leaderboard() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
     queryFn: async () => {
-      const [{ data: profiles }, { data: predictions }, { data: matches }, { data: bonuses }, { data: scorerBonuses }] = await Promise.all([
+      const [{ data: profiles }, predictions, { data: matches }, { data: bonuses }, { data: scorerBonuses }] = await Promise.all([
         supabase.rpc("get_public_profiles"),
-        supabase.from("predictions").select("user_id, match_id, points, exact_score, good_winner"),
+        fetchAllPages((from, to) =>
+          supabase.from("predictions").select("user_id, match_id, points, exact_score, good_winner").range(from, to),
+        ),
         supabase.from("matches").select("id, stage, finished"),
         supabase.rpc("get_winner_bonuses"),
         supabase.rpc("get_top_scorer_bonuses"),
