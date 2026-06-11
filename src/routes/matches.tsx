@@ -81,7 +81,14 @@ function MatchesPage() {
       if (error) throw error;
       return data as unknown as Match[];
     },
+    refetchInterval: (q) => {
+      const list = (q.state.data as Match[] | undefined) || [];
+      const hasLive = list.some((m) => isLiveStatus(m.live_status));
+      return hasLive ? 30_000 : 5 * 60_000;
+    },
+    refetchOnWindowFocus: true,
   });
+
 
   const { data: predictions = [] } = useQuery({
     queryKey: ["predictions", user?.id],
