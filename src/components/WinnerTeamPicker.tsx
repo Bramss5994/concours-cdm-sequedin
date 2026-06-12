@@ -69,6 +69,8 @@ export function WinnerTeamPicker() {
     },
   });
 
+  const EXTENDED_DEADLINE = new Date("2026-06-19T00:00:00Z").getTime();
+  const extendedOpen = Date.now() < EXTENDED_DEADLINE;
   const isNewUser = !!profile?.created_at && new Date(profile.created_at).getTime() >= new Date("2026-06-12T00:00:00Z").getTime();
 
   const state = useMemo(() => {
