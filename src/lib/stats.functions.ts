@@ -17,6 +17,8 @@ export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler
     participationRate: number;
     totalPredictions: number;
     byDepot: { depot: string; label: string; count: number }[];
+    matchesPlayed: number;
+    matchesTotal: number;
   }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
