@@ -172,6 +172,38 @@ export function BusLockBanner() {
             <div className="mx-auto h-[2px] w-72 rounded-[50%] bg-amber-300/20 blur-sm" />
           </div>
 
+          {/* Mini bus Ilévia (style Sequedin) qui passe en bas */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-1 h-8 overflow-hidden">
+            <motion.div
+              className="absolute bottom-1 left-0"
+              initial={{ x: "-30%" }}
+              animate={{ x: ["-30%", "130vw"] }}
+              transition={{ duration: 9, repeat: Infinity, ease: "linear", repeatDelay: 14 }}
+            >
+              <div className="relative h-6 w-20 drop-shadow-[0_4px_6px_rgba(0,0,0,0.6)]">
+                {/* Carrosserie rouge */}
+                <div className="absolute inset-x-0 top-0 h-5 rounded-md rounded-tr-xl bg-gradient-to-b from-red-500 via-red-600 to-red-700 shadow-inner" />
+                {/* Bande blanche Ilévia */}
+                <div className="absolute left-0 right-0 top-[10px] h-[2px] bg-white/90" />
+                {/* Pare-brise */}
+                <div className="absolute right-1 top-1 h-2 w-3 rounded-sm bg-gradient-to-b from-sky-200 to-sky-400/80" />
+                {/* Fenêtres */}
+                <div className="absolute left-1.5 top-1 flex h-2 gap-0.5">
+                  <div className="w-2 rounded-[1px] bg-sky-200/80" />
+                  <div className="w-2 rounded-[1px] bg-sky-200/80" />
+                  <div className="w-2 rounded-[1px] bg-sky-200/80" />
+                  <div className="w-2 rounded-[1px] bg-sky-200/80" />
+                </div>
+                {/* Phare avant */}
+                <div className="absolute right-0 top-3 h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_6px_rgba(251,191,36,0.9)]" />
+                {/* Feu arrière */}
+                <div className="absolute left-0 top-3 h-1 w-1 rounded-full bg-red-300" />
+                {/* Roues */}
+                <div className="absolute bottom-0 left-2 h-2 w-2 rounded-full bg-zinc-900 ring-1 ring-zinc-600" />
+                <div className="absolute bottom-0 right-2 h-2 w-2 rounded-full bg-zinc-900 ring-1 ring-zinc-600" />
+              </div>
+            </motion.div>
+          </div>
 
           {/* Sol */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2 bg-gradient-to-t from-black to-transparent" />
