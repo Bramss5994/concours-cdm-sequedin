@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
+import busImg from "@/assets/sequedin-bus.png.asset.json";
 
 const MESSAGE = "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH";
 
@@ -13,10 +13,9 @@ export function BusLockBanner() {
         transition={{ duration: 0.5 }}
         className="relative mx-auto max-w-3xl"
       >
-        {/* Bus image */}
         <motion.img
-          src={logoPcBus.url}
-          alt="Bus PC"
+          src={busImg.url}
+          alt="Bus Sequedin"
           className="relative z-0 mx-auto w-full select-none object-contain"
           initial={{ x: -40 }}
           whileInView={{ x: 0 }}
@@ -24,18 +23,19 @@ export function BusLockBanner() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         />
 
-        {/* Destination sign (girouette) overlay */}
+        {/* Destination sign (girouette) overlay — positioned over the bus front sign */}
         <div
-          className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 overflow-hidden rounded-[3px] border border-amber-500/60 bg-black shadow-[0_0_18px_rgba(251,191,36,0.45)]"
+          className="pointer-events-none absolute z-10 overflow-hidden rounded-[2px] border border-amber-500/70 bg-black shadow-[0_0_14px_rgba(251,191,36,0.5)]"
           style={{
-            top: "16%",
-            width: "44%",
-            height: "9%",
+            top: "10%",
+            left: "51%",
+            width: "42%",
+            height: "8%",
           }}
         >
-          <div className="flex h-full items-center whitespace-nowrap font-mono text-amber-300 [text-shadow:0_0_6px_rgba(251,191,36,0.9)]">
+          <div className="flex h-full items-center whitespace-nowrap font-mono text-amber-300 [text-shadow:0_0_5px_rgba(251,191,36,0.95)]">
             <motion.div
-              className="flex shrink-0 gap-12 px-6 text-[clamp(0.7rem,1.8vw,1.25rem)] font-bold tracking-[0.18em]"
+              className="flex shrink-0 gap-12 px-4 text-[clamp(0.55rem,1.4vw,1rem)] font-bold tracking-[0.15em]"
               animate={{ x: ["0%", "-50%"] }}
               transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
             >
@@ -45,7 +45,6 @@ export function BusLockBanner() {
               <span>{MESSAGE}</span>
             </motion.div>
           </div>
-          {/* LED scanline */}
           <div
             className="pointer-events-none absolute inset-0 opacity-30 mix-blend-overlay"
             style={{
