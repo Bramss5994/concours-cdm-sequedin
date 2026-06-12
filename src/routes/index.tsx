@@ -106,7 +106,7 @@ function Home() {
 
       <BusLockBanner />
 
-      <ParticipationLive />
+      
 
       {user && (
         <section className="container mx-auto grid gap-4 px-4 py-6 md:grid-cols-2">
