@@ -30,19 +30,6 @@ export function BusLockBanner() {
     },
   ];
 
-  // Pluie : positions stables
-  const rain = useMemo(
-    () =>
-      Array.from({ length: 50 }).map((_, i) => ({
-        left: Math.random() * 100,
-        delay: Math.random() * 1.6,
-        duration: 0.7 + Math.random() * 0.7,
-        height: 14 + Math.random() * 18,
-        key: i,
-      })),
-    [],
-  );
-
   return (
     <section className="container mx-auto px-4 py-10">
       <motion.div
@@ -79,24 +66,7 @@ export function BusLockBanner() {
             }}
           />
 
-          {/* Pluie */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {rain.map((d) => (
-              <motion.span
-                key={d.key}
-                className="absolute top-0 w-px bg-gradient-to-b from-transparent via-sky-300/40 to-sky-200/70"
-                style={{ left: `${d.left}%`, height: d.height }}
-                initial={{ y: -40, opacity: 0 }}
-                animate={{ y: ["-10%", "120%"], opacity: [0, 0.8, 0] }}
-                transition={{
-                  duration: d.duration,
-                  delay: d.delay,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-            ))}
-          </div>
+
 
           {/* Bus stop structure */}
           <div className="relative mx-auto" style={{ maxWidth: 520 }}>
