@@ -1,9 +1,37 @@
 import { motion } from "framer-motion";
-import { Bus } from "lucide-react";
+import { Bus, Users, ClipboardList, Activity } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getParticipationStatsFn } from "@/lib/stats.functions";
 
 const MESSAGE = "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH";
 
 export function BusLockBanner() {
+  const fetchStats = useServerFn(getParticipationStatsFn);
+  const { data } = useQuery({
+    queryKey: ["participation-stats"],
+    queryFn: () => fetchStats(),
+    refetchInterval: 60_000,
+  });
+
+  const stats = [
+    {
+      icon: Users,
+      label: "Inscrits",
+      value: data?.totalUsers ?? "—",
+    },
+    {
+      icon: ClipboardList,
+      label: "Pronostics",
+      value: data?.totalPredictions ?? "—",
+    },
+    {
+      icon: Activity,
+      label: "Participation",
+      value: data ? `${data.participationRate}%` : "—",
+    },
+  ];
+
   return (
     <section className="container mx-auto px-4 py-10">
       <motion.div
@@ -58,17 +86,22 @@ export function BusLockBanner() {
               />
             </div>
 
-            {/* Schedule row */}
-            <div className="mt-3 space-y-1.5">
-              <div className="flex items-center justify-between gap-2 rounded-sm bg-white/5 px-2 py-1 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="rounded-sm bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-black">
-                    CDM
-                  </span>
-                  <span className="text-white/80">Coupe du Monde 2026</span>
+            {/* Stats */}
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              {stats.map((s) => (
+                <div
+                  key={s.label}
+                  className="flex flex-col items-center justify-center gap-1 rounded-sm border border-white/10 bg-white/5 px-1 py-2 text-center"
+                >
+                  <s.icon className="h-3.5 w-3.5 text-amber-300" />
+                  <div className="font-mono text-base font-extrabold leading-none text-amber-300 [text-shadow:0_0_5px_rgba(251,191,36,0.7)] sm:text-lg">
+                    {s.value}
+                  </div>
+                  <div className="text-[9px] font-semibold uppercase tracking-widest text-white/60">
+                    {s.label}
+                  </div>
                 </div>
-                <span className="font-mono text-amber-300">EN COURS</span>
-              </div>
+              ))}
             </div>
           </div>
 
