@@ -58,25 +58,17 @@ export function BusLockBanner() {
               />
             </div>
 
-            {/* Schedule placeholder rows */}
+            {/* Schedule row */}
             <div className="mt-3 space-y-1.5">
-              {[
-                { line: "CDM", dest: "Coupe du Monde 2026", time: "EN COURS" },
-                { line: "H-1", dest: "Clôture des pronostics", time: "AUTO" },
-              ].map((r) => (
-                <div
-                  key={r.line}
-                  className="flex items-center justify-between gap-2 rounded-sm bg-white/5 px-2 py-1 text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-sm bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-black">
-                      {r.line}
-                    </span>
-                    <span className="text-white/80">{r.dest}</span>
-                  </div>
-                  <span className="font-mono text-amber-300">{r.time}</span>
+              <div className="flex items-center justify-between gap-2 rounded-sm bg-white/5 px-2 py-1 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-sm bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-black">
+                    CDM
+                  </span>
+                  <span className="text-white/80">Coupe du Monde 2026</span>
                 </div>
-              ))}
+                <span className="font-mono text-amber-300">EN COURS</span>
+              </div>
             </div>
           </div>
 
