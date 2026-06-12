@@ -92,9 +92,6 @@ export function BusLockBanner() {
         </div>
       </motion.div>
 
-      <p className="mx-auto mt-4 max-w-xl text-center text-sm text-muted-foreground">
-        Les pronostics se ferment automatiquement 1h avant le coup d'envoi de chaque match.
-      </p>
     </section>
   );
 }
