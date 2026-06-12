@@ -69,6 +69,23 @@ export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler
       count: depotCounts.get(d) ?? 0,
     }));
 
-    return { totalUsers, usersWithPredictions, participationRate, totalPredictions, byDepot };
+    // Matchs joués / total
+    const { count: matchesTotal } = await supabaseAdmin
+      .from("matches")
+      .select("*", { count: "exact", head: true });
+    const { count: matchesPlayed } = await supabaseAdmin
+      .from("matches")
+      .select("*", { count: "exact", head: true })
+      .eq("finished", true);
+
+    return {
+      totalUsers,
+      usersWithPredictions,
+      participationRate,
+      totalPredictions,
+      byDepot,
+      matchesPlayed: matchesPlayed ?? 0,
+      matchesTotal: matchesTotal ?? 0,
+    };
   },
 );
