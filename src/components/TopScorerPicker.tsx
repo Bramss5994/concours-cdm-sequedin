@@ -80,6 +80,8 @@ export function TopScorerPicker() {
 
   const teamById = useMemo(() => new Map(teams.map((t) => [t.id, t])), [teams]);
 
+  const EXTENDED_DEADLINE = new Date("2026-06-19T00:00:00Z").getTime();
+  const extendedOpen = Date.now() < EXTENDED_DEADLINE;
   const isNewUser = !!profile?.created_at && new Date(profile.created_at).getTime() >= new Date("2026-06-12T00:00:00Z").getTime();
   const firstKick = useMemo(() => {
     return matches.reduce<string | null>(
@@ -87,7 +89,7 @@ export function TopScorerPicker() {
       null,
     );
   }, [matches]);
-  const open = isNewUser || !firstKick || Date.now() < new Date(firstKick).getTime();
+  const open = extendedOpen || isNewUser || !firstKick || Date.now() < new Date(firstKick).getTime();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
