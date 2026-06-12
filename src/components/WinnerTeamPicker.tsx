@@ -88,7 +88,7 @@ export function WinnerTeamPicker() {
       matches.some((m) => m.stage === "group") &&
       matches.filter((m) => m.stage === "group").every((m) => m.finished);
     const now = Date.now();
-    const initialOpen = isNewUser || !firstKick || now < new Date(firstKick).getTime();
+    const initialOpen = extendedOpen || isNewUser || !firstKick || now < new Date(firstKick).getTime();
     const revoteOpen =
       groupsAllFinished && (!firstKo || now < new Date(firstKo).getTime());
 
