@@ -18,7 +18,7 @@ import logoPcBus from "@/assets/logo-pc-bus.png.asset.json";
 import logoTram from "@/assets/logo-tram.jpg.asset.json";
 import logoCopem from "@/assets/logo-copem.jpg.asset.json";
 import logoSupport from "@/assets/logo-support.jpg.asset.json";
-import { Countdown } from "@/components/Countdown";
+import { BusLockBanner } from "@/components/BusLockBanner";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -104,7 +104,7 @@ function Home() {
         </div>
       </section>
 
-      <Countdown />
+      <BusLockBanner />
 
       <ParticipationLive />
 
