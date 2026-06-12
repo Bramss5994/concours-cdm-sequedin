@@ -7,6 +7,31 @@ import { getParticipationStatsFn } from "@/lib/stats.functions";
 const MESSAGE = "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH";
 
 export function BusLockBanner() {
+  const fetchStats = useServerFn(getParticipationStatsFn);
+  const { data } = useQuery({
+    queryKey: ["participation-stats"],
+    queryFn: () => fetchStats(),
+    refetchInterval: 60_000,
+  });
+
+  const stats = [
+    {
+      icon: Users,
+      label: "Inscrits",
+      value: data?.totalUsers ?? "—",
+    },
+    {
+      icon: ClipboardList,
+      label: "Pronostics",
+      value: data?.totalPredictions ?? "—",
+    },
+    {
+      icon: Activity,
+      label: "Participation",
+      value: data ? `${data.participationRate}%` : "—",
+    },
+  ];
+
   return (
     <section className="container mx-auto px-4 py-10">
       <motion.div
