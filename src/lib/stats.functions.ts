@@ -1,18 +1,29 @@
 import { createServerFn } from "@tanstack/react-start";
 
+const DEPOT_LABELS: Record<string, string> = {
+  sequedin: "Sequedin",
+  faidherbe: "Faidherbe",
+  wattrelos: "Wattrelos",
+  pc_bus: "PC Bus",
+  tram: "Tram",
+  copem: "COPEM",
+  support: "Équipe Support",
+};
+
 export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<{
     totalUsers: number;
     usersWithPredictions: number;
     participationRate: number;
     totalPredictions: number;
+    byDepot: { depot: string; label: string; count: number }[];
   }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Compter les utilisateurs actifs (non admins)
     const { data: profiles, error: pErr } = await supabaseAdmin
       .from("profiles")
-      .select("id, active");
+      .select("id, active, depot");
     if (pErr) throw new Error(pErr.message);
 
     const { data: adminRoles } = await supabaseAdmin
@@ -44,6 +55,18 @@ export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler
     const participationRate =
       totalUsers > 0 ? Math.round((usersWithPredictions / totalUsers) * 100) : 0;
 
-    return { totalUsers, usersWithPredictions, participationRate, totalPredictions };
+    // Compter par dépôt
+    const depotCounts = new Map<string, number>();
+    for (const u of activeUsers) {
+      const d = (u as any).depot ?? "—";
+      depotCounts.set(d, (depotCounts.get(d) ?? 0) + 1);
+    }
+    const byDepot = Object.keys(DEPOT_LABELS).map((d) => ({
+      depot: d,
+      label: DEPOT_LABELS[d],
+      count: depotCounts.get(d) ?? 0,
+    }));
+
+    return { totalUsers, usersWithPredictions, participationRate, totalPredictions, byDepot };
   },
 );

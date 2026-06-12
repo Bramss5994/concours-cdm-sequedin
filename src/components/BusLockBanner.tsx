@@ -103,6 +103,26 @@ export function BusLockBanner() {
                 </div>
               ))}
             </div>
+
+            {/* Inscrits par unité */}
+            <div className="mt-2 rounded-sm border border-white/10 bg-white/5 p-2">
+              <div className="mb-1.5 text-center text-[9px] font-semibold uppercase tracking-widest text-white/60">
+                Inscrits par unité
+              </div>
+              <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
+                {(data?.byDepot ?? []).map((d) => (
+                  <div
+                    key={d.depot}
+                    className="flex items-center justify-between gap-1 rounded-[2px] bg-black/30 px-1.5 py-1"
+                  >
+                    <span className="truncate text-[10px] text-white/80">{d.label}</span>
+                    <span className="font-mono text-xs font-bold text-amber-300">
+                      {d.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Bottom rail */}
