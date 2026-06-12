@@ -168,29 +168,16 @@ export function BusLockBanner() {
             <div className="mx-auto h-[2px] w-72 rounded-[50%] bg-amber-300/20 blur-sm" />
           </div>
 
-          {/* Bus qui passe en bas */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-2 h-12 overflow-hidden">
-            <motion.div
-              className="absolute bottom-0 flex items-end gap-1"
-              initial={{ x: "-30%" }}
-              animate={{ x: ["-30%", "130%"] }}
-              transition={{ duration: 12, repeat: Infinity, ease: "linear", repeatDelay: 6 }}
-            >
-              {/* Mini-bus stylisé */}
-              <div className="relative h-7 w-24 rounded-md bg-gradient-to-b from-red-500 to-red-700 shadow-[0_0_18px_rgba(248,113,113,0.5)]">
-                {/* Fenêtres */}
-                <div className="absolute left-1 right-6 top-1 h-2 rounded-sm bg-sky-200/70" />
-                {/* Pare-brise */}
-                <div className="absolute right-1 top-1 h-3 w-4 rounded-sm bg-sky-100/80" />
-                {/* Phare */}
-                <div className="absolute right-0 top-4 h-1.5 w-1.5 rounded-full bg-amber-200 shadow-[0_0_10px_3px_rgba(253,224,71,0.9)]" />
-                {/* Roues */}
-                <div className="absolute -bottom-1 left-2 h-2 w-2 rounded-full bg-zinc-900" />
-                <div className="absolute -bottom-1 right-2 h-2 w-2 rounded-full bg-zinc-900" />
-                {/* Bande latérale */}
-                <div className="absolute inset-x-0 top-4 h-[2px] bg-yellow-300/70" />
-              </div>
-            </motion.div>
+          {/* Bus Sequedin qui passe en bas */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-1 h-20 overflow-hidden">
+            <motion.img
+              src={sequedinBus.url}
+              alt="Bus Sequedin"
+              className="absolute bottom-0 h-16 w-auto select-none drop-shadow-[0_8px_12px_rgba(0,0,0,0.6)] sm:h-20"
+              initial={{ x: "-40%" }}
+              animate={{ x: ["-40%", "140%"] }}
+              transition={{ duration: 14, repeat: Infinity, ease: "linear", repeatDelay: 6 }}
+            />
           </div>
 
           {/* Sol */}
