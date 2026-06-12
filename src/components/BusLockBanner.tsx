@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bus, Users, ClipboardList, Activity } from "lucide-react";
+import { Bus, Users, ClipboardList, Activity, Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getParticipationStatsFn } from "@/lib/stats.functions";
@@ -19,6 +19,11 @@ export function BusLockBanner() {
       icon: Users,
       label: "Inscrits",
       value: data?.totalUsers ?? "—",
+    },
+    {
+      icon: Calendar,
+      label: "Matchs joués",
+      value: data ? `${data.matchesPlayed}/${data.matchesTotal}` : "—",
     },
     {
       icon: ClipboardList,
@@ -87,7 +92,7 @@ export function BusLockBanner() {
             </div>
 
             {/* Stats */}
-            <div className="mt-3 grid grid-cols-3 gap-1.5">
+            <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {stats.map((s) => (
                 <div
                   key={s.label}
