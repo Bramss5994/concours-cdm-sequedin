@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WinnerBoardRouteImport } from './routes/winner-board'
 import { Route as UniteRouteImport } from './routes/unite'
 import { Route as TopScorerRouteImport } from './routes/top-scorer'
+import { Route as SaisieRapideRouteImport } from './routes/saisie-rapide'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReglementRouteImport } from './routes/reglement'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -42,6 +43,11 @@ const UniteRoute = UniteRouteImport.update({
 const TopScorerRoute = TopScorerRouteImport.update({
   id: '/top-scorer',
   path: '/top-scorer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaisieRapideRoute = SaisieRapideRouteImport.update({
+  id: '/saisie-rapide',
+  path: '/saisie-rapide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/reglement': typeof ReglementRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/saisie-rapide': typeof SaisieRapideRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
   '/winner-board': typeof WinnerBoardRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reglement': typeof ReglementRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/saisie-rapide': typeof SaisieRapideRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
   '/winner-board': typeof WinnerBoardRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/reglement': typeof ReglementRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/saisie-rapide': typeof SaisieRapideRoute
   '/top-scorer': typeof TopScorerRoute
   '/unite': typeof UniteRouteWithChildren
   '/winner-board': typeof WinnerBoardRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reglement'
     | '/reset-password'
+    | '/saisie-rapide'
     | '/top-scorer'
     | '/unite'
     | '/winner-board'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reglement'
     | '/reset-password'
+    | '/saisie-rapide'
     | '/top-scorer'
     | '/unite'
     | '/winner-board'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reglement'
     | '/reset-password'
+    | '/saisie-rapide'
     | '/top-scorer'
     | '/unite'
     | '/winner-board'
@@ -266,6 +278,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ReglementRoute: typeof ReglementRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SaisieRapideRoute: typeof SaisieRapideRoute
   TopScorerRoute: typeof TopScorerRoute
   UniteRoute: typeof UniteRouteWithChildren
   WinnerBoardRoute: typeof WinnerBoardRoute
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/top-scorer'
       fullPath: '/top-scorer'
       preLoaderRoute: typeof TopScorerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saisie-rapide': {
+      id: '/saisie-rapide'
+      path: '/saisie-rapide'
+      fullPath: '/saisie-rapide'
+      preLoaderRoute: typeof SaisieRapideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -440,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ReglementRoute: ReglementRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SaisieRapideRoute: SaisieRapideRoute,
   TopScorerRoute: TopScorerRoute,
   UniteRoute: UniteRouteWithChildren,
   WinnerBoardRoute: WinnerBoardRoute,
@@ -449,3 +470,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
