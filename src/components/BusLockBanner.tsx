@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
-import { Bus } from "lucide-react";
+import { Bus, Users, ClipboardList, Activity } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getParticipationStatsFn } from "@/lib/stats.functions";
 
 const MESSAGE = "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH";
 
