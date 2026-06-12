@@ -373,9 +373,9 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
 
 
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div className="flex items-center gap-2 justify-end text-right">
-            <span className="font-semibold truncate">{nameA}</span>
-            {codeA && <img srcSet={flagSrcSet(codeA)} src={`https://flagcdn.com/w40/${codeA}.png`} alt={nameA} className="h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
+          <div className="flex flex-col items-center gap-1 text-center sm:flex-row sm:justify-end sm:gap-2 sm:text-right">
+            {codeA && <img srcSet={flagSrcSet(codeA)} src={`https://flagcdn.com/w40/${codeA}.png`} alt={nameA} className="h-6 w-8 shrink-0 rounded-sm object-cover ring-1 ring-border sm:order-2" />}
+            <span className="min-w-0 break-words text-xs font-semibold leading-tight sm:order-1 sm:truncate sm:text-base">{nameA}</span>
           </div>
           <div className="flex items-center gap-1">
             {showFinalScore ? (
@@ -390,9 +390,9 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
               </>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {codeB && <img srcSet={flagSrcSet(codeB)} src={`https://flagcdn.com/w40/${codeB}.png`} alt={nameB} className="h-6 w-8 rounded-sm object-cover ring-1 ring-border" />}
-            <span className="font-semibold truncate">{nameB}</span>
+          <div className="flex flex-col items-center gap-1 text-center sm:flex-row sm:gap-2 sm:text-left">
+            {codeB && <img srcSet={flagSrcSet(codeB)} src={`https://flagcdn.com/w40/${codeB}.png`} alt={nameB} className="h-6 w-8 shrink-0 rounded-sm object-cover ring-1 ring-border" />}
+            <span className="min-w-0 break-words text-xs font-semibold leading-tight sm:truncate sm:text-base">{nameB}</span>
           </div>
         </div>
 
