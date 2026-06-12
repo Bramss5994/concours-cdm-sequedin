@@ -89,3 +89,42 @@ export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler
     };
   },
 );
+
+export const getNextMatchFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{
+    id: string;
+    kickoffAt: string;
+    stage: string;
+    groupLetter: string | null;
+    stadium: string | null;
+    teamA: { name: string; code: string | null } | null;
+    teamB: { name: string; code: string | null } | null;
+    teamAPlaceholder: string | null;
+    teamBPlaceholder: string | null;
+  } | null> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const nowIso = new Date().toISOString();
+    const { data, error } = await supabaseAdmin
+      .from("matches")
+      .select(
+        "id, kickoff_at, stage, group_letter, stadium, team_a_placeholder, team_b_placeholder, team_a:teams!matches_team_a_id_fkey(name,code), team_b:teams!matches_team_b_id_fkey(name,code)",
+      )
+      .gt("kickoff_at", nowIso)
+      .order("kickoff_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return {
+      id: data.id,
+      kickoffAt: data.kickoff_at,
+      stage: data.stage,
+      groupLetter: data.group_letter,
+      stadium: data.stadium,
+      teamA: (data as any).team_a ?? null,
+      teamB: (data as any).team_b ?? null,
+      teamAPlaceholder: data.team_a_placeholder,
+      teamBPlaceholder: data.team_b_placeholder,
+    };
+  },
+);
