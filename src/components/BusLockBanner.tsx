@@ -62,8 +62,6 @@ export function BusLockBanner() {
             <div className="mt-3 space-y-1.5">
               {[
                 { line: "CDM", dest: "Coupe du Monde 2026", time: "EN COURS" },
-                { line: "H-1", dest: "Clôture des pronostics", time: "AUTO" },
-              ].map((r) => (
                 <div
                   key={r.line}
                   className="flex items-center justify-between gap-2 rounded-sm bg-white/5 px-2 py-1 text-xs"
