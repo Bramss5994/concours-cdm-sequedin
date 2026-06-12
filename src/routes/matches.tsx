@@ -399,24 +399,18 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
 
 
 
-        {match.finished && match.score_a != null && match.score_b != null && (
+        {match.finished && prediction && (
           <motion.div
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
-            className="mt-3 rounded-md bg-muted px-3 py-1.5 text-center text-sm"
+            className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-md bg-muted px-3 py-1.5 text-center text-sm"
           >
-            <span className="text-muted-foreground">Résultat officiel : </span>
-            <span className="font-bold">{match.score_a} - {match.score_b}</span>
-            {prediction && (
-              <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
-                <span className="text-muted-foreground">Votre prono : </span>
-                <span className="font-bold tabular-nums">{prediction.score_a} - {prediction.score_b}</span>
-                <Badge variant={prediction.points >= 3 ? "default" : prediction.points > 0 ? "secondary" : "outline"}>
-                  {prediction.points} pt{prediction.points > 1 ? "s" : ""}
-                </Badge>
-              </div>
-            )}
+            <span className="text-muted-foreground">Votre prono : </span>
+            <span className="font-bold tabular-nums">{prediction.score_a} - {prediction.score_b}</span>
+            <Badge variant={prediction.points >= 3 ? "default" : prediction.points > 0 ? "secondary" : "outline"}>
+              {prediction.points} pt{prediction.points > 1 ? "s" : ""}
+            </Badge>
           </motion.div>
         )}
 
