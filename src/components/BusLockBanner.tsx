@@ -92,7 +92,7 @@ export function BusLockBanner() {
             </div>
 
             {/* Stats */}
-            <div className="mt-3 grid grid-cols-3 gap-1.5">
+            <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
               {stats.map((s) => (
                 <div
                   key={s.label}
