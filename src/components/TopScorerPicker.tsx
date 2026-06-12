@@ -69,15 +69,25 @@ export function TopScorerPicker() {
     },
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ["profile-created", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("created_at").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
   const teamById = useMemo(() => new Map(teams.map((t) => [t.id, t])), [teams]);
 
+  const isNewUser = !!profile?.created_at && new Date(profile.created_at).getTime() >= new Date("2026-06-12T00:00:00Z").getTime();
   const firstKick = useMemo(() => {
     return matches.reduce<string | null>(
       (acc: string | null, m: any) => (acc === null || m.kickoff_at < acc ? m.kickoff_at : acc),
       null,
     );
   }, [matches]);
-  const open = !firstKick || Date.now() < new Date(firstKick).getTime();
+  const open = isNewUser || !firstKick || Date.now() < new Date(firstKick).getTime();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
