@@ -116,7 +116,7 @@ export function WinnerTeamPicker() {
       firstKick,
       firstKo,
     };
-  }, [teams, matches, isNewUser]);
+  }, [teams, matches, isNewUser, extendedOpen]);
 
   const saveInitial = useMutation({
     mutationFn: async (teamId: string) => {
