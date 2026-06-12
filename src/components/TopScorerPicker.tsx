@@ -139,12 +139,11 @@ export function TopScorerPicker() {
           Choisissez le joueur qui sera meilleur buteur de la Coupe du Monde 2026.
           +10 pts bonus si vous trouvez juste.
         </p>
-        {extendedOpen && (
-          <p className="mt-2 flex items-start gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Choix ouvert à tous les inscrits jusqu'au 19 juin 2026 (00:00 UTC).
-          </p>
-        )}
+        <p className="mt-2 flex items-start gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          Choix modifiable à tout moment pour tous les inscrits.
+        </p>
+
 
         {pickedPlayer && (
           <div className="mt-3 rounded-md border bg-card/50 p-3">
