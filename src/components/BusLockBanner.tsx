@@ -27,8 +27,8 @@ export function BusLockBanner() {
     },
     {
       icon: Activity,
-      label: "Participation",
-      value: data ? `${data.participationRate}%` : "—",
+      label: "Actifs",
+      value: data ? `${data.usersWithPredictions}/${data.totalUsers}` : "—",
     },
   ];
 
