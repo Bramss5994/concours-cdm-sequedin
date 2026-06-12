@@ -51,8 +51,8 @@ function TeamSide({
   const name = team?.name ?? placeholder ?? "À déterminer";
   return (
     <div
-      className={`flex flex-1 items-center gap-2 ${
-        align === "right" ? "flex-row-reverse text-right" : "text-left"
+      className={`flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center sm:flex-row sm:gap-2 ${
+        align === "right" ? "sm:flex-row-reverse sm:text-right" : "sm:text-left"
       }`}
     >
       {code ? (
@@ -60,15 +60,15 @@ function TeamSide({
           src={flagUrl(code, 80)}
           srcSet={flagSrcSet(code)}
           alt={name}
-          className="h-7 w-10 rounded-sm object-cover shadow-md ring-1 ring-white/20 sm:h-9 sm:w-14"
+          className="h-8 w-12 shrink-0 rounded-sm object-cover shadow-md ring-1 ring-white/20 sm:h-9 sm:w-14"
           loading="lazy"
         />
       ) : (
-        <div className="flex h-7 w-10 items-center justify-center rounded-sm bg-white/10 text-[10px] text-white/50 sm:h-9 sm:w-14">
+        <div className="flex h-8 w-12 shrink-0 items-center justify-center rounded-sm bg-white/10 text-[10px] text-white/50 sm:h-9 sm:w-14">
           ?
         </div>
       )}
-      <span className="truncate text-sm font-bold uppercase tracking-wide text-white sm:text-base">
+      <span className="min-w-0 break-words text-xs font-bold uppercase leading-tight tracking-wide text-white sm:truncate sm:text-base">
         {name}
       </span>
     </div>
