@@ -362,7 +362,6 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
       <CardContent className="p-4">
         <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">{formatFR(match.kickoff_at)}</span>
-          {match.stadium && <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3" />{match.stadium}</span>}
         </div>
 
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
@@ -414,28 +413,38 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
           </motion.div>
         )}
 
-        {match.goalscorers && match.goalscorers.length > 0 && (
+        {((match.goalscorers && match.goalscorers.length > 0) || match.stadium) && (
           <div className="mt-3 rounded-md border bg-card/40 p-2.5 text-xs">
-            <div className="mb-1 flex items-center gap-1 font-semibold uppercase tracking-wide text-muted-foreground">
-              <span>⚽</span> Buteurs
-            </div>
-            <ul className="space-y-0.5">
-              {match.goalscorers.map((g, i) => (
-                <li key={i} className="flex items-center justify-between gap-2">
-                  <span className="truncate">
-                    <span className="font-medium">{g.player}</span>
-                    {g.type === "own" && <span className="ml-1 text-destructive">(c.s.c.)</span>}
-                    {g.type === "penalty" && <span className="ml-1 text-muted-foreground">(p.)</span>}
-                    <span className="ml-1 text-muted-foreground">· {g.team}</span>
-                  </span>
-                  {g.minute != null && (
-                    <span className="shrink-0 font-mono text-muted-foreground">
-                      {g.minute}{g.extra ? `+${g.extra}` : ""}'
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {match.stadium && (
+              <div className="mb-2 flex items-center gap-1 text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                <span className="truncate">{match.stadium}</span>
+              </div>
+            )}
+            {match.goalscorers && match.goalscorers.length > 0 && (
+              <>
+                <div className="mb-1 flex items-center gap-1 font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span>⚽</span> Buteurs
+                </div>
+                <ul className="space-y-0.5">
+                  {match.goalscorers.map((g, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2">
+                      <span className="truncate">
+                        <span className="font-medium">{g.player}</span>
+                        {g.type === "own" && <span className="ml-1 text-destructive">(c.s.c.)</span>}
+                        {g.type === "penalty" && <span className="ml-1 text-muted-foreground">(p.)</span>}
+                        <span className="ml-1 text-muted-foreground">· {g.team}</span>
+                      </span>
+                      {g.minute != null && (
+                        <span className="shrink-0 font-mono text-muted-foreground">
+                          {g.minute}{g.extra ? `+${g.extra}` : ""}'
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
 
