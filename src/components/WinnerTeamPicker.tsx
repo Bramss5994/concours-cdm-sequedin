@@ -199,6 +199,12 @@ export function WinnerTeamPicker() {
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Attention : le choix initial est définitivement verrouillé dès le coup d'envoi du 1er match de la Coupe du Monde.
         </p>
+        {state.initialOpen && extendedOpen && (
+          <p className="mt-2 flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-xs font-medium text-amber-700 dark:text-amber-300">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            Choix ouvert à tous les inscrits jusqu'au 19 juin 2026 (00:00 UTC).
+          </p>
+        )}
 
         {/* INITIAL PICK */}
         <div className="mt-4 rounded-md border bg-card/50 p-3">
