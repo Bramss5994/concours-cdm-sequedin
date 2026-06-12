@@ -60,6 +60,17 @@ export function WinnerTeamPicker() {
     },
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ["profile-created", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("created_at").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const isNewUser = !!profile?.created_at && new Date(profile.created_at).getTime() >= new Date("2026-06-12T00:00:00Z").getTime();
+
   const state = useMemo(() => {
     const teamById = new Map(teams.map((t) => [t.id, t]));
     const firstKick = matches.reduce<string | null>(
@@ -75,15 +86,13 @@ export function WinnerTeamPicker() {
       matches.some((m) => m.stage === "group") &&
       matches.filter((m) => m.stage === "group").every((m) => m.finished);
     const now = Date.now();
-    const initialOpen = !firstKick || now < new Date(firstKick).getTime();
+    const initialOpen = isNewUser || !firstKick || now < new Date(firstKick).getTime();
     const revoteOpen =
       groupsAllFinished && (!firstKo || now < new Date(firstKo).getTime());
 
-    // Final winner: last match stage='final' that is finished
     const finalMatch = matches.find((m) => m.stage === "final" && m.finished);
     const champion = finalMatch?.winner_team_id ?? null;
 
-    // Teams that played in group stage but are absent from any KO match
     const koTeamIds = new Set<string>();
     for (const m of koMatches) {
       if (m.team_a_id) koTeamIds.add(m.team_a_id);
@@ -105,7 +114,7 @@ export function WinnerTeamPicker() {
       firstKick,
       firstKo,
     };
-  }, [teams, matches]);
+  }, [teams, matches, isNewUser]);
 
   const saveInitial = useMutation({
     mutationFn: async (teamId: string) => {
