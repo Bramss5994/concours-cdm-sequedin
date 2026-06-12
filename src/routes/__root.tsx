@@ -8,6 +8,7 @@ import appleTouchIcon from "../assets/apple-touch-icon.png.asset.json";
 import shareIcon from "../assets/icon-512.png.asset.json";
 import { AuthProvider } from "@/lib/auth";
 import { Nav } from "@/components/Nav";
+import { QuickVoteFab } from "@/components/QuickVoteFab";
 import { Toaster } from "@/components/ui/sonner";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
@@ -104,10 +105,11 @@ function RootComponent() {
         <div className="flex min-h-screen flex-col">
           <Nav />
           <main className="flex-1"><Outlet /></main>
-          <footer className="border-t py-6 text-center text-xs text-muted-foreground">
+          <footer className="border-t py-6 pb-24 text-center text-xs text-muted-foreground sm:pb-6">
             Pronostics CDM 2026 · Kéolis Lille Ilévia
           </footer>
         </div>
+        <QuickVoteFab />
         <Toaster richColors position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
