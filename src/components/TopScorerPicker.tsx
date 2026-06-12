@@ -80,6 +80,8 @@ export function TopScorerPicker() {
 
   const teamById = useMemo(() => new Map(teams.map((t) => [t.id, t])), [teams]);
 
+  const EXTENDED_DEADLINE = new Date("2026-06-19T00:00:00Z").getTime();
+  const extendedOpen = Date.now() < EXTENDED_DEADLINE;
   const isNewUser = !!profile?.created_at && new Date(profile.created_at).getTime() >= new Date("2026-06-12T00:00:00Z").getTime();
   const firstKick = useMemo(() => {
     return matches.reduce<string | null>(
@@ -87,7 +89,7 @@ export function TopScorerPicker() {
       null,
     );
   }, [matches]);
-  const open = isNewUser || !firstKick || Date.now() < new Date(firstKick).getTime();
+  const open = extendedOpen || isNewUser || !firstKick || Date.now() < new Date(firstKick).getTime();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -143,8 +145,14 @@ export function TopScorerPicker() {
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
           Choisissez le joueur qui sera meilleur buteur de la Coupe du Monde 2026.
-          +10 pts bonus si vous trouvez juste. Verrouillé dès le coup d'envoi du 1er match.
+          +10 pts bonus si vous trouvez juste.
         </p>
+        {extendedOpen && (
+          <p className="mt-2 flex items-start gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            Choix ouvert à tous les inscrits jusqu'au 19 juin 2026 (00:00 UTC).
+          </p>
+        )}
 
         {pickedPlayer && (
           <div className="mt-3 rounded-md border bg-card/50 p-3">
