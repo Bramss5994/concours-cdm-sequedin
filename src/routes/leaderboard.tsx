@@ -25,19 +25,12 @@ const STAGES = [
   { value: "final", label: "Finale" },
 ];
 
+import { DEPOTS as DEPOT_LIST, DEPOT_LABEL, DEPOT_LOGO } from "@/lib/depots";
+
 const DEPOTS: { value: string; label: string }[] = [
   { value: "all", label: "Tous les dépôts" },
-  { value: "sequedin", label: "Sequedin" },
-  { value: "faidherbe", label: "Faidherbe" },
-  { value: "wattrelos", label: "Wattrelos" },
-  { value: "pc_bus", label: "PC Bus" },
-  { value: "tram", label: "Tram" },
-  { value: "copem", label: "COPEM" },
-  { value: "support", label: "Équipe Support" },
+  ...DEPOT_LIST.map((d) => ({ value: d.value, label: d.label })),
 ];
-const DEPOT_LABEL: Record<string, string> = {
-  sequedin: "Sequedin", faidherbe: "Faidherbe", wattrelos: "Wattrelos", pc_bus: "PC Bus", tram: "Tram", copem: "COPEM", support: "Équipe Support",
-};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -101,7 +94,7 @@ function Leaderboard() {
     type Row = {
       user_id: string; name: string; depot: string; pts: number;
       exact: number; good: number; draws: number; bonus: number;
-      badges: { id: string; name: string; icon: string }[];
+      badges: { id: string; name: string; icon: string; description: string }[];
       totalPredictions: number; joined: JoinedPrediction[];
       winnerTeam: string | null; winnerCode: string | null; winnerBonus: number;
       scorerName: string | null; scorerClub: string | null; scorerBonus: number;
@@ -150,7 +143,7 @@ function Leaderboard() {
     for (const s of stats.values()) {
       s.joined.sort((a, b) => +new Date(a.m.kickoff_at) - +new Date(b.m.kickoff_at));
       const evaluated = evaluateBadges({ joined: s.joined, totalPredictions: s.totalPredictions });
-      s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon }));
+      s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon, description: b.description }));
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
   }, [rows, stage, depotFilter]);
@@ -341,7 +334,12 @@ function Leaderboard() {
                           </div>
                         </div>
                         <div className="mt-3 truncate text-base font-bold drop-shadow">{r.name}</div>
-                        {isAdmin && <div className="mt-0.5 text-[11px] opacity-90">{DEPOT_LABEL[r.depot] || r.depot}</div>}
+                        {isAdmin && (
+                          <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 backdrop-blur-sm">
+                            <img src={DEPOT_LOGO[r.depot]} alt="" className="h-4 w-4 rounded-full object-cover" />
+                            <span className="text-[10px] font-semibold">{DEPOT_LABEL[r.depot] || r.depot}</span>
+                          </div>
+                        )}
                         <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
                           <MiniStat value={r.exact} label="Exact" />
                           <MiniStat value={r.good} label="Vainq." />
@@ -382,7 +380,10 @@ function Leaderboard() {
                           {isMe && <Badge className="h-4 bg-[#7B2CBF] px-1.5 text-[9px] text-white">Moi</Badge>}
                         </div>
                         {isAdmin && (
-                          <Badge variant="secondary" className="mt-0.5 text-[10px]">{DEPOT_LABEL[r.depot] || r.depot}</Badge>
+                          <div className="mt-0.5 inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5">
+                            <img src={DEPOT_LOGO[r.depot]} alt="" className="h-4 w-4 rounded-full object-cover" />
+                            <span className="text-[10px] font-semibold">{DEPOT_LABEL[r.depot] || r.depot}</span>
+                          </div>
                         )}
                       </div>
                       <div className="text-right">
@@ -447,7 +448,14 @@ function Leaderboard() {
                                 {r.name}
                                 {isMe && <Badge className="ml-2 bg-[#7B2CBF] text-[10px] text-white">Moi</Badge>}
                               </td>
-                              {isAdmin && <td className="px-3 py-2.5"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
+                              {isAdmin && (
+                                <td className="px-3 py-2.5">
+                                  <div className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1">
+                                    <img src={DEPOT_LOGO[r.depot]} alt="" className="h-5 w-5 rounded-full object-cover" />
+                                    <span className="text-xs font-semibold">{DEPOT_LABEL[r.depot] || r.depot}</span>
+                                  </div>
+                                </td>
+                              )}
                               <td className="px-3 py-2.5">
                                 <PickCell value={r.winnerTeam} bonus={r.winnerBonus} fallback="—" />
                               </td>
@@ -506,29 +514,77 @@ function MiniStat({ value, label, dark }: { value: number; label: string; dark?:
   );
 }
 
-function BadgesRow({ badges, light, compact }: { badges: { id: string; name: string; icon: string }[]; light?: boolean; compact?: boolean }) {
-  const max = compact ? 8 : 6;
+function FootballMedal({ icon, size = "md" }: { icon: string; size?: "sm" | "md" | "lg" }) {
+  const dim = size === "lg" ? "h-12 w-12 text-2xl" : size === "sm" ? "h-7 w-7 text-base" : "h-9 w-9 text-lg";
+  return (
+    <span
+      className={`relative inline-flex shrink-0 items-center justify-center rounded-full ${dim}`}
+      style={{
+        background:
+          "radial-gradient(circle at 30% 25%, #FFF1A8 0%, #FFD24A 25%, #E8A317 55%, #8C5A0F 100%)",
+        boxShadow:
+          "inset 0 2px 4px rgba(255,255,255,.7), inset 0 -3px 6px rgba(120,60,0,.55), 0 4px 10px -2px rgba(0,0,0,.35), 0 0 0 2px rgba(255,255,255,.25)",
+      }}
+    >
+      <span
+        className="absolute inset-[3px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle at 35% 30%, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 55%), radial-gradient(circle at 50% 50%, #0F7A3A 0%, #064521 80%)",
+          boxShadow: "inset 0 2px 3px rgba(0,0,0,.45), inset 0 -1px 2px rgba(255,255,255,.15)",
+        }}
+      />
+      <span className="relative drop-shadow-[0_1px_1px_rgba(0,0,0,.6)]">{icon}</span>
+    </span>
+  );
+}
+
+function BadgesRow({
+  badges,
+  light,
+  compact,
+}: {
+  badges: { id: string; name: string; icon: string; description: string }[];
+  light?: boolean;
+  compact?: boolean;
+}) {
+  const max = compact ? 4 : 6;
   const shown = badges.slice(0, max);
   const more = badges.length - shown.length;
   return (
     <TooltipProvider delayDuration={150}>
-      <div className={`mt-2 flex flex-wrap items-center gap-1 ${compact ? "" : "border-t border-dashed border-white/20 pt-2"}`}>
+      <div className={`mt-2 flex flex-wrap items-stretch gap-1.5 ${compact ? "" : light ? "border-t border-dashed border-white/20 pt-2" : "border-t border-dashed pt-2"}`}>
         {shown.map((b) => (
           <Tooltip key={b.id}>
             <TooltipTrigger asChild>
-              <span
-                className={`inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-sm shadow-sm ${
-                  light ? "bg-white/20 backdrop-blur-sm" : "bg-primary/10"
+              <div
+                className={`flex cursor-help items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-transform hover:-translate-y-0.5 ${
+                  light
+                    ? "bg-white/15 backdrop-blur-sm ring-1 ring-white/20"
+                    : "bg-gradient-to-br from-amber-50 to-amber-100/60 ring-1 ring-amber-300/60 dark:from-amber-950/40 dark:to-amber-900/20 dark:ring-amber-700/40"
                 }`}
               >
-                {b.icon}
-              </span>
+                <FootballMedal icon={b.icon} size="sm" />
+                <div className="flex min-w-0 flex-col leading-tight">
+                  <span className={`truncate text-[11px] font-bold ${light ? "text-white" : "text-foreground"}`}>{b.name}</span>
+                  <span className={`truncate text-[9px] ${light ? "text-white/80" : "text-muted-foreground"}`}>{b.description}</span>
+                </div>
+              </div>
             </TooltipTrigger>
-            <TooltipContent><p className="text-xs font-semibold">{b.name}</p></TooltipContent>
+            <TooltipContent>
+              <p className="font-semibold">{b.name}</p>
+              <p className="text-xs text-muted-foreground">{b.description}</p>
+            </TooltipContent>
           </Tooltip>
         ))}
         {more > 0 && (
-          <span className={`text-[10px] font-semibold ${light ? "text-white/90" : "text-muted-foreground"}`}>+{more}</span>
+          <span
+            className={`inline-flex items-center rounded-full px-2 text-[10px] font-bold ${
+              light ? "bg-white/15 text-white/90" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            +{more}
+          </span>
         )}
       </div>
     </TooltipProvider>
