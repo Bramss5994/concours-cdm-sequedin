@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal } from "lucide-react";
 import { fetchAllPages } from "@/lib/supabase-pagination";
+import { evaluateBadges, type JoinedPrediction } from "@/lib/badges";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/leaderboard")({ component: Leaderboard });
 
@@ -73,9 +75,9 @@ function Leaderboard() {
       const [{ data: profiles }, predictions, { data: matches }, { data: bonuses }, { data: scorerBonuses }] = await Promise.all([
         supabase.rpc("get_public_profiles"),
         fetchAllPages((from, to) =>
-          supabase.from("predictions").select("user_id, match_id, points, exact_score, good_winner").range(from, to),
+          supabase.from("predictions").select("user_id, match_id, score_a, score_b, points, exact_score, good_winner").range(from, to),
         ),
-        supabase.from("matches").select("id, stage, finished"),
+        supabase.from("matches").select("id, stage, finished, score_a, score_b, kickoff_at, group_letter"),
         supabase.rpc("get_winner_bonuses"),
         supabase.rpc("get_top_scorer_bonuses"),
       ]);
@@ -96,28 +98,44 @@ function Leaderboard() {
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
     const bonusById = new Map<string, number>((r.bonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
     const scorerBonusById = new Map<string, number>((r.scorerBonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
-    const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; bonus: number; groupPts: number; koPts: number; finalPts: number; }>();
+    type Row = { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; draws: number; bonus: number; groupPts: number; koPts: number; finalPts: number; badges: { id: string; name: string; icon: string }[]; totalPredictions: number; joined: JoinedPrediction[] };
+    const stats = new Map<string, Row>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
       const bonus = stage === "all" ? (bonusById.get(p.id) || 0) + (scorerBonusById.get(p.id) || 0) : 0;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, bonus, groupPts: 0, koPts: 0, finalPts: 0 });
+      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, draws: 0, bonus, groupPts: 0, koPts: 0, finalPts: 0, badges: [], totalPredictions: 0, joined: [] });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);
-      if (!m || !m.finished) continue;
-      if (stage !== "all" && m.stage !== stage) continue;
+      if (!m) continue;
       const s = stats.get(pred.user_id);
       if (!s) continue;
+      s.totalPredictions++;
+      if (!m.finished) continue;
+      // joined for badge eval (all finished, all stages)
+      s.joined.push({
+        p: { score_a: pred.score_a, score_b: pred.score_b, points: pred.points || 0, exact_score: !!pred.exact_score, good_winner: !!pred.good_winner },
+        m: { id: m.id, kickoff_at: m.kickoff_at, stage: m.stage, finished: m.finished, score_a: m.score_a, score_b: m.score_b, group_letter: m.group_letter },
+      });
+      if (stage !== "all" && m.stage !== stage) continue;
       const pts = pred.points || 0;
       s.pts += pts;
       if (m.stage === "group") s.groupPts += pts;
       else if (m.stage === "final") s.finalPts += pts;
       else s.koPts += pts;
+      const isDraw = m.score_a === m.score_b;
       if (pred.exact_score) s.exact++;
-      if (pred.good_winner) s.good++;
+      else if (pred.good_winner && isDraw) s.draws++;
+      else if (pred.good_winner) s.good++;
     }
-    return [...stats.values()].sort((a, b) => b.pts - a.pts || b.good - a.good || b.exact - a.exact);
+    // evaluate badges per user
+    for (const s of stats.values()) {
+      s.joined.sort((a, b) => +new Date(a.m.kickoff_at) - +new Date(b.m.kickoff_at));
+      const evaluated = evaluateBadges({ joined: s.joined, totalPredictions: s.totalPredictions });
+      s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon }));
+    }
+    return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
   }, [rows, stage, depotFilter]);
 
   const myRank = useMemo(() => {
@@ -237,11 +255,15 @@ function Leaderboard() {
                 {myRank && (
                   <div className="flex items-center gap-3 text-center">
                     <Stat label="Points" value={myRank.pts} color="text-[#E4002B]" />
-                    <Stat label="Exacts" value={myRank.exact} color="text-[#7B2CBF]" />
-                    <Stat label="Vainqueurs" value={myRank.good} color="text-[#00A3E0]" />
+                    <Stat label="Score exact" value={myRank.exact} color="text-[#7B2CBF]" />
+                    <Stat label="Bon vainqueur" value={myRank.good} color="text-[#00A3E0]" />
+                    <Stat label="Match nul" value={myRank.draws} color="text-[#00C389]" />
                   </div>
                 )}
               </div>
+              {myRank && myRank.badges?.length > 0 && (
+                <BadgesRow badges={myRank.badges} />
+              )}
             </div>
           </motion.div>
         )}
@@ -302,10 +324,12 @@ function Leaderboard() {
                         </div>
                         <div className="mt-3 truncate text-base font-bold drop-shadow">{r.name}</div>
                         {isAdmin && <div className="mt-0.5 text-[11px] opacity-90">{DEPOT_LABEL[r.depot] || r.depot}</div>}
-                        <div className="mt-2 flex gap-3 text-[11px] font-semibold opacity-95">
-                          <span>🎯 {r.exact}</span>
-                          <span>✓ {r.good}</span>
+                        <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
+                          <MiniStat value={r.exact} label="Exact" />
+                          <MiniStat value={r.good} label="Vainq." />
+                          <MiniStat value={r.draws} label="Nul" />
                         </div>
+                        {r.badges.length > 0 && <BadgesRow badges={r.badges} light />}
                       </div>
                     </motion.div>
                   );
@@ -356,10 +380,12 @@ function Leaderboard() {
                         <Mini value={r.bonus} label="Bns" accent />
                       </div>
                     )}
-                    <div className="mt-1.5 flex justify-end gap-3 text-[11px] text-muted-foreground">
-                      <span>🎯 {r.exact}</span>
-                      <span>✓ {r.good}</span>
+                    <div className="mt-2 grid grid-cols-3 gap-1 rounded-md bg-muted/40 p-1.5 text-center">
+                      <MiniStat value={r.exact} label="Exact" dark />
+                      <MiniStat value={r.good} label="Vainq." dark />
+                      <MiniStat value={r.draws} label="Nul" dark />
                     </div>
+                    {r.badges.length > 0 && <BadgesRow badges={r.badges} />}
                   </motion.div>
                 );
               })}
@@ -390,8 +416,10 @@ function Leaderboard() {
                             </>
                           )}
                           <th className="px-3 py-3 text-right">Total</th>
-                          <th className="px-3 py-3 text-right">Exacts</th>
-                          <th className="px-3 py-3 text-right">Bons</th>
+                          <th className="px-3 py-3 text-right">Score exact</th>
+                          <th className="px-3 py-3 text-right">Bon vainqueur</th>
+                          <th className="px-3 py-3 text-right">Match nul</th>
+                          <th className="px-3 py-3 text-left">Badges</th>
                         </tr>
                       </thead>
                       <motion.tbody initial="hidden" animate="visible" variants={staggerContainer}>
@@ -423,6 +451,10 @@ function Leaderboard() {
                               </td>
                               <td className="px-3 py-2.5 text-right tabular-nums">{r.exact}</td>
                               <td className="px-3 py-2.5 text-right tabular-nums">{r.good}</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums">{r.draws}</td>
+                              <td className="px-3 py-2.5">
+                                {r.badges.length > 0 ? <BadgesRow badges={r.badges} compact /> : <span className="text-xs text-muted-foreground">—</span>}
+                              </td>
                             </motion.tr>
                           );
                         })}
@@ -454,5 +486,43 @@ function Mini({ value, label, accent }: { value: number; label: string; accent?:
       <div className={`font-black tabular-nums ${accent ? "text-[#FF8A00]" : ""}`}>{value}</div>
       <div className="text-muted-foreground">{label}</div>
     </div>
+  );
+}
+
+function MiniStat({ value, label, dark }: { value: number; label: string; dark?: boolean }) {
+  return (
+    <div>
+      <div className={`text-base font-black tabular-nums ${dark ? "text-foreground" : "text-white"}`}>{value}</div>
+      <div className={`text-[9px] font-bold uppercase tracking-wider ${dark ? "text-muted-foreground" : "text-white/85"}`}>{label}</div>
+    </div>
+  );
+}
+
+function BadgesRow({ badges, light, compact }: { badges: { id: string; name: string; icon: string }[]; light?: boolean; compact?: boolean }) {
+  const max = compact ? 8 : 6;
+  const shown = badges.slice(0, max);
+  const more = badges.length - shown.length;
+  return (
+    <TooltipProvider delayDuration={150}>
+      <div className={`mt-2 flex flex-wrap items-center gap-1 ${compact ? "" : "border-t border-dashed border-white/20 pt-2"}`}>
+        {shown.map((b) => (
+          <Tooltip key={b.id}>
+            <TooltipTrigger asChild>
+              <span
+                className={`inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-sm shadow-sm ${
+                  light ? "bg-white/20 backdrop-blur-sm" : "bg-primary/10"
+                }`}
+              >
+                {b.icon}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent><p className="text-xs font-semibold">{b.name}</p></TooltipContent>
+          </Tooltip>
+        ))}
+        {more > 0 && (
+          <span className={`text-[10px] font-semibold ${light ? "text-white/90" : "text-muted-foreground"}`}>+{more}</span>
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
