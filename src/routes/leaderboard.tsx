@@ -334,7 +334,12 @@ function Leaderboard() {
                           </div>
                         </div>
                         <div className="mt-3 truncate text-base font-bold drop-shadow">{r.name}</div>
-                        {isAdmin && <div className="mt-0.5 text-[11px] opacity-90">{DEPOT_LABEL[r.depot] || r.depot}</div>}
+                        {isAdmin && (
+                          <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 backdrop-blur-sm">
+                            <img src={DEPOT_LOGO[r.depot]} alt="" className="h-4 w-4 rounded-full object-cover" />
+                            <span className="text-[10px] font-semibold">{DEPOT_LABEL[r.depot] || r.depot}</span>
+                          </div>
+                        )}
                         <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
                           <MiniStat value={r.exact} label="Exact" />
                           <MiniStat value={r.good} label="Vainq." />
