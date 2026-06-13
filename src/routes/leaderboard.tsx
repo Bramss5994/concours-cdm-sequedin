@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal } from "lucide-react";
 import { fetchAllPages } from "@/lib/supabase-pagination";
+import { evaluateBadges, type JoinedPrediction } from "@/lib/badges";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/leaderboard")({ component: Leaderboard });
 
