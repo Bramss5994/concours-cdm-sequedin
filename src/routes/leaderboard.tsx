@@ -451,6 +451,10 @@ function Leaderboard() {
                               </td>
                               <td className="px-3 py-2.5 text-right tabular-nums">{r.exact}</td>
                               <td className="px-3 py-2.5 text-right tabular-nums">{r.good}</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums">{r.draws}</td>
+                              <td className="px-3 py-2.5">
+                                {r.badges.length > 0 ? <BadgesRow badges={r.badges} compact /> : <span className="text-xs text-muted-foreground">—</span>}
+                              </td>
                             </motion.tr>
                           );
                         })}
