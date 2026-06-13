@@ -324,10 +324,12 @@ function Leaderboard() {
                         </div>
                         <div className="mt-3 truncate text-base font-bold drop-shadow">{r.name}</div>
                         {isAdmin && <div className="mt-0.5 text-[11px] opacity-90">{DEPOT_LABEL[r.depot] || r.depot}</div>}
-                        <div className="mt-2 flex gap-3 text-[11px] font-semibold opacity-95">
-                          <span>🎯 {r.exact}</span>
-                          <span>✓ {r.good}</span>
+                        <div className="mt-3 grid grid-cols-3 gap-1 rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
+                          <MiniStat value={r.exact} label="Exact" />
+                          <MiniStat value={r.good} label="Vainq." />
+                          <MiniStat value={r.draws} label="Nul" />
                         </div>
+                        {r.badges.length > 0 && <BadgesRow badges={r.badges} light />}
                       </div>
                     </motion.div>
                   );
