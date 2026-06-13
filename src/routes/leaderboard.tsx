@@ -124,7 +124,7 @@ function Leaderboard() {
         p: { score_a: pred.score_a, score_b: pred.score_b, points: pred.points || 0, exact_score: !!pred.exact_score, good_winner: !!pred.good_winner },
         m: { id: m.id, kickoff_at: m.kickoff_at, stage: m.stage, finished: m.finished, score_a: m.score_a, score_b: m.score_b, group_letter: m.group_letter },
       });
-      if (stage !== "all" && m.stage !== stage) continue;
+      
       s.pts += pred.points || 0;
       const isDraw = m.score_a === m.score_b;
       if (pred.exact_score) s.exact++;
