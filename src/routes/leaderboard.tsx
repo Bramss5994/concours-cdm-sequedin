@@ -380,7 +380,10 @@ function Leaderboard() {
                           {isMe && <Badge className="h-4 bg-[#7B2CBF] px-1.5 text-[9px] text-white">Moi</Badge>}
                         </div>
                         {isAdmin && (
-                          <Badge variant="secondary" className="mt-0.5 text-[10px]">{DEPOT_LABEL[r.depot] || r.depot}</Badge>
+                          <div className="mt-0.5 inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5">
+                            <img src={DEPOT_LOGO[r.depot]} alt="" className="h-4 w-4 rounded-full object-cover" />
+                            <span className="text-[10px] font-semibold">{DEPOT_LABEL[r.depot] || r.depot}</span>
+                          </div>
                         )}
                       </div>
                       <div className="text-right">
