@@ -416,8 +416,10 @@ function Leaderboard() {
                             </>
                           )}
                           <th className="px-3 py-3 text-right">Total</th>
-                          <th className="px-3 py-3 text-right">Exacts</th>
-                          <th className="px-3 py-3 text-right">Bons</th>
+                          <th className="px-3 py-3 text-right">Score exact</th>
+                          <th className="px-3 py-3 text-right">Bon vainqueur</th>
+                          <th className="px-3 py-3 text-right">Match nul</th>
+                          <th className="px-3 py-3 text-left">Badges</th>
                         </tr>
                       </thead>
                       <motion.tbody initial="hidden" animate="visible" variants={staggerContainer}>
