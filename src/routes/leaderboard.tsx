@@ -94,7 +94,7 @@ function Leaderboard() {
     type Row = {
       user_id: string; name: string; depot: string; pts: number;
       exact: number; good: number; draws: number; bonus: number;
-      badges: { id: string; name: string; icon: string }[];
+      badges: { id: string; name: string; icon: string; description: string }[];
       totalPredictions: number; joined: JoinedPrediction[];
       winnerTeam: string | null; winnerCode: string | null; winnerBonus: number;
       scorerName: string | null; scorerClub: string | null; scorerBonus: number;
