@@ -488,3 +488,41 @@ function Mini({ value, label, accent }: { value: number; label: string; accent?:
     </div>
   );
 }
+
+function MiniStat({ value, label, dark }: { value: number; label: string; dark?: boolean }) {
+  return (
+    <div>
+      <div className={`text-base font-black tabular-nums ${dark ? "text-foreground" : "text-white"}`}>{value}</div>
+      <div className={`text-[9px] font-bold uppercase tracking-wider ${dark ? "text-muted-foreground" : "text-white/85"}`}>{label}</div>
+    </div>
+  );
+}
+
+function BadgesRow({ badges, light, compact }: { badges: { id: string; name: string; icon: string }[]; light?: boolean; compact?: boolean }) {
+  const max = compact ? 8 : 6;
+  const shown = badges.slice(0, max);
+  const more = badges.length - shown.length;
+  return (
+    <TooltipProvider delayDuration={150}>
+      <div className={`mt-2 flex flex-wrap items-center gap-1 ${compact ? "" : "border-t border-dashed border-white/20 pt-2"}`}>
+        {shown.map((b) => (
+          <Tooltip key={b.id}>
+            <TooltipTrigger asChild>
+              <span
+                className={`inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-sm shadow-sm ${
+                  light ? "bg-white/20 backdrop-blur-sm" : "bg-primary/10"
+                }`}
+              >
+                {b.icon}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent><p className="text-xs font-semibold">{b.name}</p></TooltipContent>
+          </Tooltip>
+        ))}
+        {more > 0 && (
+          <span className={`text-[10px] font-semibold ${light ? "text-white/90" : "text-muted-foreground"}`}>+{more}</span>
+        )}
+      </div>
+    </TooltipProvider>
+  );
+}
