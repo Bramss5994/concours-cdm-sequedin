@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Medal } from "lucide-react";
@@ -15,15 +15,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export const Route = createFileRoute("/leaderboard")({ component: Leaderboard });
 
-const STAGES = [
-  { value: "all", label: "Général" },
-  { value: "group", label: "Phase de groupes" },
-  { value: "r32", label: "16es" },
-  { value: "r16", label: "8es" },
-  { value: "qf", label: "Quarts" },
-  { value: "sf", label: "Demis" },
-  { value: "final", label: "Finale" },
-];
 
 import { DEPOTS as DEPOT_LIST, DEPOT_LABEL, DEPOT_LOGO } from "@/lib/depots";
 
@@ -44,7 +35,7 @@ const staggerContainer = {
 
 function Leaderboard() {
   const { user, isAdmin } = useAuth();
-  const [stage, setStage] = useState("all");
+  
   const [depotFilter, setDepotFilter] = useState<string>("all");
 
   // Récupère le dépôt de l'utilisateur connecté
@@ -105,8 +96,8 @@ function Leaderboard() {
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
       const w = winnerById.get(p.id);
       const sc = scorerById.get(p.id);
-      const winnerBonus = stage === "all" ? (w?.bonus || 0) : 0;
-      const scorerBonus = stage === "all" ? (sc?.bonus || 0) : 0;
+      const winnerBonus = w?.bonus || 0;
+      const scorerBonus = sc?.bonus || 0;
       const bonus = winnerBonus + scorerBonus;
       stats.set(p.id, {
         user_id: p.id,
@@ -133,7 +124,7 @@ function Leaderboard() {
         p: { score_a: pred.score_a, score_b: pred.score_b, points: pred.points || 0, exact_score: !!pred.exact_score, good_winner: !!pred.good_winner },
         m: { id: m.id, kickoff_at: m.kickoff_at, stage: m.stage, finished: m.finished, score_a: m.score_a, score_b: m.score_b, group_letter: m.group_letter },
       });
-      if (stage !== "all" && m.stage !== stage) continue;
+      
       s.pts += pred.points || 0;
       const isDraw = m.score_a === m.score_b;
       if (pred.exact_score) s.exact++;
@@ -146,7 +137,7 @@ function Leaderboard() {
       s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon, description: b.description }));
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
-  }, [rows, stage, depotFilter]);
+  }, [rows, depotFilter]);
 
 
   const myRank = useMemo(() => {
@@ -267,7 +258,7 @@ function Leaderboard() {
                   <div className="flex items-center gap-3 text-center">
                     <Stat label="Points" value={myRank.pts} color="text-[#E4002B]" />
                     <Stat label="Score exact" value={myRank.exact} color="text-[#7B2CBF]" />
-                    <Stat label="Bon vainqueur" value={myRank.good} color="text-[#00A3E0]" />
+                    <Stat label="Vainqueur" value={myRank.good} color="text-[#00A3E0]" />
                     <Stat label="Match nul" value={myRank.draws} color="text-[#00C389]" />
                   </div>
                 )}
@@ -279,26 +270,6 @@ function Leaderboard() {
           </motion.div>
         )}
 
-        {/* Stage tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-        >
-          <Tabs value={stage} onValueChange={setStage} className="mt-5">
-            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-white/20 p-1 backdrop-blur-md">
-              {STAGES.map((s) => (
-                <TabsTrigger
-                  key={s.value}
-                  value={s.value}
-                  className="text-xs font-semibold text-white/85 data-[state=active]:bg-white data-[state=active]:text-[#7B2CBF] data-[state=active]:shadow-lg sm:text-sm"
-                >
-                  {s.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </motion.div>
 
         {isLoading ? (
           <Card className="mt-5"><CardContent className="p-6 text-sm text-muted-foreground">Chargement…</CardContent></Card>
@@ -345,6 +316,28 @@ function Leaderboard() {
                           <MiniStat value={r.good} label="Vainq." />
                           <MiniStat value={r.draws} label="Nul" />
                         </div>
+                        {(r.winnerTeam || r.scorerName) && (
+                          <div className="mt-2 space-y-1">
+                            {r.winnerTeam && (
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-white/15 px-2 py-1 backdrop-blur-sm">
+                                <span className="text-[9px] font-bold uppercase tracking-wider opacity-90">🏆 Vainqueur</span>
+                                <span className="truncate text-[11px] font-semibold">
+                                  {r.winnerTeam}
+                                  {r.winnerBonus ? <span className="ml-1 text-[#FFD100]">+{r.winnerBonus}</span> : null}
+                                </span>
+                              </div>
+                            )}
+                            {r.scorerName && (
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-white/15 px-2 py-1 backdrop-blur-sm">
+                                <span className="text-[9px] font-bold uppercase tracking-wider opacity-90">👟 Soulier d'or</span>
+                                <span className="truncate text-[11px] font-semibold">
+                                  {r.scorerName}
+                                  {r.scorerBonus ? <span className="ml-1 text-[#FFD100]">+{r.scorerBonus}</span> : null}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         {r.badges.length > 0 && <BadgesRow badges={r.badges} light />}
                       </div>
                     </motion.div>
@@ -428,7 +421,7 @@ function Leaderboard() {
                           <th className="px-3 py-3 text-left">Soulier d'or</th>
                           <th className="px-3 py-3 text-right">Total</th>
                           <th className="px-3 py-3 text-right">Score exact</th>
-                          <th className="px-3 py-3 text-right">Bon vainqueur</th>
+                          <th className="px-3 py-3 text-right">Vainqueur</th>
                           <th className="px-3 py-3 text-right">Match nul</th>
                           <th className="px-3 py-3 text-left">Badges</th>
                         </tr>
