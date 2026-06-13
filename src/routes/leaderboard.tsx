@@ -514,29 +514,77 @@ function MiniStat({ value, label, dark }: { value: number; label: string; dark?:
   );
 }
 
-function BadgesRow({ badges, light, compact }: { badges: { id: string; name: string; icon: string }[]; light?: boolean; compact?: boolean }) {
-  const max = compact ? 8 : 6;
+function FootballMedal({ icon, size = "md" }: { icon: string; size?: "sm" | "md" | "lg" }) {
+  const dim = size === "lg" ? "h-12 w-12 text-2xl" : size === "sm" ? "h-7 w-7 text-base" : "h-9 w-9 text-lg";
+  return (
+    <span
+      className={`relative inline-flex shrink-0 items-center justify-center rounded-full ${dim}`}
+      style={{
+        background:
+          "radial-gradient(circle at 30% 25%, #FFF1A8 0%, #FFD24A 25%, #E8A317 55%, #8C5A0F 100%)",
+        boxShadow:
+          "inset 0 2px 4px rgba(255,255,255,.7), inset 0 -3px 6px rgba(120,60,0,.55), 0 4px 10px -2px rgba(0,0,0,.35), 0 0 0 2px rgba(255,255,255,.25)",
+      }}
+    >
+      <span
+        className="absolute inset-[3px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle at 35% 30%, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 55%), radial-gradient(circle at 50% 50%, #0F7A3A 0%, #064521 80%)",
+          boxShadow: "inset 0 2px 3px rgba(0,0,0,.45), inset 0 -1px 2px rgba(255,255,255,.15)",
+        }}
+      />
+      <span className="relative drop-shadow-[0_1px_1px_rgba(0,0,0,.6)]">{icon}</span>
+    </span>
+  );
+}
+
+function BadgesRow({
+  badges,
+  light,
+  compact,
+}: {
+  badges: { id: string; name: string; icon: string; description: string }[];
+  light?: boolean;
+  compact?: boolean;
+}) {
+  const max = compact ? 4 : 6;
   const shown = badges.slice(0, max);
   const more = badges.length - shown.length;
   return (
     <TooltipProvider delayDuration={150}>
-      <div className={`mt-2 flex flex-wrap items-center gap-1 ${compact ? "" : "border-t border-dashed border-white/20 pt-2"}`}>
+      <div className={`mt-2 flex flex-wrap items-stretch gap-1.5 ${compact ? "" : light ? "border-t border-dashed border-white/20 pt-2" : "border-t border-dashed pt-2"}`}>
         {shown.map((b) => (
           <Tooltip key={b.id}>
             <TooltipTrigger asChild>
-              <span
-                className={`inline-flex h-6 w-6 cursor-help items-center justify-center rounded-full text-sm shadow-sm ${
-                  light ? "bg-white/20 backdrop-blur-sm" : "bg-primary/10"
+              <div
+                className={`flex cursor-help items-center gap-2 rounded-full py-1 pl-1 pr-2.5 transition-transform hover:-translate-y-0.5 ${
+                  light
+                    ? "bg-white/15 backdrop-blur-sm ring-1 ring-white/20"
+                    : "bg-gradient-to-br from-amber-50 to-amber-100/60 ring-1 ring-amber-300/60 dark:from-amber-950/40 dark:to-amber-900/20 dark:ring-amber-700/40"
                 }`}
               >
-                {b.icon}
-              </span>
+                <FootballMedal icon={b.icon} size="sm" />
+                <div className="flex min-w-0 flex-col leading-tight">
+                  <span className={`truncate text-[11px] font-bold ${light ? "text-white" : "text-foreground"}`}>{b.name}</span>
+                  <span className={`truncate text-[9px] ${light ? "text-white/80" : "text-muted-foreground"}`}>{b.description}</span>
+                </div>
+              </div>
             </TooltipTrigger>
-            <TooltipContent><p className="text-xs font-semibold">{b.name}</p></TooltipContent>
+            <TooltipContent>
+              <p className="font-semibold">{b.name}</p>
+              <p className="text-xs text-muted-foreground">{b.description}</p>
+            </TooltipContent>
           </Tooltip>
         ))}
         {more > 0 && (
-          <span className={`text-[10px] font-semibold ${light ? "text-white/90" : "text-muted-foreground"}`}>+{more}</span>
+          <span
+            className={`inline-flex items-center rounded-full px-2 text-[10px] font-bold ${
+              light ? "bg-white/15 text-white/90" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            +{more}
+          </span>
         )}
       </div>
     </TooltipProvider>
