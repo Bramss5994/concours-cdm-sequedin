@@ -25,19 +25,12 @@ const STAGES = [
   { value: "final", label: "Finale" },
 ];
 
+import { DEPOTS as DEPOT_LIST, DEPOT_LABEL, DEPOT_LOGO } from "@/lib/depots";
+
 const DEPOTS: { value: string; label: string }[] = [
   { value: "all", label: "Tous les dépôts" },
-  { value: "sequedin", label: "Sequedin" },
-  { value: "faidherbe", label: "Faidherbe" },
-  { value: "wattrelos", label: "Wattrelos" },
-  { value: "pc_bus", label: "PC Bus" },
-  { value: "tram", label: "Tram" },
-  { value: "copem", label: "COPEM" },
-  { value: "support", label: "Équipe Support" },
+  ...DEPOT_LIST.map((d) => ({ value: d.value, label: d.label })),
 ];
-const DEPOT_LABEL: Record<string, string> = {
-  sequedin: "Sequedin", faidherbe: "Faidherbe", wattrelos: "Wattrelos", pc_bus: "PC Bus", tram: "Tram", copem: "COPEM", support: "Équipe Support",
-};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
