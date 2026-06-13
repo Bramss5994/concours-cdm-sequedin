@@ -72,21 +72,21 @@ function Leaderboard() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
     queryFn: async () => {
-      const [{ data: profiles }, predictions, { data: matches }, { data: bonuses }, { data: scorerBonuses }] = await Promise.all([
+      const [{ data: profiles }, predictions, { data: matches }, { data: winnerBoard }, { data: scorerBoard }] = await Promise.all([
         supabase.rpc("get_public_profiles"),
         fetchAllPages((from, to) =>
           supabase.from("predictions").select("user_id, match_id, score_a, score_b, points, exact_score, good_winner").range(from, to),
         ),
         supabase.from("matches").select("id, stage, finished, score_a, score_b, kickoff_at, group_letter"),
-        supabase.rpc("get_winner_bonuses"),
-        supabase.rpc("get_top_scorer_bonuses"),
+        supabase.rpc("get_winner_board"),
+        supabase.rpc("get_top_scorer_board"),
       ]);
       return {
         profiles: profiles || [],
         predictions: predictions || [],
         matches: matches || [],
-        bonuses: bonuses || [],
-        scorerBonuses: scorerBonuses || [],
+        winnerBoard: winnerBoard || [],
+        scorerBoard: scorerBoard || [],
       };
     },
   });
@@ -96,15 +96,38 @@ function Leaderboard() {
     const r = rows as any;
     if (!r || !r.profiles) return [];
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
-    const bonusById = new Map<string, number>((r.bonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
-    const scorerBonusById = new Map<string, number>((r.scorerBonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
-    type Row = { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; draws: number; bonus: number; groupPts: number; koPts: number; finalPts: number; badges: { id: string; name: string; icon: string }[]; totalPredictions: number; joined: JoinedPrediction[] };
+    const winnerById = new Map<string, any>((r.winnerBoard || []).map((w: any) => [w.user_id, w]));
+    const scorerById = new Map<string, any>((r.scorerBoard || []).map((s: any) => [s.user_id, s]));
+    type Row = {
+      user_id: string; name: string; depot: string; pts: number;
+      exact: number; good: number; draws: number; bonus: number;
+      badges: { id: string; name: string; icon: string }[];
+      totalPredictions: number; joined: JoinedPrediction[];
+      winnerTeam: string | null; winnerCode: string | null; winnerBonus: number;
+      scorerName: string | null; scorerClub: string | null; scorerBonus: number;
+    };
     const stats = new Map<string, Row>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
-      const bonus = stage === "all" ? (bonusById.get(p.id) || 0) + (scorerBonusById.get(p.id) || 0) : 0;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, draws: 0, bonus, groupPts: 0, koPts: 0, finalPts: 0, badges: [], totalPredictions: 0, joined: [] });
+      const w = winnerById.get(p.id);
+      const sc = scorerById.get(p.id);
+      const winnerBonus = stage === "all" ? (w?.bonus || 0) : 0;
+      const scorerBonus = stage === "all" ? (sc?.bonus || 0) : 0;
+      const bonus = winnerBonus + scorerBonus;
+      stats.set(p.id, {
+        user_id: p.id,
+        name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme",
+        depot: p.depot || "sequedin",
+        pts: bonus, exact: 0, good: 0, draws: 0, bonus,
+        badges: [], totalPredictions: 0, joined: [],
+        winnerTeam: w?.final_team_name || w?.initial_team_name || null,
+        winnerCode: w?.final_team_code || w?.initial_team_code || null,
+        winnerBonus,
+        scorerName: sc?.player_name || null,
+        scorerClub: sc?.player_club || sc?.team_name || null,
+        scorerBonus,
+      });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);
@@ -113,23 +136,17 @@ function Leaderboard() {
       if (!s) continue;
       s.totalPredictions++;
       if (!m.finished) continue;
-      // joined for badge eval (all finished, all stages)
       s.joined.push({
         p: { score_a: pred.score_a, score_b: pred.score_b, points: pred.points || 0, exact_score: !!pred.exact_score, good_winner: !!pred.good_winner },
         m: { id: m.id, kickoff_at: m.kickoff_at, stage: m.stage, finished: m.finished, score_a: m.score_a, score_b: m.score_b, group_letter: m.group_letter },
       });
       if (stage !== "all" && m.stage !== stage) continue;
-      const pts = pred.points || 0;
-      s.pts += pts;
-      if (m.stage === "group") s.groupPts += pts;
-      else if (m.stage === "final") s.finalPts += pts;
-      else s.koPts += pts;
+      s.pts += pred.points || 0;
       const isDraw = m.score_a === m.score_b;
       if (pred.exact_score) s.exact++;
       else if (pred.good_winner && isDraw) s.draws++;
       else if (pred.good_winner) s.good++;
     }
-    // evaluate badges per user
     for (const s of stats.values()) {
       s.joined.sort((a, b) => +new Date(a.m.kickoff_at) - +new Date(b.m.kickoff_at));
       const evaluated = evaluateBadges({ joined: s.joined, totalPredictions: s.totalPredictions });
@@ -137,6 +154,7 @@ function Leaderboard() {
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
   }, [rows, stage, depotFilter]);
+
 
   const myRank = useMemo(() => {
     if (!user) return null;
