@@ -75,9 +75,9 @@ function Leaderboard() {
       const [{ data: profiles }, predictions, { data: matches }, { data: bonuses }, { data: scorerBonuses }] = await Promise.all([
         supabase.rpc("get_public_profiles"),
         fetchAllPages((from, to) =>
-          supabase.from("predictions").select("user_id, match_id, points, exact_score, good_winner").range(from, to),
+          supabase.from("predictions").select("user_id, match_id, score_a, score_b, points, exact_score, good_winner").range(from, to),
         ),
-        supabase.from("matches").select("id, stage, finished"),
+        supabase.from("matches").select("id, stage, finished, score_a, score_b, kickoff_at, group_letter"),
         supabase.rpc("get_winner_bonuses"),
         supabase.rpc("get_top_scorer_bonuses"),
       ]);
