@@ -35,7 +35,7 @@ const staggerContainer = {
 
 function Leaderboard() {
   const { user, isAdmin } = useAuth();
-  const [stage, setStage] = useState("all");
+  
   const [depotFilter, setDepotFilter] = useState<string>("all");
 
   // Récupère le dépôt de l'utilisateur connecté
