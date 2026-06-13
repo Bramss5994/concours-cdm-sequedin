@@ -255,11 +255,15 @@ function Leaderboard() {
                 {myRank && (
                   <div className="flex items-center gap-3 text-center">
                     <Stat label="Points" value={myRank.pts} color="text-[#E4002B]" />
-                    <Stat label="Exacts" value={myRank.exact} color="text-[#7B2CBF]" />
-                    <Stat label="Vainqueurs" value={myRank.good} color="text-[#00A3E0]" />
+                    <Stat label="Score exact" value={myRank.exact} color="text-[#7B2CBF]" />
+                    <Stat label="Bon vainqueur" value={myRank.good} color="text-[#00A3E0]" />
+                    <Stat label="Match nul" value={myRank.draws} color="text-[#00C389]" />
                   </div>
                 )}
               </div>
+              {myRank && myRank.badges?.length > 0 && (
+                <BadgesRow badges={myRank.badges} />
+              )}
             </div>
           </motion.div>
         )}
