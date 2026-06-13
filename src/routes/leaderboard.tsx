@@ -380,10 +380,12 @@ function Leaderboard() {
                         <Mini value={r.bonus} label="Bns" accent />
                       </div>
                     )}
-                    <div className="mt-1.5 flex justify-end gap-3 text-[11px] text-muted-foreground">
-                      <span>🎯 {r.exact}</span>
-                      <span>✓ {r.good}</span>
+                    <div className="mt-2 grid grid-cols-3 gap-1 rounded-md bg-muted/40 p-1.5 text-center">
+                      <MiniStat value={r.exact} label="Exact" dark />
+                      <MiniStat value={r.good} label="Vainq." dark />
+                      <MiniStat value={r.draws} label="Nul" dark />
                     </div>
+                    {r.badges.length > 0 && <BadgesRow badges={r.badges} />}
                   </motion.div>
                 );
               })}
