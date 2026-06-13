@@ -98,28 +98,44 @@ function Leaderboard() {
     const matchById = new Map<string, any>(r.matches.map((m: any) => [m.id, m]));
     const bonusById = new Map<string, number>((r.bonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
     const scorerBonusById = new Map<string, number>((r.scorerBonuses || []).map((b: any) => [b.user_id, b.bonus || 0]));
-    const stats = new Map<string, { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; bonus: number; groupPts: number; koPts: number; finalPts: number; }>();
+    type Row = { user_id: string; name: string; depot: string; pts: number; exact: number; good: number; draws: number; bonus: number; groupPts: number; koPts: number; finalPts: number; badges: { id: string; name: string; icon: string }[]; totalPredictions: number; joined: JoinedPrediction[] };
+    const stats = new Map<string, Row>();
     for (const p of r.profiles) {
       if (p.active === false) continue;
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
       const bonus = stage === "all" ? (bonusById.get(p.id) || 0) + (scorerBonusById.get(p.id) || 0) : 0;
-      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, bonus, groupPts: 0, koPts: 0, finalPts: 0 });
+      stats.set(p.id, { user_id: p.id, name: `${p.prenom} ${p.num_paie}`.trim() || "Anonyme", depot: p.depot || "sequedin", pts: bonus, exact: 0, good: 0, draws: 0, bonus, groupPts: 0, koPts: 0, finalPts: 0, badges: [], totalPredictions: 0, joined: [] });
     }
     for (const pred of r.predictions) {
       const m = matchById.get(pred.match_id);
-      if (!m || !m.finished) continue;
-      if (stage !== "all" && m.stage !== stage) continue;
+      if (!m) continue;
       const s = stats.get(pred.user_id);
       if (!s) continue;
+      s.totalPredictions++;
+      if (!m.finished) continue;
+      // joined for badge eval (all finished, all stages)
+      s.joined.push({
+        p: { score_a: pred.score_a, score_b: pred.score_b, points: pred.points || 0, exact_score: !!pred.exact_score, good_winner: !!pred.good_winner },
+        m: { id: m.id, kickoff_at: m.kickoff_at, stage: m.stage, finished: m.finished, score_a: m.score_a, score_b: m.score_b, group_letter: m.group_letter },
+      });
+      if (stage !== "all" && m.stage !== stage) continue;
       const pts = pred.points || 0;
       s.pts += pts;
       if (m.stage === "group") s.groupPts += pts;
       else if (m.stage === "final") s.finalPts += pts;
       else s.koPts += pts;
+      const isDraw = m.score_a === m.score_b;
       if (pred.exact_score) s.exact++;
-      if (pred.good_winner) s.good++;
+      else if (pred.good_winner && isDraw) s.draws++;
+      else if (pred.good_winner) s.good++;
     }
-    return [...stats.values()].sort((a, b) => b.pts - a.pts || b.good - a.good || b.exact - a.exact);
+    // evaluate badges per user
+    for (const s of stats.values()) {
+      s.joined.sort((a, b) => +new Date(a.m.kickoff_at) - +new Date(b.m.kickoff_at));
+      const evaluated = evaluateBadges({ joined: s.joined, totalPredictions: s.totalPredictions });
+      s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon }));
+    }
+    return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
   }, [rows, stage, depotFilter]);
 
   const myRank = useMemo(() => {
