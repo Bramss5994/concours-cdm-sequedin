@@ -390,12 +390,10 @@ function Leaderboard() {
                         <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">pts</div>
                       </div>
                     </div>
-                    {stage === "all" && (
-                      <div className="mt-2 grid grid-cols-4 gap-1 border-t border-dashed pt-2 text-center text-[10px]">
-                        <Mini value={r.groupPts} label="Grp" />
-                        <Mini value={r.koPts} label="Final" />
-                        <Mini value={r.finalPts} label="F" />
-                        <Mini value={r.bonus} label="Bns" accent />
+                    {(r.winnerTeam || r.scorerName) && (
+                      <div className="mt-2 grid grid-cols-2 gap-1 border-t border-dashed pt-2 text-[10px]">
+                        <PickLine label="Vainqueur" value={r.winnerTeam} accentValue={r.winnerBonus} />
+                        <PickLine label="Soulier d'or" value={r.scorerName} accentValue={r.scorerBonus} />
                       </div>
                     )}
                     <div className="mt-2 grid grid-cols-3 gap-1 rounded-md bg-muted/40 p-1.5 text-center">
