@@ -448,14 +448,12 @@ function Leaderboard() {
                                 {isMe && <Badge className="ml-2 bg-[#7B2CBF] text-[10px] text-white">Moi</Badge>}
                               </td>
                               {isAdmin && <td className="px-3 py-2.5"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
-                              {stage === "all" && (
-                                <>
-                                  <td className="px-3 py-2.5 text-right tabular-nums">{r.groupPts}</td>
-                                  <td className="px-3 py-2.5 text-right tabular-nums">{r.koPts}</td>
-                                  <td className="px-3 py-2.5 text-right tabular-nums">{r.finalPts}</td>
-                                  <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-[#FF8A00]">{r.bonus}</td>
-                                </>
-                              )}
+                              <td className="px-3 py-2.5">
+                                <PickCell value={r.winnerTeam} bonus={r.winnerBonus} fallback="—" />
+                              </td>
+                              <td className="px-3 py-2.5">
+                                <PickCell value={r.scorerName} sub={r.scorerClub} bonus={r.scorerBonus} fallback="—" />
+                              </td>
                               <td className="px-3 py-2.5 text-right">
                                 <span className="bg-gradient-to-r from-[#E4002B] to-[#7B2CBF] bg-clip-text text-base font-black tabular-nums text-transparent">{r.pts}</span>
                               </td>
