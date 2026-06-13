@@ -534,3 +534,29 @@ function BadgesRow({ badges, light, compact }: { badges: { id: string; name: str
     </TooltipProvider>
   );
 }
+
+function PickLine({ label, value, accentValue }: { label: string; value: string | null; accentValue?: number }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-md bg-muted/40 px-2 py-1">
+      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="truncate text-right text-[11px] font-semibold">
+        {value || "—"}
+        {accentValue ? <span className="ml-1 text-[#FF8A00]">+{accentValue}</span> : null}
+      </span>
+    </div>
+  );
+}
+
+function PickCell({ value, sub, bonus, fallback }: { value: string | null; sub?: string | null; bonus?: number; fallback: string }) {
+  if (!value) return <span className="text-xs text-muted-foreground">{fallback}</span>;
+  return (
+    <div className="flex flex-col">
+      <span className="text-sm font-semibold">
+        {value}
+        {bonus ? <span className="ml-1 text-xs font-bold text-[#FF8A00]">+{bonus}</span> : null}
+      </span>
+      {sub && <span className="text-[10px] text-muted-foreground">{sub}</span>}
+    </div>
+  );
+}
+
