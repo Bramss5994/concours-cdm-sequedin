@@ -185,16 +185,37 @@ function SignupForm({ lockedDepot }: { lockedDepot?: DepotValue }) {
       <div className="space-y-1.5">
         <Label>Dépôt / Unité</Label>
         {lockedDepot ? (
-          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
-            <span className="h-2 w-2 rounded-full bg-primary" />
-            <span className="font-medium">{DEPOTS.find((d) => d.value === lockedDepot)?.label}</span>
-            <span className="text-xs text-muted-foreground">(verrouillé par le lien d'inscription)</span>
-          </div>
+          (() => {
+            const d = DEPOTS.find((x) => x.value === lockedDepot)!;
+            return (
+              <div className="flex items-center gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                <img src={d.logo} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-border" />
+                <span className="font-medium">{d.label}</span>
+                <span className="ml-auto text-xs text-muted-foreground">(verrouillé)</span>
+              </div>
+            );
+          })()
         ) : (
           <Select value={depot || undefined} onValueChange={(v) => setDepot(v as DepotValue)}>
-            <SelectTrigger><SelectValue placeholder="Choisissez votre unité" /></SelectTrigger>
+            <SelectTrigger className="h-12">
+              {depot ? (
+                <div className="flex items-center gap-2">
+                  <img src={DEPOTS.find((d) => d.value === depot)!.logo} alt="" className="h-7 w-7 rounded-full object-cover ring-1 ring-border" />
+                  <span>{DEPOTS.find((d) => d.value === depot)!.label}</span>
+                </div>
+              ) : (
+                <SelectValue placeholder="Choisissez votre unité" />
+              )}
+            </SelectTrigger>
             <SelectContent>
-              {DEPOTS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+              {DEPOTS.map((d) => (
+                <SelectItem key={d.value} value={d.value}>
+                  <div className="flex items-center gap-2">
+                    <img src={d.logo} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-border" />
+                    <span>{d.label}</span>
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         )}
