@@ -423,14 +423,8 @@ function Leaderboard() {
                           <th className="px-3 py-3 text-left">#</th>
                           <th className="px-3 py-3 text-left">Participant</th>
                           {isAdmin && <th className="px-3 py-3 text-left">Unité</th>}
-                          {stage === "all" && (
-                            <>
-                              <th className="px-3 py-3 text-right">Groupes</th>
-                              <th className="px-3 py-3 text-right">Finales</th>
-                              <th className="px-3 py-3 text-right">Finale</th>
-                              <th className="px-3 py-3 text-right">Bonus</th>
-                            </>
-                          )}
+                          <th className="px-3 py-3 text-left">Équipe choisie</th>
+                          <th className="px-3 py-3 text-left">Soulier d'or</th>
                           <th className="px-3 py-3 text-right">Total</th>
                           <th className="px-3 py-3 text-right">Score exact</th>
                           <th className="px-3 py-3 text-right">Bon vainqueur</th>
