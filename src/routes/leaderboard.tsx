@@ -279,26 +279,6 @@ function Leaderboard() {
           </motion.div>
         )}
 
-        {/* Stage tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-        >
-          <Tabs value={stage} onValueChange={setStage} className="mt-5">
-            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-white/20 p-1 backdrop-blur-md">
-              {STAGES.map((s) => (
-                <TabsTrigger
-                  key={s.value}
-                  value={s.value}
-                  className="text-xs font-semibold text-white/85 data-[state=active]:bg-white data-[state=active]:text-[#7B2CBF] data-[state=active]:shadow-lg sm:text-sm"
-                >
-                  {s.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </motion.div>
 
         {isLoading ? (
           <Card className="mt-5"><CardContent className="p-6 text-sm text-muted-foreground">Chargement…</CardContent></Card>
