@@ -96,8 +96,8 @@ function Leaderboard() {
       if (depotFilter !== "all" && p.depot !== depotFilter) continue;
       const w = winnerById.get(p.id);
       const sc = scorerById.get(p.id);
-      const winnerBonus = stage === "all" ? (w?.bonus || 0) : 0;
-      const scorerBonus = stage === "all" ? (sc?.bonus || 0) : 0;
+      const winnerBonus = w?.bonus || 0;
+      const scorerBonus = sc?.bonus || 0;
       const bonus = winnerBonus + scorerBonus;
       stats.set(p.id, {
         user_id: p.id,
