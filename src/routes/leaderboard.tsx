@@ -15,15 +15,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export const Route = createFileRoute("/leaderboard")({ component: Leaderboard });
 
-const STAGES = [
-  { value: "all", label: "Général" },
-  { value: "group", label: "Phase de groupes" },
-  { value: "r32", label: "16es" },
-  { value: "r16", label: "8es" },
-  { value: "qf", label: "Quarts" },
-  { value: "sf", label: "Demis" },
-  { value: "final", label: "Finale" },
-];
 
 import { DEPOTS as DEPOT_LIST, DEPOT_LABEL, DEPOT_LOGO } from "@/lib/depots";
 
