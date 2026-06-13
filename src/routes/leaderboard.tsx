@@ -143,7 +143,7 @@ function Leaderboard() {
     for (const s of stats.values()) {
       s.joined.sort((a, b) => +new Date(a.m.kickoff_at) - +new Date(b.m.kickoff_at));
       const evaluated = evaluateBadges({ joined: s.joined, totalPredictions: s.totalPredictions });
-      s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon }));
+      s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon, description: b.description }));
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
   }, [rows, stage, depotFilter]);
