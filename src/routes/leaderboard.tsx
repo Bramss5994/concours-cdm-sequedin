@@ -258,7 +258,7 @@ function Leaderboard() {
                   <div className="flex items-center gap-3 text-center">
                     <Stat label="Points" value={myRank.pts} color="text-[#E4002B]" />
                     <Stat label="Score exact" value={myRank.exact} color="text-[#7B2CBF]" />
-                    <Stat label="Bon vainqueur" value={myRank.good} color="text-[#00A3E0]" />
+                    <Stat label="Vainqueur" value={myRank.good} color="text-[#00A3E0]" />
                     <Stat label="Match nul" value={myRank.draws} color="text-[#00C389]" />
                   </div>
                 )}
@@ -421,7 +421,7 @@ function Leaderboard() {
                           <th className="px-3 py-3 text-left">Soulier d'or</th>
                           <th className="px-3 py-3 text-right">Total</th>
                           <th className="px-3 py-3 text-right">Score exact</th>
-                          <th className="px-3 py-3 text-right">Bon vainqueur</th>
+                          <th className="px-3 py-3 text-right">Vainqueur</th>
                           <th className="px-3 py-3 text-right">Match nul</th>
                           <th className="px-3 py-3 text-left">Badges</th>
                         </tr>
