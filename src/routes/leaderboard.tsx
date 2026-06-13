@@ -325,6 +325,28 @@ function Leaderboard() {
                           <MiniStat value={r.good} label="Vainq." />
                           <MiniStat value={r.draws} label="Nul" />
                         </div>
+                        {(r.winnerTeam || r.scorerName) && (
+                          <div className="mt-2 space-y-1">
+                            {r.winnerTeam && (
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-white/15 px-2 py-1 backdrop-blur-sm">
+                                <span className="text-[9px] font-bold uppercase tracking-wider opacity-90">🏆 Vainqueur</span>
+                                <span className="truncate text-[11px] font-semibold">
+                                  {r.winnerTeam}
+                                  {r.winnerBonus ? <span className="ml-1 text-[#FFD100]">+{r.winnerBonus}</span> : null}
+                                </span>
+                              </div>
+                            )}
+                            {r.scorerName && (
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-white/15 px-2 py-1 backdrop-blur-sm">
+                                <span className="text-[9px] font-bold uppercase tracking-wider opacity-90">👟 Soulier d'or</span>
+                                <span className="truncate text-[11px] font-semibold">
+                                  {r.scorerName}
+                                  {r.scorerBonus ? <span className="ml-1 text-[#FFD100]">+{r.scorerBonus}</span> : null}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         {r.badges.length > 0 && <BadgesRow badges={r.badges} light />}
                       </div>
                     </motion.div>
