@@ -137,7 +137,7 @@ function Leaderboard() {
       s.badges = evaluated.filter((b) => b.unlocked).map((b) => ({ id: b.id, name: b.name, icon: b.icon, description: b.description }));
     }
     return [...stats.values()].sort((a, b) => b.pts - a.pts || (b.good + b.draws) - (a.good + a.draws) || b.exact - a.exact);
-  }, [rows, stage, depotFilter]);
+  }, [rows, depotFilter]);
 
 
   const myRank = useMemo(() => {
