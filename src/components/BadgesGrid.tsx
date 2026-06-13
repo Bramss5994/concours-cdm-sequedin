@@ -37,7 +37,31 @@ export function BadgesGrid({ ctx }: { ctx: BadgeContext }) {
                         : "border-border bg-muted/30 opacity-60 grayscale"
                     }`}
                   >
-                    <span className="text-2xl sm:text-3xl">{b.icon}</span>
+                    <span
+                      className="relative inline-flex h-12 w-12 items-center justify-center rounded-full text-2xl sm:h-14 sm:w-14"
+                      style={
+                        b.unlocked
+                          ? {
+                              background:
+                                "radial-gradient(circle at 30% 25%, #FFF1A8 0%, #FFD24A 25%, #E8A317 55%, #8C5A0F 100%)",
+                              boxShadow:
+                                "inset 0 2px 4px rgba(255,255,255,.7), inset 0 -3px 6px rgba(120,60,0,.55), 0 4px 10px -2px rgba(0,0,0,.35), 0 0 0 2px rgba(255,255,255,.25)",
+                            }
+                          : { background: "hsl(var(--muted))", filter: "grayscale(1)" }
+                      }
+                    >
+                      {b.unlocked && (
+                        <span
+                          className="absolute inset-[3px] rounded-full"
+                          style={{
+                            background:
+                              "radial-gradient(circle at 35% 30%, rgba(255,255,255,.45) 0%, rgba(255,255,255,0) 55%), radial-gradient(circle at 50% 50%, #0F7A3A 0%, #064521 80%)",
+                            boxShadow: "inset 0 2px 3px rgba(0,0,0,.45), inset 0 -1px 2px rgba(255,255,255,.15)",
+                          }}
+                        />
+                      )}
+                      <span className="relative drop-shadow-[0_1px_1px_rgba(0,0,0,.6)]">{b.icon}</span>
+                    </span>
                     <span className="mt-1 line-clamp-2 text-[10px] font-semibold leading-tight">
                       {b.name}
                     </span>
