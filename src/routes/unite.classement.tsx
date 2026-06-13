@@ -104,23 +104,34 @@ function UniteClassementPage() {
     return <div className="container mx-auto p-6 text-sm text-muted-foreground">Vérification…</div>;
   }
 
+  const top3 = board.slice(0, 3);
+  const rest = board.slice(3);
+
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold sm:text-3xl">Classement</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+      {/* Header */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 shadow-lg shadow-orange-500/30">
+              <Trophy className="h-5 w-5 text-white" />
+            </div>
+            <h1 className="truncate bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 bg-clip-text text-2xl font-black text-transparent sm:text-3xl">
+              Classement
+            </h1>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
             {isSuper ? "Toutes les unités" : `Unité ${DEPOT_LABEL[myDepot] ?? myDepot}`}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/unite"><ArrowLeft className="mr-1 h-4 w-4" /> Retour au panel</Link>
+        <Button asChild variant="outline" size="sm" className="shrink-0">
+          <Link to="/unite"><ArrowLeft className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Retour au panel</span><span className="sm:hidden">Retour</span></Link>
         </Button>
       </div>
 
       {isSuper && (
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs uppercase text-muted-foreground">Filtrer par unité</span>
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Unité</span>
           <Select value={depotFilter} onValueChange={setDepotFilter}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -131,65 +142,155 @@ function UniteClassementPage() {
       )}
 
       <Tabs value={stage} onValueChange={setStage} className="mt-4">
-        <TabsList className="flex h-auto flex-wrap justify-start">
-          {STAGES.map((s) => <TabsTrigger key={s.value} value={s.value}>{s.label}</TabsTrigger>)}
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-muted/40 p-1">
+          {STAGES.map((s) => (
+            <TabsTrigger
+              key={s.value}
+              value={s.value}
+              className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md sm:text-sm"
+            >
+              {s.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
       </Tabs>
 
-      <Card className="mt-4">
-        <CardContent className="p-0">
-          {dataQ.isLoading ? (
-            <p className="p-4 text-sm text-muted-foreground">Chargement…</p>
-          ) : board.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">Aucun participant pour le moment.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-xs uppercase">
-                  <tr>
-                    <th className="px-3 py-2 text-left">#</th>
-                    <th className="px-3 py-2 text-left">Participant</th>
-                    {isSuper && <th className="px-3 py-2 text-left">Unité</th>}
-                    {stage === "all" && (
-                      <>
-                        <th className="px-3 py-2 text-right">Groupes</th>
-                        <th className="px-3 py-2 text-right">Phases finales</th>
-                        <th className="px-3 py-2 text-right">Finale</th>
-                        <th className="px-3 py-2 text-right">Bonus</th>
-                      </>
-                    )}
-                    <th className="px-3 py-2 text-right">Total</th>
-                    <th className="px-3 py-2 text-right">Scores exacts</th>
-                    <th className="px-3 py-2 text-right">Bons vainqueurs</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {board.map((r, i) => (
-                    <tr key={r.user_id} className="border-t hover:bg-muted/40">
-                      <td className="px-3 py-2 font-bold">
-                        {i === 0 ? <Trophy className="inline h-4 w-4 text-yellow-500" /> : i < 3 ? <Medal className="inline h-4 w-4 text-muted-foreground" /> : null} {i + 1}
-                      </td>
-                      <td className="px-3 py-2">{r.name}</td>
-                      {isSuper && <td className="px-3 py-2"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
-                      {stage === "all" && (
-                        <>
-                          <td className="px-3 py-2 text-right tabular-nums">{r.groupPts}</td>
-                          <td className="px-3 py-2 text-right tabular-nums">{r.koPts}</td>
-                          <td className="px-3 py-2 text-right tabular-nums">{r.finalPts}</td>
-                          <td className="px-3 py-2 text-right tabular-nums text-amber-600 dark:text-amber-400">{r.bonus}</td>
-                        </>
-                      )}
-                      <td className="px-3 py-2 text-right font-bold tabular-nums">{r.pts}</td>
-                      <td className="px-3 py-2 text-right">{r.exact}</td>
-                      <td className="px-3 py-2 text-right">{r.good}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {dataQ.isLoading ? (
+        <Card className="mt-4"><CardContent className="p-6 text-sm text-muted-foreground">Chargement…</CardContent></Card>
+      ) : board.length === 0 ? (
+        <Card className="mt-4"><CardContent className="p-6 text-sm text-muted-foreground">Aucun participant pour le moment.</CardContent></Card>
+      ) : (
+        <>
+          {/* Podium top 3 */}
+          {top3.length > 0 && (
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {top3.map((r, i) => {
+                const styles = [
+                  "from-amber-400 via-yellow-500 to-orange-500 shadow-amber-500/40 sm:order-2 sm:scale-105",
+                  "from-slate-300 via-slate-400 to-slate-500 shadow-slate-400/40 sm:order-1",
+                  "from-orange-400 via-amber-600 to-yellow-700 shadow-orange-600/40 sm:order-3",
+                ][i];
+                const icon = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+                return (
+                  <div
+                    key={r.user_id}
+                    className={`relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-white shadow-xl animate-fade-in ${styles}`}
+                    style={{ animationDelay: `${i * 80}ms`, animationFillMode: "backwards" }}
+                  >
+                    <div className="absolute -right-4 -top-4 text-7xl opacity-20">{icon}</div>
+                    <div className="relative">
+                      <div className="flex items-center justify-between">
+                        <div className="text-3xl">{icon}</div>
+                        <div className="text-right">
+                          <div className="text-3xl font-black tabular-nums leading-none">{r.pts}</div>
+                          <div className="text-[10px] uppercase tracking-wider opacity-80">points</div>
+                        </div>
+                      </div>
+                      <div className="mt-3 truncate text-base font-bold">{r.name}</div>
+                      {isSuper && <div className="mt-1 text-xs opacity-90">{DEPOT_LABEL[r.depot] || r.depot}</div>}
+                      <div className="mt-2 flex gap-3 text-xs opacity-90">
+                        <span>🎯 {r.exact} exact</span>
+                        <span>✓ {r.good} bons</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
-        </CardContent>
-      </Card>
+
+          {/* Mobile: cards */}
+          <div className="mt-4 space-y-2 md:hidden">
+            {rest.map((r, i) => (
+              <div
+                key={r.user_id}
+                className="animate-fade-in rounded-xl border border-border bg-card p-3 shadow-sm transition-all active:scale-[0.98] hover:border-primary/40 hover:shadow-md"
+                style={{ animationDelay: `${Math.min(i, 10) * 30}ms`, animationFillMode: "backwards" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted text-sm font-bold tabular-nums">
+                    {i + 4}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{r.name}</div>
+                    {isSuper && (
+                      <Badge variant="secondary" className="mt-0.5 text-[10px]">{DEPOT_LABEL[r.depot] || r.depot}</Badge>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-black tabular-nums text-primary">{r.pts}</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">pts</div>
+                  </div>
+                </div>
+                {stage === "all" && (
+                  <div className="mt-2 grid grid-cols-4 gap-1 border-t pt-2 text-center text-[10px]">
+                    <div><div className="font-bold tabular-nums">{r.groupPts}</div><div className="text-muted-foreground">Grp</div></div>
+                    <div><div className="font-bold tabular-nums">{r.koPts}</div><div className="text-muted-foreground">Final</div></div>
+                    <div><div className="font-bold tabular-nums">{r.finalPts}</div><div className="text-muted-foreground">F</div></div>
+                    <div><div className="font-bold tabular-nums text-amber-600 dark:text-amber-400">{r.bonus}</div><div className="text-muted-foreground">Bns</div></div>
+                  </div>
+                )}
+                <div className="mt-1.5 flex justify-end gap-3 text-[11px] text-muted-foreground">
+                  <span>🎯 {r.exact}</span>
+                  <span>✓ {r.good}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <Card className="mt-4 hidden md:block">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-muted/60 to-muted/30 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="px-3 py-3 text-left">#</th>
+                      <th className="px-3 py-3 text-left">Participant</th>
+                      {isSuper && <th className="px-3 py-3 text-left">Unité</th>}
+                      {stage === "all" && (
+                        <>
+                          <th className="px-3 py-3 text-right">Groupes</th>
+                          <th className="px-3 py-3 text-right">Finales</th>
+                          <th className="px-3 py-3 text-right">Finale</th>
+                          <th className="px-3 py-3 text-right">Bonus</th>
+                        </>
+                      )}
+                      <th className="px-3 py-3 text-right">Total</th>
+                      <th className="px-3 py-3 text-right">Exacts</th>
+                      <th className="px-3 py-3 text-right">Bons</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rest.map((r, i) => (
+                      <tr
+                        key={r.user_id}
+                        className="animate-fade-in border-t transition-colors hover:bg-primary/5"
+                        style={{ animationDelay: `${Math.min(i, 15) * 25}ms`, animationFillMode: "backwards" }}
+                      >
+                        <td className="px-3 py-2.5 font-bold tabular-nums text-muted-foreground">{i + 4}</td>
+                        <td className="px-3 py-2.5 font-medium">{r.name}</td>
+                        {isSuper && <td className="px-3 py-2.5"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
+                        {stage === "all" && (
+                          <>
+                            <td className="px-3 py-2.5 text-right tabular-nums">{r.groupPts}</td>
+                            <td className="px-3 py-2.5 text-right tabular-nums">{r.koPts}</td>
+                            <td className="px-3 py-2.5 text-right tabular-nums">{r.finalPts}</td>
+                            <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-amber-600 dark:text-amber-400">{r.bonus}</td>
+                          </>
+                        )}
+                        <td className="px-3 py-2.5 text-right text-base font-black tabular-nums text-primary">{r.pts}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{r.exact}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{r.good}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
