@@ -448,7 +448,14 @@ function Leaderboard() {
                                 {r.name}
                                 {isMe && <Badge className="ml-2 bg-[#7B2CBF] text-[10px] text-white">Moi</Badge>}
                               </td>
-                              {isAdmin && <td className="px-3 py-2.5"><Badge variant="secondary">{DEPOT_LABEL[r.depot] || r.depot}</Badge></td>}
+                              {isAdmin && (
+                                <td className="px-3 py-2.5">
+                                  <div className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-1">
+                                    <img src={DEPOT_LOGO[r.depot]} alt="" className="h-5 w-5 rounded-full object-cover" />
+                                    <span className="text-xs font-semibold">{DEPOT_LABEL[r.depot] || r.depot}</span>
+                                  </div>
+                                </td>
+                              )}
                               <td className="px-3 py-2.5">
                                 <PickCell value={r.winnerTeam} bonus={r.winnerBonus} fallback="—" />
                               </td>
