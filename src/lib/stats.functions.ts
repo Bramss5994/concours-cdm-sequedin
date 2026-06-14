@@ -38,15 +38,27 @@ export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler
     const totalUsers = activeUsers.length;
     const activeUserIds = new Set(activeUsers.map((u) => u.id));
 
-    // Compter les pronostics
-    const { data: preds, error: prErr } = await supabaseAdmin
-      .from("predictions")
-      .select("user_id");
-    if (prErr) throw new Error(prErr.message);
+    // Compter les pronostics (paginé, Supabase limite à 1000 par requête)
+    const preds: { user_id: string }[] = [];
+    {
+      const pageSize = 1000;
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabaseAdmin
+          .from("predictions")
+          .select("user_id")
+          .range(from, from + pageSize - 1);
+        if (error) throw new Error(error.message);
+        const batch = data ?? [];
+        preds.push(...batch);
+        if (batch.length < pageSize) break;
+        from += pageSize;
+      }
+    }
 
     const participants = new Set<string>();
     let totalPredictions = 0;
-    for (const p of preds || []) {
+    for (const p of preds) {
       if (activeUserIds.has(p.user_id)) {
         participants.add(p.user_id);
         totalPredictions++;
@@ -56,6 +68,7 @@ export const getParticipationStatsFn = createServerFn({ method: "GET" }).handler
     const usersWithPredictions = participants.size;
     const participationRate =
       totalUsers > 0 ? Math.round((usersWithPredictions / totalUsers) * 100) : 0;
+
 
     // Compter par dépôt
     const depotCounts = new Map<string, number>();
