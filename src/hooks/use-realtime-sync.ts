@@ -10,7 +10,7 @@ export function useRealtimeSync() {
   const qc = useQueryClient();
   useEffect(() => {
     const channel = supabase
-      .channel("realtime:matches-predictions")
+      .channel(`realtime:matches-predictions:${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
         qc.invalidateQueries({ queryKey: ["matches"] });
         qc.invalidateQueries({ queryKey: ["leaderboard-data"] });
