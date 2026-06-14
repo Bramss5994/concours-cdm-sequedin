@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getParticipationStatsFn } from "@/lib/stats.functions";
 import { NextMatchCountdown } from "@/components/NextMatchCountdown";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 const MESSAGES = [
   "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH",
@@ -13,8 +14,9 @@ const MESSAGES = [
 ];
 
 function useClock() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -22,18 +24,20 @@ function useClock() {
 }
 
 export function BusLockBanner() {
+  useRealtimeSync();
   const fetchStats = useServerFn(getParticipationStatsFn);
   const { data } = useQuery({
     queryKey: ["participation-stats"],
     queryFn: () => fetchStats(),
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
+    staleTime: 5_000,
   });
 
   const now = useClock();
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  const ss = String(now.getSeconds()).padStart(2, "0");
-  const blink = now.getSeconds() % 2 === 0;
+  const hh = now ? String(now.getHours()).padStart(2, "0") : "--";
+  const mm = now ? String(now.getMinutes()).padStart(2, "0") : "--";
+  const ss = now ? String(now.getSeconds()).padStart(2, "0") : "--";
+  const blink = now ? now.getSeconds() % 2 === 0 : true;
 
   const stats = [
     { icon: Users, label: "Inscrits", value: data?.totalUsers ?? "—" },
