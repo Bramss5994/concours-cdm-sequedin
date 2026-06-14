@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bus, Users, ClipboardList, Activity, Calendar, Radio } from "lucide-react";
+import { Bus, Users, ClipboardList, Activity, Calendar } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getParticipationStatsFn } from "@/lib/stats.functions";
 import { NextMatchCountdown } from "@/components/NextMatchCountdown";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 const MESSAGES = [
   "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH",
@@ -13,8 +14,9 @@ const MESSAGES = [
 ];
 
 function useClock() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -22,18 +24,20 @@ function useClock() {
 }
 
 export function BusLockBanner() {
+  useRealtimeSync();
   const fetchStats = useServerFn(getParticipationStatsFn);
   const { data } = useQuery({
     queryKey: ["participation-stats"],
     queryFn: () => fetchStats(),
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
+    staleTime: 5_000,
   });
 
   const now = useClock();
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  const ss = String(now.getSeconds()).padStart(2, "0");
-  const blink = now.getSeconds() % 2 === 0;
+  const hh = now ? String(now.getHours()).padStart(2, "0") : "--";
+  const mm = now ? String(now.getMinutes()).padStart(2, "0") : "--";
+  const ss = now ? String(now.getSeconds()).padStart(2, "0") : "--";
+  const blink = now ? now.getSeconds() % 2 === 0 : true;
 
   const stats = [
     { icon: Users, label: "Inscrits", value: data?.totalUsers ?? "—" },
@@ -197,15 +201,6 @@ export function BusLockBanner() {
                 ))}
               </div>
 
-              {/* Bandeau ligne / opérateur */}
-              <div className="mt-2 flex items-center justify-between gap-2 rounded-sm border border-white/10 bg-black/40 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-white/60">
-                <span className="flex items-center gap-1.5">
-                  <Radio className="h-3 w-3 text-cyan-300" />
-                  <span>Ligne CDM26</span>
-                  <span className="rounded-sm bg-cyan-400/20 px-1 py-px text-cyan-200">A</span>
-                </span>
-                <span>Kéolis · Ilévia</span>
-              </div>
             </div>
 
             {/* Bottom rail */}
@@ -219,30 +214,6 @@ export function BusLockBanner() {
             <div className="mx-auto mt-1 h-3 w-56 rounded-[50%] bg-gradient-to-b from-cyan-400/20 to-transparent blur-md" />
             <div className="mx-auto h-[2px] w-72 rounded-[50%] bg-amber-300/20 blur-sm" />
           </div>
-
-          {/* Bus qui passe en arrière-plan */}
-          <motion.div
-            className="pointer-events-none absolute bottom-8 left-0 z-0"
-            initial={{ x: "-30%" }}
-            animate={{ x: "calc(100vw + 30%)" }}
-            transition={{ duration: 22, repeat: Infinity, ease: "linear", delay: 4 }}
-          >
-            <div className="relative h-6 w-20 opacity-50">
-              {/* Caisse */}
-              <div className="absolute inset-0 rounded-md bg-gradient-to-b from-red-600 to-red-800 shadow-[0_4px_12px_rgba(220,38,38,0.4)]" />
-              {/* Fenêtres */}
-              <div className="absolute inset-x-1.5 top-1 h-2 rounded-sm bg-gradient-to-b from-sky-200/70 to-sky-400/40" />
-              {/* Phare */}
-              <motion.div
-                className="absolute right-0 top-2 h-1.5 w-1.5 rounded-full bg-amber-100 shadow-[0_0_10px_rgba(254,243,199,1)]"
-                animate={{ opacity: [1, 0.7, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
-              />
-              {/* Roues */}
-              <div className="absolute -bottom-1 left-2 h-2 w-2 rounded-full bg-zinc-900 ring-1 ring-zinc-700" />
-              <div className="absolute -bottom-1 right-2 h-2 w-2 rounded-full bg-zinc-900 ring-1 ring-zinc-700" />
-            </div>
-          </motion.div>
 
           {/* Sol */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2 bg-gradient-to-t from-black to-transparent" />
