@@ -124,14 +124,32 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
   const locked = isLocked(match.kickoff_at);
 
   async function save() {
-    if (!user) return;
+    if (!user) {
+      toast.error("Connectez-vous pour enregistrer un pronostic.");
+      return;
+    }
+    const a = Number(scoreA);
+    const b = Number(scoreB);
+    if (scoreA === "" || scoreB === "" || Number.isNaN(a) || Number.isNaN(b)) {
+      toast.error("Veuillez saisir les deux scores.");
+      return;
+    }
     setBusy(true);
-    const { error } = await supabase.from("predictions")
-      .upsert({ user_id: user.id, match_id: match.id, score_a: Number(scoreA), score_b: Number(scoreB) }, { onConflict: "user_id,match_id" });
-    setBusy(false);
-    if (!error) {
-      toast.success("Pronostic enregistré");
-      qc.invalidateQueries({ queryKey: ["predictions"] });
+    try {
+      const { error } = await supabase.from("predictions")
+        .upsert({ user_id: user.id, match_id: match.id, score_a: a, score_b: b }, { onConflict: "user_id,match_id", returning: "representation" });
+      if (error) {
+        console.error("Prediction save error:", error);
+        toast.error(`Erreur en enregistrant le pronostic: ${error.message}`);
+      } else {
+        toast.success("Pronostic enregistré");
+        qc.invalidateQueries({ queryKey: ["predictions"] });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur réseau lors de l'enregistrement du pronostic.");
+    } finally {
+      setBusy(false);
     }
   }
 
