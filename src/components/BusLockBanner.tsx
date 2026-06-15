@@ -8,9 +8,7 @@ import { NextMatchCountdown } from "@/components/NextMatchCountdown";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 const MESSAGES = [
-  "PRONOSTICS VERROUILLÉS 1H AVANT CHAQUE MATCH",
-  "FIFA WORLD CUP 26 · TENTEZ LE SCORE EXACT POUR +3 PTS",
-  "RDV SUR L'APP POUR PRONOSTIQUER LE PROCHAIN MATCH",
+  "PRONOSTICS VERROUILLÉS 1H AVANT LE COUP D'ENVOI",
 ];
 
 function useClock() {
