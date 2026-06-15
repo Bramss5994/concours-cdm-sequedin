@@ -387,14 +387,13 @@ function MatchesPage() {
 
         const stagesByKey: Record<string, Match[]> = {};
         for (const m of knockoutMatches) {
-          // Treat legacy 'r32' as 'r16' (map to Seizièmes/16èmes)
-          const s = m.stage === 'r32' ? 'r16' : (m.stage || 'other');
+          const s = m.stage || 'other';
           if (!stagesByKey[s]) stagesByKey[s] = [];
           stagesByKey[s].push(m);
         }
 
         const groupLetters = Object.keys(groupsByLetter).sort();
-        const stageOrder = ['r16','qf','sf','third','final'];
+        const stageOrder = ['r32','r16','r8','qf','sf','third','final'];
         const stageKeys = Object.keys(stagesByKey).sort((a, b) => {
           const ia = stageOrder.indexOf(a);
           const ib = stageOrder.indexOf(b);
@@ -407,7 +406,9 @@ function MatchesPage() {
         if (groupLetters.length === 0 && stageKeys.length === 0 && otherMatches.length === 0) return null;
 
         const stageLabels: Record<string, string> = {
-          r16: "Seizièmes de finale",
+          r32: "Seizièmes de finale",
+          r16: "Huitièmes de finale",
+          r8: "Quarts de finale",
           qf: "Quarts de finale",
           sf: "Demi-finales",
           third: "Match pour la 3ᵉ place",
