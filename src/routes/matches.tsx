@@ -387,7 +387,8 @@ function MatchesPage() {
 
         const stagesByKey: Record<string, Match[]> = {};
         for (const m of knockoutMatches) {
-          const s = m.stage || 'other';
+          // Treat legacy 'r32' as 'r16' (map to Seizièmes/16èmes)
+          const s = m.stage === 'r32' ? 'r16' : (m.stage || 'other');
           if (!stagesByKey[s]) stagesByKey[s] = [];
           stagesByKey[s].push(m);
         }
