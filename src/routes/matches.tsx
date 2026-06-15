@@ -351,9 +351,12 @@ function MatchesPage() {
       })()}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {matches.map((m) => (
-          <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} />
-        ))}
+        {(matches as Match[])
+          .filter((m) => !m.finished && !isLocked(m.kickoff_at))
+          .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
+          .map((m) => (
+            <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} />
+          ))}
       </div>
     </div>
   );
