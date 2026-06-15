@@ -1,0 +1,1 @@
+﻿stage,group_letter,matchday,team_a,team_b,kickoff_at,stadium,score_a,score_b,finished,api_fixture_id\n# Exemple (ISO UTC):\n# r16,A,1,France,Argentina,2026-06-12T18:00:00Z,Estadio Azteca,,,false,12345\n
