@@ -393,7 +393,15 @@ function MatchesPage() {
         }
 
         const groupLetters = Object.keys(groupsByLetter).sort();
-        const stageKeys = Object.keys(stagesByKey).sort((a, b) => a.localeCompare(b));
+        const stageOrder = ['r16','qf','sf','third','final'];
+        const stageKeys = Object.keys(stagesByKey).sort((a, b) => {
+          const ia = stageOrder.indexOf(a);
+          const ib = stageOrder.indexOf(b);
+          if (ia === -1 && ib === -1) return a.localeCompare(b);
+          if (ia === -1) return 1;
+          if (ib === -1) return -1;
+          return ia - ib;
+        });
 
         if (groupLetters.length === 0 && stageKeys.length === 0 && otherMatches.length === 0) return null;
 
