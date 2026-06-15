@@ -497,6 +497,9 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
           teamB={match.team_b?.name}
         />
       )}
+
+      {/* Diffuseurs TV */}
+      {!match.finished && <BroadcastersList match={match} />}
     </Card>
   );
 }
