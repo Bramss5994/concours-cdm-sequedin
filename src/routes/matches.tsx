@@ -156,7 +156,7 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
   return (
     <Card className="relative overflow-hidden group hover:shadow-2xl transition-all duration-300 border-primary/20 bg-card p-4">
       {/* Effet visuel lumineux */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
       
       <div className="flex justify-between text-xs text-muted-foreground mb-4">
         <span>{match.kickoff_at ? formatFR(match.kickoff_at) : "—"}</span>
