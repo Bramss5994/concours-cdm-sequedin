@@ -135,6 +135,71 @@ function TeamBlock({ team, placeholder, align = "center" }: { team: Match["team_
   );
 }
 
+type Broadcaster = { name: string; logo: string; color: string };
+
+const BROADCASTERS: Record<string, Broadcaster> = {
+  bein: {
+    name: "beIN SPORTS",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/2017_beIN_Sports_logo.svg/200px-2017_beIN_Sports_logo.svg.png",
+    color: "#7a1f3d",
+  },
+  tf1: {
+    name: "TF1",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/TF1_logo_2013.svg/200px-TF1_logo_2013.svg.png",
+    color: "#0a3c8a",
+  },
+  m6: {
+    name: "M6",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/M6_2009.svg/200px-M6_2009.svg.png",
+    color: "#000",
+  },
+};
+
+function getBroadcasters(match: Match): Broadcaster[] {
+  const list: Broadcaster[] = [BROADCASTERS.bein];
+  const stage = match.stage || "";
+  const isKnockout = ["r16", "r8", "qf", "sf", "third", "final"].includes(stage);
+  const involvesFrance =
+    /^france$|^équipe de france/i.test(match.team_a?.name || "") ||
+    /^france$|^équipe de france/i.test(match.team_b?.name || "") ||
+    match.team_a?.code === "FRA" ||
+    match.team_b?.code === "FRA";
+  if (isKnockout || involvesFrance) list.push(BROADCASTERS.tf1);
+  if (stage === "final" || stage === "sf") list.push(BROADCASTERS.m6);
+  return list;
+}
+
+function BroadcastersList({ match }: { match: Match }) {
+  const bc = getBroadcasters(match);
+  if (bc.length === 0) return null;
+  return (
+    <div className="mt-3 pt-3 border-t border-border/60">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Diffusion
+        </span>
+        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+          {bc.map((b) => (
+            <span
+              key={b.name}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border/60 bg-background px-2 py-1 shadow-sm"
+              title={b.name}
+            >
+              <img
+                src={b.logo}
+                alt={b.name}
+                className="h-4 w-auto object-contain"
+                loading="lazy"
+              />
+              <span className="text-[10px] font-semibold text-foreground/80">{b.name}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GoalscorersList({ goalscorers, teamA, teamB }: {
   goalscorers: Goalscorer[];
   teamA?: string;
@@ -432,6 +497,9 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
           teamB={match.team_b?.name}
         />
       )}
+
+      {/* Diffuseurs TV */}
+      {!match.finished && <BroadcastersList match={match} />}
     </Card>
   );
 }
