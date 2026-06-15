@@ -17,8 +17,8 @@ type Match = {
   id: string; 
   kickoff_at: string; 
   stadium: string;
-  team_a: { name: string; flag: string }; 
-  team_b: { name: string; flag: string }; 
+  team_a: { name: string; code?: string } | null; 
+  team_b: { name: string; code?: string } | null; 
   finished: boolean; 
   score_a: number | null; 
   score_b: number | null 
