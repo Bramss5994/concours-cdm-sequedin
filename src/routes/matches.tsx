@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { isLocked } from "@/lib/time";
 import { toast } from "sonner";
 import { Loader2, Trophy, BarChart3 } from "lucide-react";
+import { flagUrl, flagSrcSet } from "@/lib/flag";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
