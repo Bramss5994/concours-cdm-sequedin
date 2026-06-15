@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button3D } from "@/components/Button3D";
-import { Lock, CheckCircle2, MapPin, Trophy, Minus, Plus, Radio, Tv, Calendar as CalendarIcon } from "lucide-react";
+import { Lock, CheckCircle2, MapPin, Trophy, Minus, Plus, Radio, Tv, Calendar as CalendarIcon, Users } from "lucide-react";
 import { flagSrcSet } from "@/lib/flag";
 import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
 import { teamPalette } from "@/lib/team-colors";
@@ -50,6 +50,7 @@ type Match = {
 };
 
 type Prediction = { match_id: string; score_a: number; score_b: number; points: number };
+type MatchStats = { a: number; b: number; draw: number; total: number };
 
 const STAGES: { value: string; label: string }[] = [
   { value: "calendar", label: "Calendrier" },
@@ -67,6 +68,7 @@ function MatchesPage() {
   const { user, loading } = useAuth();
   const [stage, setStage] = useState("calendar");
 
+  // Récupération des matchs
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ["matches"],
     queryFn: async () => {
@@ -81,7 +83,7 @@ function MatchesPage() {
     refetchOnWindowFocus: true,
   });
 
-
+  // Récupération des pronostics de l'utilisateur connecté
   const { data: predictions = [] } = useQuery({
     queryKey: ["predictions", user?.id],
     enabled: !!user,
@@ -92,7 +94,31 @@ function MatchesPage() {
     },
   });
 
+  // Récupération de TOUS les pronostics pour faire les statistiques (anonymisé)
+  const { data: allPredictions = [] } = useQuery({
+    queryKey: ["all_predictions_stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("predictions").select("match_id, score_a, score_b");
+      if (error) throw error;
+      return data as { match_id: string; score_a: number; score_b: number }[];
+    },
+  });
+
   const predByMatch = useMemo(() => Object.fromEntries(predictions.map((p) => [p.match_id, p])), [predictions]);
+
+  // Calcul des statistiques globales par match
+  const statsByMatch = useMemo(() => {
+    const stats: Record<string, MatchStats> = {};
+    for (const p of allPredictions) {
+      if (!stats[p.match_id]) stats[p.match_id] = { a: 0, b: 0, draw: 0, total: 0 };
+      const s = stats[p.match_id];
+      s.total++;
+      if (p.score_a > p.score_b) s.a++;
+      else if (p.score_a < p.score_b) s.b++;
+      else s.draw++;
+    }
+    return stats;
+  }, [allPredictions]);
 
   if (loading) return null;
 
@@ -140,12 +166,12 @@ function MatchesPage() {
 
           <TabsContent value="calendar" className="mt-4">
             {isLoading ? <SkeletonGrid />
-              : <CalendarView matches={matches} predByMatch={predByMatch} canPredict={!!user} />}
+              : <CalendarView matches={matches} predByMatch={predByMatch} canPredict={!!user} statsByMatch={statsByMatch} />}
           </TabsContent>
 
           <TabsContent value="group" className="mt-4">
             {isLoading ? <SkeletonGrid />
-              : <GroupedMatches matches={matches.filter(m => m.stage === "group")} predByMatch={predByMatch} canPredict={!!user} />}
+              : <GroupedMatches matches={matches.filter(m => m.stage === "group")} predByMatch={predByMatch} canPredict={!!user} statsByMatch={statsByMatch} />}
           </TabsContent>
 
           <TabsContent value="ko" className="mt-4 space-y-8">
@@ -162,7 +188,7 @@ function MatchesPage() {
                     transition={{ duration: 0.4 }}
                   >
                     <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><Trophy className="h-5 w-5 text-primary" />{KO_LABEL[st]}</h2>
-                    <MatchList matches={list} predByMatch={predByMatch} canPredict={!!user} />
+                    <MatchList matches={list} predByMatch={predByMatch} canPredict={!!user} statsByMatch={statsByMatch} />
                   </motion.section>
                 );
               })}
@@ -183,7 +209,7 @@ function SkeletonGrid() {
   );
 }
 
-function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
+function CalendarView({ matches, predByMatch, canPredict, statsByMatch }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean; statsByMatch: Record<string, MatchStats> }) {
   const parisDateKey = (iso: string) => {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Paris",
@@ -246,7 +272,7 @@ function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; 
             >
               {list.map((m, i) => (
                 <motion.div key={m.id} variants={fadeUp} custom={i}>
-                  <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+                  <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} stats={statsByMatch[m.id]} />
                 </motion.div>
               ))}
             </motion.div>
@@ -257,7 +283,7 @@ function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; 
   );
 }
 
-function GroupedMatches({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
+function GroupedMatches({ matches, predByMatch, canPredict, statsByMatch }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean; statsByMatch: Record<string, MatchStats> }) {
   const groups: Record<string, Match[]> = {};
   for (const m of matches) {
     const g = m.group_letter || "?";
@@ -285,7 +311,7 @@ function GroupedMatches({ matches, predByMatch, canPredict }: { matches: Match[]
           >
             {groups[g].map((m, i) => (
               <motion.div key={m.id} variants={fadeUp} custom={i}>
-                <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+                <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} stats={statsByMatch[m.id]} />
               </motion.div>
             ))}
           </motion.div>
@@ -335,7 +361,7 @@ function GroupTable({ matches }: { matches: Match[] }) {
   );
 }
 
-function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
+function MatchList({ matches, predByMatch, canPredict, statsByMatch }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean; statsByMatch: Record<string, MatchStats> }) {
   return (
     <motion.div
       initial="hidden"
@@ -346,7 +372,7 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
     >
       {matches.map((m, i) => (
         <motion.div key={m.id} variants={fadeUp} custom={i}>
-          <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} />
+          <MatchCard match={m} prediction={predByMatch[m.id]} canPredict={canPredict} stats={statsByMatch[m.id]} />
         </motion.div>
       ))}
     </motion.div>
@@ -412,8 +438,8 @@ function ScoreStepper({ value, onChange, disabled, color }: { value: string; onC
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
           inputMode="numeric"
-          className="absolute inset-0 w-full bg-transparent text-center font-mono text-2xl font-black tabular-nums outline-none disabled:cursor-not-allowed"
-          style={{ color, textShadow: `0 0 8px ${color}, 0 0 2px ${color}` }}
+          className="absolute inset-0 w-full bg-transparent text-white text-center font-mono text-2xl font-black tabular-nums outline-none disabled:cursor-not-allowed"
+          style={{ textShadow: `0 0 8px ${color}, 0 0 2px ${color}` }}
         />
       </div>
       <button
@@ -475,7 +501,7 @@ function GoalTimeline({ goals, teamA, teamB }: { goals: Goalscorer[]; teamA: str
   );
 }
 
-function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
+function MatchCard({ match, prediction, canPredict, stats }: { match: Match; prediction?: Prediction; canPredict: boolean; stats?: MatchStats }) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const showFinalScore = match.finished && match.score_a != null && match.score_b != null;
@@ -501,7 +527,7 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
       .upsert({ user_id: user.id, match_id: match.id, score_a: a, score_b: b }, { onConflict: "user_id,match_id" });
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("✓ Pronostic enregistré"); qc.invalidateQueries({ queryKey: ["predictions"] }); }
+    else { toast.success("✓ Pronostic enregistré"); qc.invalidateQueries({ queryKey: ["predictions"] }); qc.invalidateQueries({ queryKey: ["all_predictions_stats"] }); }
   }
 
   const nameA = match.team_a?.name || match.team_a_placeholder || "À déterminer";
@@ -634,6 +660,26 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
                 {prediction.points > 0 && "+"}{prediction.points} pt{prediction.points > 1 ? "s" : ""}
               </Badge>
             </motion.div>
+          )}
+
+          {/* SECTION STATISTIQUES DES PRONOSTICS */}
+          {stats && stats.total > 0 && (
+            <div className="mt-4 rounded-lg bg-background/40 p-3 ring-1 ring-border/50">
+              <div className="mb-1.5 flex justify-between text-[10px] font-bold tracking-wider">
+                <span style={{ color: palA.primary }}>{Math.round((stats.a / stats.total) * 100)}%</span>
+                <span className="text-muted-foreground">{Math.round((stats.draw / stats.total) * 100)}% NUL</span>
+                <span style={{ color: palB.primary }}>{Math.round((stats.b / stats.total) * 100)}%</span>
+              </div>
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-muted opacity-80">
+                <div style={{ width: `${(stats.a / stats.total) * 100}%`, backgroundColor: palA.primary }} />
+                <div style={{ width: `${(stats.draw / stats.total) * 100}%`, backgroundColor: '#64748b' }} />
+                <div style={{ width: `${(stats.b / stats.total) * 100}%`, backgroundColor: palB.primary }} />
+              </div>
+              <div className="mt-2 flex items-center justify-center gap-1 text-[9px] text-muted-foreground uppercase">
+                <Users className="h-3 w-3" />
+                Basé sur {stats.total} pronostic{stats.total > 1 ? "s" : ""}
+              </div>
+            </div>
           )}
 
           {((match.goalscorers && match.goalscorers.length > 0) || match.stadium) && (
