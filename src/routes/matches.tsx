@@ -175,6 +175,45 @@ function GoalscorersList({ goalscorers, teamA, teamB }: {
   );
 }
 
+function LockCountdown({ kickoff }: { kickoff: string }) {
+  const lockTime = new Date(kickoff).getTime() - LOCK_MS;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const ms = lockTime - now;
+  if (ms <= 0) return null;
+  const totalSec = Math.floor(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const urgent = ms < 60 * 60 * 1000; // < 1h
+  const veryUrgent = ms < 10 * 60 * 1000; // < 10min
+
+  let display: string;
+  if (d > 0) display = `${d}j ${String(h).padStart(2, "0")}h ${String(m).padStart(2, "0")}m`;
+  else if (h > 0) display = `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+  else display = `${m}m ${String(s).padStart(2, "0")}s`;
+
+  return (
+    <div
+      className={`flex items-center justify-center gap-1.5 text-xs font-medium rounded-md py-1.5 px-2 ${
+        veryUrgent
+          ? "bg-red-100 text-red-800 animate-pulse"
+          : urgent
+            ? "bg-amber-100 text-amber-800"
+            : "bg-muted text-muted-foreground"
+      }`}
+    >
+      <Lock className="h-3 w-3" />
+      <span>Clôture dans</span>
+      <span className="font-bold tabular-nums">{display}</span>
+    </div>
+  );
+}
+
 function MatchCard({ match, prediction }: { match: Match; prediction?: Prediction }) {
   const qc = useQueryClient();
   const { user } = useAuth();
