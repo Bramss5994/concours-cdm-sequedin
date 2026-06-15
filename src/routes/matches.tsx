@@ -454,7 +454,7 @@ function MatchesPage() {
                               {teams.map((t, i) => (
                                 <div key={i} className="flex items-center gap-2 bg-muted/20 rounded-full px-3 py-1 text-sm">
                                   {t.code && <img src={flagUrl(t.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                                  <span className="font-medium truncate max-w-[140px]">{t.name}</span>
+                                  <span className="font-medium truncate max-w-[100px] sm:max-w-[140px]">{t.name}</span>
                                 </div>
                               ))}
                             </div>
@@ -479,7 +479,7 @@ function MatchesPage() {
                                       <MatchCard match={mm} prediction={predByMatch[mm.id]} />
                                     ) : (
                                       <div className="flex items-center justify-between rounded-lg border bg-white/80 p-2 md:p-3">
-                                        <div className="text-xs text-muted-foreground w-28 hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                                        <div className="text-xs text-muted-foreground w-20 sm:w-28 hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
                                         <div className="flex items-center gap-3 min-w-0">
                                           {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
                                           <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
@@ -492,7 +492,7 @@ function MatchesPage() {
                                           {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
                                         </div>
 
-                                        <div className="text-xs text-muted-foreground w-32 text-right hidden md:block">{mm.stadium}</div>
+                                        <div className="text-xs text-muted-foreground w-24 md:w-32 text-right hidden md:block">{mm.stadium}</div>
                                       </div>
                                     )}
                                   </div>
