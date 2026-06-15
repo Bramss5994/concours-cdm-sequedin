@@ -262,7 +262,9 @@ function BroadcastersList({ match }: { match: Match }) {
                 className="h-4 w-auto object-contain"
                 loading="lazy"
               />
-              <span className="text-[10px] font-semibold text-foreground/80">{b.name}</span>
+              {b.name !== "M6" && (
+                <span className="text-[10px] font-semibold text-foreground/80">{b.name}</span>
+              )}
             </span>
           ))}
         </div>
