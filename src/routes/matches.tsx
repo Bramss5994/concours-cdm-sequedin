@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { isLocked, formatFR } from "@/lib/time";
+import { isLocked, formatFR, LOCK_MS } from "@/lib/time";
 import { toast } from "sonner";
 import { Trophy, Lock, CheckCircle2, Radio, Goal } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
