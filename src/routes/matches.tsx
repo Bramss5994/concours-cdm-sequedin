@@ -350,14 +350,177 @@ function MatchesPage() {
         );
       })()}
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {(matches as Match[])
+      {/* Upcoming matches grouped: separate group stage and knockout/other stages */}
+      {(() => {
+        const upcoming = (matches as Match[])
           .filter((m) => !m.finished && !isLocked(m.kickoff_at))
-          .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
-          .map((m) => (
-            <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} />
-          ))}
-      </div>
+          .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+
+        const groupMatches = upcoming.filter((m) => m.stage === 'group');
+        const knockoutMatches = upcoming.filter((m) => m.stage && m.stage !== 'group');
+        const otherMatches = upcoming.filter((m) => !m.stage);
+
+        const groupsByLetter: Record<string, Match[]> = {};
+        for (const m of groupMatches) {
+          const g = m.group_letter || "?";
+          if (!groupsByLetter[g]) groupsByLetter[g] = [];
+          groupsByLetter[g].push(m);
+        }
+
+        const stagesByKey: Record<string, Match[]> = {};
+        for (const m of knockoutMatches) {
+          const s = m.stage || 'other';
+          if (!stagesByKey[s]) stagesByKey[s] = [];
+          stagesByKey[s].push(m);
+        }
+
+        const groupLetters = Object.keys(groupsByLetter).sort();
+        const stageKeys = Object.keys(stagesByKey).sort((a, b) => a.localeCompare(b));
+
+        if (groupLetters.length === 0 && stageKeys.length === 0 && otherMatches.length === 0) return null;
+
+        const stageLabels: Record<string, string> = {
+          r32: "32èmes de finale",
+          r16: "Huitièmes de finale",
+          qf: "Quarts de finale",
+          sf: "Demi-finales",
+          third: "Match pour la 3ᵉ place",
+          final: "Finale",
+        };
+
+        return (
+          <div className="space-y-6">
+            {/* Group stage sections - header + matchdays (compact list like the provided design) */}
+                {groupLetters.map((g) => {
+                  const teams = (groupStandings[g] || []).map((t) => ({ name: t.name, code: t.code }));
+                  // group matches by matchday
+                  const matchesOfGroup = (matches as Match[])
+                    .filter((mm) => mm.stage === 'group' && (mm.group_letter || '?') === g)
+                    .sort((a, b) => (a.matchday ?? 0) - (b.matchday ?? 0) || new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+                  const byMatchday: Record<number, Match[]> = {};
+                  for (const mm of matchesOfGroup) {
+                    const day = mm.matchday ?? 0;
+                    if (!byMatchday[day]) byMatchday[day] = [];
+                    byMatchday[day].push(mm);
+                  }
+
+                  return (
+                    <section key={`group-${g}`} aria-labelledby={`group-${g}`}>
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center text-2xl font-extrabold">{g}</div>
+                          <div>
+                            <h3 id={`group-${g}`} className="text-lg font-semibold">Groupe {g === '?' ? 'Divers' : g}</h3>
+                            <div className="mt-2 flex gap-2 flex-wrap">
+                              {teams.map((t, i) => (
+                                <div key={i} className="flex items-center gap-2 bg-muted/20 rounded-full px-3 py-1 text-sm">
+                                  {t.code && <img src={flagUrl(t.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                  <span className="font-medium truncate max-w-[140px]">{t.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground hidden md:block">Matchdays</div>
+                      </div>
+
+                      {/* Matchday list */}
+                      <div className="space-y-4">
+                        {Object.keys(byMatchday).map((k) => {
+                          const dayNum = Number(k);
+                          const mdMatches = byMatchday[dayNum];
+                          return (
+                            <div key={`md-${g}-${k}`} className="">
+                              <div className="inline-block bg-card rounded-full px-3 py-1 text-xs font-bold mb-2">Journée {dayNum}</div>
+                              <div className="grid gap-2">
+                                {mdMatches.map((mm) => (
+                                  <div key={mm.id} className="flex items-center justify-between rounded-lg border bg-white/80 p-2 md:p-3">
+                                    <div className="text-xs text-muted-foreground w-28 hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                      <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
+                                    </div>
+
+                                    <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+
+                                    <div className="flex items-center gap-3 min-w-0 justify-end">
+                                      <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
+                                      {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                    </div>
+
+                                    <div className="text-xs text-muted-foreground w-32 text-right hidden md:block">{mm.stadium}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
+
+            {/* Knockout / Final stages */}
+            {stageKeys.length > 0 && (
+              <section aria-labelledby="knockout-title">
+                <h3 id="knockout-title" className="text-lg font-semibold mb-2">Phase finale</h3>
+                {stageKeys.map((sk) => (
+                  <div key={`stage-${sk}`} className="mb-4">
+                    <h4 className="text-sm font-medium mb-2">{stageLabels[sk] || sk}</h4>
+                    <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                      {stagesByKey[sk].sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()).map((mm) => (
+                        <article key={mm.id} className="rounded-xl border bg-card p-3 shadow-sm transform-gpu will-change-transform transition-transform duration-300 hover:scale-105 hover:-rotate-1 hover:shadow-2xl" style={{ perspective: 800 }}>
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 40)} alt={mm.team_a?.name || ''} className="h-6 w-8 rounded-sm object-cover" />}
+                              <div className="truncate text-sm font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
+                            </div>
+
+                            <div className="text-center">
+                              <div className="text-xs text-muted-foreground hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                              <div className="font-bold text-lg">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                            </div>
+
+                            <div className="flex items-center gap-2 min-w-0 justify-end">
+                              <div className="truncate text-sm font-medium text-right">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
+                              {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 40)} alt={mm.team_b?.name || ''} className="h-6 w-8 rounded-sm object-cover" />}
+                            </div>
+                          </div>
+
+                          <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                            <div className="truncate sm:hidden">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                            <div className="truncate text-right w-2/3 sm:w-auto hidden md:block">{mm.stadium}</div>
+                            <div className="ml-2 text-right">{mm.live_elapsed ? `${mm.live_elapsed}'` : (mm.live_status || '')}</div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            )}
+
+            {/* Other matches with no stage */}
+            {otherMatches.length > 0 && (
+              <section aria-labelledby="other-title">
+                <h3 id="other-title" className="text-lg font-semibold mb-2">Autres rencontres</h3>
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {otherMatches.map((mm) => (
+                    <article key={mm.id} className="rounded-xl border bg-card p-3 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="truncate">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
+                        <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                        <div className="truncate text-right">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
