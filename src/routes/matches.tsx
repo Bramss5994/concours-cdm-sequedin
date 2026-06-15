@@ -144,7 +144,7 @@ const BROADCASTERS: Record<string, Broadcaster> = {
   },
   m6: {
     name: "M6",
-    logo: "https://upload.wikimedia.org/wikipedia/fr/thumb/c/c2/M6_logo_%282020%29.svg/240px-M6_logo_%282020%29.svg.png",
+    logo: m6Logo.url,
   },
 };
 
