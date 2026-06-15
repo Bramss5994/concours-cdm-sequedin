@@ -192,7 +192,7 @@ function MatchesPage() {
     <div className="container mx-auto py-8">
       <div className="flex items-center gap-3 mb-8">
         <Trophy className="text-primary h-8 w-8" />
-        <h1 className="text-3xl font-extrabold tracking-tight">Pronos Sequedin 2026</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Pronos Coupe du Monde 2026</h1>
       </div>
 
       {/* Section: Matchs en cours */}
