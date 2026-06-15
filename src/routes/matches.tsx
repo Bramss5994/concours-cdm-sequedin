@@ -190,10 +190,10 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
       </div>
 
       <div className="flex items-center justify-center gap-3">
-         <input type="number" value={scoreA} onChange={(e) => setScoreA(e.target.value)} disabled={locked || busy} className="w-14 p-2 border rounded-lg text-center font-bold text-lg bg-background" />
+         <input type="number" value={scoreA} onChange={(e) => setScoreA(e.target.value)} disabled={busy} className="w-14 p-2 border rounded-lg text-center font-bold text-lg bg-background" />
          <span className="font-bold"> - </span>
-         <input type="number" value={scoreB} onChange={(e) => setScoreB(e.target.value)} disabled={locked || busy} className="w-14 p-2 border rounded-lg text-center font-bold text-lg bg-background" />
-         <Button onClick={save} disabled={locked || busy} className="ml-2">OK</Button>
+         <input type="number" value={scoreB} onChange={(e) => setScoreB(e.target.value)} disabled={busy} className="w-14 p-2 border rounded-lg text-center font-bold text-lg bg-background" />
+         <Button onClick={save} disabled={busy} className="ml-2">OK</Button>
       </div>
     </Card>
   );
