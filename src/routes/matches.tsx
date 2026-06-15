@@ -17,11 +17,21 @@ type Match = {
   id: string; 
   kickoff_at: string; 
   stadium: string;
+  api_fixture_id?: number | null;
   team_a: { name: string; code?: string } | null; 
   team_b: { name: string; code?: string } | null; 
   finished: boolean; 
   score_a: number | null; 
-  score_b: number | null 
+  score_b: number | null;
+  goalscorers?: Array<{
+    minute: number | null;
+    extra: number | null;
+    team: string;
+    player: string;
+    api_player_id?: number | null;
+    assist?: string | null;
+    type?: string;
+  }> | null;
 };
 
 type Prediction = { match_id: string; score_a: number; score_b: number };
