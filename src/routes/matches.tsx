@@ -205,6 +205,7 @@ function MatchesPage() {
   const { data: predictions = [] } = useQuery({ queryKey: ["predictions", user?.id], enabled: !!user, queryFn: async () => { const { data } = await supabase.from("predictions").select("*").eq("user_id", user!.id); return data as Prediction[]; } });
 
   const predByMatch = Object.fromEntries(predictions.map((p) => [p.match_id, p]));
+  const groupStandings = computeGroupStandings(matches as Match[]);
 
   return (
     <div className="container mx-auto py-8">
@@ -257,8 +258,7 @@ function MatchesPage() {
       })()}
 
       {(() => {
-        const groupStandings = computeGroupStandings(matches as Match[]);
-        const groupLetters = Object.keys(groupStandings).sort();
+        const groupLetters = Object.keys(computeGroupStandings(matches as Match[])).sort();
         if (groupLetters.length === 0) return null;
         const tabs = ['all', ...groupLetters];
         return (
