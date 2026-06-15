@@ -135,37 +135,107 @@ function TeamBlock({ team, placeholder, align = "center" }: { team: Match["team_
   );
 }
 
-type Broadcaster = { name: string; logo: string; color: string };
+type Broadcaster = { name: string; logo: string };
 
 const BROADCASTERS: Record<string, Broadcaster> = {
   bein: {
     name: "beIN SPORTS",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/2017_beIN_Sports_logo.svg/200px-2017_beIN_Sports_logo.svg.png",
-    color: "#7a1f3d",
-  },
-  tf1: {
-    name: "TF1",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/TF1_logo_2013.svg/200px-TF1_logo_2013.svg.png",
-    color: "#0a3c8a",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/2017_beIN_Sports_logo.svg/320px-2017_beIN_Sports_logo.svg.png",
   },
   m6: {
     name: "M6",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/M6_2009.svg/200px-M6_2009.svg.png",
-    color: "#000",
+    logo: "https://upload.wikimedia.org/wikipedia/fr/thumb/c/c2/M6_logo_%282020%29.svg/240px-M6_logo_%282020%29.svg.png",
   },
 };
+
+// Normalise un nom (minuscule, sans accents, sans non-alpha) pour comparer
+// les noms d'équipes peu importe l'orthographe.
+function normTeam(s?: string | null): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]/g, "");
+}
+
+// Clé d'une rencontre indépendante de l'ordre (team_a/team_b).
+function pairKey(a?: string | null, b?: string | null): string {
+  return [normTeam(a), normTeam(b)].sort().join("|");
+}
+
+// Liste officielle (L'Équipe) des matchs de phase de groupes diffusés sur M6.
+// Tous les matchs de la France, les demi-finales, la 3e place et la finale
+// sont également sur M6 (gérés par règle ci-dessous).
+const M6_GROUP_PAIRS = new Set<string>(
+  [
+    ["Espagne", "Cap-Vert"],
+    ["Belgique", "Égypte"],
+    ["Arabie saoudite", "Uruguay"],
+    ["France", "Sénégal"],
+    ["Irak", "Norvège"],
+    ["Portugal", "RD Congo"],
+    ["Angleterre", "Croatie"],
+    ["République tchèque", "Afrique du Sud"],
+    ["Suisse", "Bosnie-Herzégovine"],
+    ["États-Unis", "Australie"],
+    ["Etats-Unis", "Australie"],
+    ["Écosse", "Maroc"],
+    ["Ecosse", "Maroc"],
+    ["Pays-Bas", "Suède"],
+    ["Allemagne", "Côte d'Ivoire"],
+    ["Espagne", "Arabie saoudite"],
+    ["Belgique", "Iran"],
+    ["Argentine", "Autriche"],
+    ["France", "Irak"],
+    ["Portugal", "Ouzbékistan"],
+    ["Angleterre", "Ghana"],
+    ["Suisse", "Canada"],
+    ["Écosse", "Brésil"],
+    ["Ecosse", "Brésil"],
+    ["Maroc", "Haïti"],
+    ["Équateur", "Allemagne"],
+    ["Equateur", "Allemagne"],
+    ["Tunisie", "Pays-Bas"],
+    ["Norvège", "France"],
+    ["Panama", "Angleterre"],
+    ["Croatie", "Ghana"],
+    ["Colombie", "Portugal"],
+    // Matchs déjà passés diffusés sur M6 (jeudi 11 → dimanche 14 juin)
+    ["Mexique", "Afrique du Sud"],
+    ["Corée du Sud", "République tchèque"],
+    ["Canada", "Bosnie-Herzégovine"],
+    ["États-Unis", "Paraguay"],
+    ["Etats-Unis", "Paraguay"],
+    ["Qatar", "Suisse"],
+    ["Brésil", "Maroc"],
+    ["Haïti", "Écosse"],
+    ["Haïti", "Ecosse"],
+    ["Australie", "Turquie"],
+    ["Allemagne", "Curaçao"],
+    ["Pays-Bas", "Japon"],
+    ["Côte d'Ivoire", "Équateur"],
+    ["Côte d'Ivoire", "Equateur"],
+    ["Suède", "Tunisie"],
+  ].map(([a, b]) => pairKey(a, b)),
+);
+
+function teamIsFrance(t?: { name?: string; code?: string } | null): boolean {
+  if (!t) return false;
+  if (t.code === "FRA") return true;
+  return normTeam(t.name) === "france";
+}
 
 function getBroadcasters(match: Match): Broadcaster[] {
   const list: Broadcaster[] = [BROADCASTERS.bein];
   const stage = match.stage || "";
-  const isKnockout = ["r16", "r8", "qf", "sf", "third", "final"].includes(stage);
-  const involvesFrance =
-    /^france$|^équipe de france/i.test(match.team_a?.name || "") ||
-    /^france$|^équipe de france/i.test(match.team_b?.name || "") ||
-    match.team_a?.code === "FRA" ||
-    match.team_b?.code === "FRA";
-  if (isKnockout || involvesFrance) list.push(BROADCASTERS.tf1);
-  if (stage === "final" || stage === "sf") list.push(BROADCASTERS.m6);
+  const involvesFrance = teamIsFrance(match.team_a) || teamIsFrance(match.team_b);
+  const lateStage = stage === "sf" || stage === "third" || stage === "final";
+  const onM6 =
+    involvesFrance ||
+    lateStage ||
+    M6_GROUP_PAIRS.has(pairKey(match.team_a?.name, match.team_b?.name)) ||
+    M6_GROUP_PAIRS.has(pairKey(match.team_a_placeholder, match.team_b_placeholder));
+  if (onM6) list.push(BROADCASTERS.m6);
   return list;
 }
 
