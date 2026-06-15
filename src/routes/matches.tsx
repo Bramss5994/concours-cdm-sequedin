@@ -120,7 +120,7 @@ function TeamBlock({ team, placeholder, align = "center" }: { team: Match["team_
     <div className={`flex flex-col items-${align} gap-2 min-w-0`}>
       {team?.code ? (
         <img
-          src={flagUrl(team.code, 48)}
+          src={flagUrl(team.code, 80)}
           srcSet={flagSrcSet(team.code)}
           alt={name}
           className="h-10 w-14 rounded-sm object-cover ring-1 ring-border shadow-sm"
@@ -465,7 +465,7 @@ function MatchesPage() {
                           <tr key={t.team_id} className="border-t">
                             <td className="py-1.5 flex items-center gap-2">
                               <span className="text-xs text-muted-foreground w-4">{i + 1}.</span>
-                              {t.code && <img src={flagUrl(t.code, 20)} alt="" className="h-3.5 w-5 rounded-sm object-cover" />}
+                              {t.code && <img src={flagUrl(t.code, 40)} alt="" className="h-3.5 w-5 rounded-sm object-cover" />}
                               <span>{t.name}</span>
                             </td>
                             <td className="text-center px-1">{t.played}</td>
