@@ -398,8 +398,7 @@ function MatchesPage() {
         if (groupLetters.length === 0 && stageKeys.length === 0 && otherMatches.length === 0) return null;
 
         const stageLabels: Record<string, string> = {
-          r32: "32èmes de finale",
-          r16: "Huitièmes de finale",
+          r16: "Seizièmes de finale",
           qf: "Quarts de finale",
           sf: "Demi-finales",
           third: "Match pour la 3ᵉ place",
