@@ -68,8 +68,12 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex flex-col items-center gap-2">
-           <span className="text-3xl">{match.team_a?.flag}</span>
-           <span className="font-bold text-sm">{match.team_a?.name}</span>
+          {match.team_a?.code ? (
+            <img src={flagUrl(match.team_a.code, 40)} srcSet={flagSrcSet(match.team_a.code)} alt={match.team_a?.name || ''} className="h-8 w-12 rounded-sm object-cover" />
+          ) : (
+            <span className="text-3xl">{match.team_a?.name?.charAt(0) ?? "?"}</span>
+          )}
+          <span className="font-bold text-sm">{match.team_a?.name}</span>
         </div>
         <div className="flex flex-col items-center gap-1">
             <span className="text-xs text-muted-foreground flex items-center gap-1"><BarChart3 size={12}/> Stats</span>
