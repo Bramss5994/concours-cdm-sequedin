@@ -569,7 +569,7 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
       )}
 
       {/* Diffuseurs TV */}
-      {!match.finished && <BroadcastersList match={match} />}
+      <BroadcastersList match={match} />
     </Card>
   );
 }
