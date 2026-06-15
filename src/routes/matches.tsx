@@ -306,6 +306,7 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
       {/* Prediction form OR result row */}
       {!match.finished ? (
         <div className="space-y-3">
+          {!locked && <LockCountdown kickoff={match.kickoff_at} />}
           <div className="flex items-center justify-center gap-2">
             <input
               type="number"
