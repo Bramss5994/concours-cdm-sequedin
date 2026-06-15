@@ -12,6 +12,7 @@ import { Trophy, Lock, CheckCircle2, Radio, Goal } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+import m6Logo from "@/assets/m6.png.asset.json";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
