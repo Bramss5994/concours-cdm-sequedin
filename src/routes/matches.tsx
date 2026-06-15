@@ -12,6 +12,7 @@ import { Trophy, Lock, CheckCircle2, Radio, Goal } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+import m6Logo from "@/assets/m6.png.asset.json";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
@@ -144,7 +145,7 @@ const BROADCASTERS: Record<string, Broadcaster> = {
   },
   m6: {
     name: "M6",
-    logo: "https://upload.wikimedia.org/wikipedia/fr/thumb/c/c2/M6_logo_%282020%29.svg/240px-M6_logo_%282020%29.svg.png",
+    logo: m6Logo.url,
   },
 };
 
