@@ -93,8 +93,12 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
             </div>
         </div>
         <div className="flex flex-col items-center gap-2">
-           <span className="text-3xl">{match.team_b?.flag}</span>
-           <span className="font-bold text-sm">{match.team_b?.name}</span>
+          {match.team_b?.code ? (
+            <img src={flagUrl(match.team_b.code, 40)} srcSet={flagSrcSet(match.team_b.code)} alt={match.team_b?.name || ''} className="h-8 w-12 rounded-sm object-cover" />
+          ) : (
+            <span className="text-3xl">{match.team_b?.name?.charAt(0) ?? "?"}</span>
+          )}
+          <span className="font-bold text-sm">{match.team_b?.name}</span>
         </div>
       </div>
 
