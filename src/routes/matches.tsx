@@ -6,12 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Lock, CheckCircle2, MapPin, Trophy } from "lucide-react";
+import { Button3D } from "@/components/Button3D";
+import { Lock, CheckCircle2, MapPin, Trophy, Minus, Plus, Radio, Tv, Calendar as CalendarIcon } from "lucide-react";
 import { flagSrcSet } from "@/lib/flag";
 import { formatFR, isLocked, lockMessage, timeUntilLock } from "@/lib/time";
+import { teamPalette } from "@/lib/team-colors";
 import { getChannels } from "@/lib/broadcast";
 import { toast } from "sonner";
 
@@ -138,17 +139,17 @@ function MatchesPage() {
           </TabsList>
 
           <TabsContent value="calendar" className="mt-4">
-            {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+            {isLoading ? <SkeletonGrid />
               : <CalendarView matches={matches} predByMatch={predByMatch} canPredict={!!user} />}
           </TabsContent>
 
           <TabsContent value="group" className="mt-4">
-            {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+            {isLoading ? <SkeletonGrid />
               : <GroupedMatches matches={matches.filter(m => m.stage === "group")} predByMatch={predByMatch} canPredict={!!user} />}
           </TabsContent>
 
           <TabsContent value="ko" className="mt-4 space-y-8">
-            {isLoading ? <p className="text-sm text-muted-foreground">Chargement...</p>
+            {isLoading ? <SkeletonGrid />
               : KO_STAGES.map((st) => {
                 const list = matches.filter(m => m.stage === st);
                 if (!list.length) return null;
@@ -172,9 +173,18 @@ function MatchesPage() {
   );
 }
 
+function SkeletonGrid() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-48 animate-pulse overflow-hidden rounded-xl border bg-gradient-to-br from-muted/60 to-muted/20" />
+      ))}
+    </div>
+  );
+}
+
 function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; predByMatch: Record<string, Prediction>; canPredict: boolean }) {
   const parisDateKey = (iso: string) => {
-    // YYYY-MM-DD in Europe/Paris timezone
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Paris",
       year: "numeric", month: "2-digit", day: "2-digit",
@@ -193,11 +203,16 @@ function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; 
     }
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [matches]);
+  const todayKey = parisDateKey(new Date().toISOString());
 
   return (
     <div className="space-y-6">
       {byDate.map(([day, list]) => {
-        const label = new Date(day + "T12:00:00Z").toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", year: "numeric" });
+        const d = new Date(day + "T12:00:00Z");
+        const weekday = d.toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long" });
+        const dayNum = d.toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", day: "numeric" });
+        const month = d.toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", month: "short" });
+        const isToday = day === todayKey;
         return (
           <motion.section
             key={day}
@@ -206,7 +221,22 @@ function CalendarView({ matches, predByMatch, canPredict }: { matches: Match[]; 
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.4 }}
           >
-            <h3 className="mb-2 border-b pb-1 text-sm font-bold uppercase tracking-wide text-muted-foreground">{label}</h3>
+            <div className={`sticky top-0 z-10 -mx-2 mb-3 flex items-center gap-3 rounded-lg px-2 py-2 backdrop-blur-md ${isToday ? "bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" : "bg-background/80"}`}>
+              <div className={`flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg shadow-md ${isToday ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground" : "bg-muted text-foreground"}`}>
+                <span className="text-lg font-black leading-none">{dayNum}</span>
+                <span className="text-[9px] font-bold uppercase leading-none opacity-80">{month}</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold capitalize">{weekday}</span>
+                  {isToday && <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">Aujourd'hui</span>}
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <CalendarIcon className="h-3 w-3" />
+                  <span>{list.length} match{list.length > 1 ? "s" : ""}</span>
+                </div>
+              </div>
+            </div>
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -323,6 +353,128 @@ function MatchList({ matches, predByMatch, canPredict }: { matches: Match[]; pre
   );
 }
 
+// Live countdown badge — updates every second
+function LiveCountdown({ kickoff }: { kickoff: string }) {
+  const [, force] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => force((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const k = new Date(kickoff).getTime();
+  const ms = k - 60 * 60 * 1000 - Date.now();
+  if (ms <= 0) return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold uppercase text-destructive">
+      <Lock className="h-3 w-3" /> Fermé
+    </span>
+  );
+  const totalSec = Math.floor(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const urgent = ms < 6 * 3600 * 1000;
+  const label = d > 0 ? `${d}j ${h}h ${m}min` : h > 0 ? `${h}h ${String(m).padStart(2, "0")}min` : `${m}:${String(s).padStart(2, "0")}`;
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tabular-nums ${urgent ? "animate-pulse bg-amber-500/20 text-amber-700 dark:text-amber-300" : "bg-success/15 text-success"}`}>
+      <CheckCircle2 className="h-3 w-3" /> {label}
+    </span>
+  );
+}
+
+// LED-style stepper input
+function ScoreStepper({ value, onChange, disabled, color }: { value: string; onChange: (v: string) => void; disabled: boolean; color: string }) {
+  const n = value === "" ? 0 : Number(value);
+  const set = (next: number) => onChange(String(Math.max(0, Math.min(20, next))));
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <button
+        type="button"
+        onClick={() => set(n + 1)}
+        disabled={disabled}
+        className="flex h-5 w-10 items-center justify-center rounded-md border bg-muted/60 text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40"
+        aria-label="Incrémenter"
+      >
+        <Plus className="h-3 w-3" />
+      </button>
+      <div
+        className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border-2 shadow-inner"
+        style={{
+          borderColor: color + "55",
+          background: "linear-gradient(180deg, #0a0a0f 0%, #15151c 100%)",
+          boxShadow: `inset 0 2px 6px rgba(0,0,0,.6), 0 0 12px ${color}33`,
+        }}
+      >
+        <input
+          type="number"
+          min={0}
+          max={20}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          inputMode="numeric"
+          className="absolute inset-0 w-full bg-transparent text-center font-mono text-2xl font-black tabular-nums outline-none disabled:cursor-not-allowed"
+          style={{ color, textShadow: `0 0 8px ${color}, 0 0 2px ${color}` }}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => set(n - 1)}
+        disabled={disabled}
+        className="flex h-5 w-10 items-center justify-center rounded-md border bg-muted/60 text-muted-foreground transition-all hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-40"
+        aria-label="Décrémenter"
+      >
+        <Minus className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
+function ChannelBadge({ name }: { name: string }) {
+  const isM6 = name === "M6";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold shadow-sm ring-1 ${
+        isM6
+          ? "bg-gradient-to-b from-fuchsia-500 to-fuchsia-700 text-white ring-fuchsia-900/40"
+          : "bg-gradient-to-b from-red-500 to-red-700 text-white ring-red-900/40"
+      }`}
+    >
+      <Tv className="h-2.5 w-2.5" /> {name}
+    </span>
+  );
+}
+
+function GoalTimeline({ goals, teamA, teamB }: { goals: Goalscorer[]; teamA: string; teamB: string }) {
+  const max = Math.max(95, ...goals.map((g) => (g.minute ?? 0) + (g.extra ?? 0)));
+  return (
+    <div className="relative mt-2 h-10">
+      <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-border" />
+      {[0, 45, 90].map((tick) => (
+        <div key={tick} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${(tick / max) * 100}%` }}>
+          <div className="h-2 w-px bg-muted-foreground/40" />
+          <div className="mt-0.5 text-[8px] text-muted-foreground">{tick}'</div>
+        </div>
+      ))}
+      {goals.filter((g) => g.type !== "missed").map((g, i) => {
+        const min = (g.minute ?? 0) + (g.extra ?? 0);
+        const pct = Math.min(100, (min / max) * 100);
+        const isA = g.team === teamA;
+        const icon = g.type === "penalty" ? "🅿" : g.type === "own" ? "🔴" : "⚽";
+        return (
+          <div
+            key={i}
+            className="group absolute -translate-x-1/2"
+            style={{ left: `${pct}%`, top: isA ? "0" : "auto", bottom: isA ? "auto" : "0" }}
+            title={`${g.player} — ${min}'`}
+          >
+            <div className="text-sm">{icon}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function MatchCard({ match, prediction, canPredict }: { match: Match; prediction?: Prediction; canPredict: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
@@ -349,116 +501,204 @@ function MatchCard({ match, prediction, canPredict }: { match: Match; prediction
       .upsert({ user_id: user.id, match_id: match.id, score_a: a, score_b: b }, { onConflict: "user_id,match_id" });
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Pronostic enregistré"); qc.invalidateQueries({ queryKey: ["predictions"] }); }
+    else { toast.success("✓ Pronostic enregistré"); qc.invalidateQueries({ queryKey: ["predictions"] }); }
   }
 
   const nameA = match.team_a?.name || match.team_a_placeholder || "À déterminer";
   const nameB = match.team_b?.name || match.team_b_placeholder || "À déterminer";
   const codeA = match.team_a?.code;
   const codeB = match.team_b?.code;
+  const palA = teamPalette(codeA);
+  const palB = teamPalette(codeB);
+
+  // Status color for left border
+  const statusColor = match.finished
+    ? "#FFD100" // gold
+    : locked
+    ? "#E4002B" // red
+    : "#00A86B"; // green
+
+  const cardBg = `linear-gradient(135deg, ${palA.primary}14 0%, transparent 45%, ${palB.primary}14 100%)`;
 
   return (
-    <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-md">
-      <CardContent className="p-4">
-        <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">{formatFR(match.kickoff_at)}</span>
-        </div>
-
-        <div className="mb-3 flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Diffusion</span>
-          {getChannels(match).map((c) => (
-            <span key={c.name} className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${c.color}`}>{c.name}</span>
-          ))}
-        </div>
-
-
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div className="flex flex-col items-center gap-1 text-center sm:flex-row sm:justify-end sm:gap-2 sm:text-right">
-            {codeA && <img srcSet={flagSrcSet(codeA)} src={`https://flagcdn.com/w40/${codeA}.png`} alt={nameA} className="h-6 w-8 shrink-0 rounded-sm object-cover ring-1 ring-border sm:order-2" />}
-            <span className="min-w-0 break-words text-xs font-semibold leading-tight sm:order-1 sm:truncate sm:text-base">{nameA}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {showFinalScore ? (
-              <div className="min-w-16 rounded-md border bg-muted px-3 py-1.5 text-center font-bold tabular-nums">
-                {match.score_a} - {match.score_b}
-              </div>
-            ) : (
-              <>
-                <Input type="number" min={0} max={20} value={scoreA} onChange={(e) => setScoreA(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
-                <span className="text-muted-foreground">-</span>
-                <Input type="number" min={0} max={20} value={scoreB} onChange={(e) => setScoreB(e.target.value)} disabled={!canPredict || locked || busy} className="h-9 w-12 text-center font-bold" />
-              </>
-            )}
-          </div>
-          <div className="flex flex-col items-center gap-1 text-center sm:flex-row sm:gap-2 sm:text-left">
-            {codeB && <img srcSet={flagSrcSet(codeB)} src={`https://flagcdn.com/w40/${codeB}.png`} alt={nameB} className="h-6 w-8 shrink-0 rounded-sm object-cover ring-1 ring-border" />}
-            <span className="min-w-0 break-words text-xs font-semibold leading-tight sm:truncate sm:text-base">{nameB}</span>
-          </div>
-        </div>
-
-
-
-        {match.finished && prediction && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-md bg-muted px-3 py-1.5 text-center text-sm"
-          >
-            <span className="text-muted-foreground">Votre prono : </span>
-            <span className="font-bold tabular-nums">{prediction.score_a} - {prediction.score_b}</span>
-            <Badge variant={prediction.points >= 3 ? "default" : prediction.points > 0 ? "secondary" : "outline"}>
-              {prediction.points} pt{prediction.points > 1 ? "s" : ""}
-            </Badge>
-          </motion.div>
+    <motion.div whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+      <Card
+        className="relative overflow-hidden border-0 shadow-md ring-1 ring-border transition-shadow duration-300 hover:shadow-xl"
+        style={{ background: cardBg }}
+      >
+        {/* Status side bar */}
+        <div className="absolute inset-y-0 left-0 w-1" style={{ background: statusColor, boxShadow: `0 0 12px ${statusColor}` }} />
+        {/* Faint flag watermarks */}
+        {codeA && (
+          <img
+            src={`https://flagcdn.com/w80/${codeA}.png`}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute -left-4 top-1/2 h-24 w-32 -translate-y-1/2 object-cover opacity-[0.06] blur-sm"
+          />
+        )}
+        {codeB && (
+          <img
+            src={`https://flagcdn.com/w80/${codeB}.png`}
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute -right-4 top-1/2 h-24 w-32 -translate-y-1/2 object-cover opacity-[0.06] blur-sm"
+          />
         )}
 
-        {((match.goalscorers && match.goalscorers.length > 0) || match.stadium) && (
-          <div className="mt-3 rounded-md border bg-card/40 p-2.5 text-xs">
-            {match.stadium && (
-              <div className="mb-2 flex items-center gap-1 text-muted-foreground">
-                <MapPin className="h-3 w-3" />
-                <span className="truncate">{match.stadium}</span>
-              </div>
+        <CardContent className="relative p-4">
+          <div className="mb-2 flex items-center justify-between gap-2 text-xs">
+            <span className="text-muted-foreground">{formatFR(match.kickoff_at)}</span>
+            {!showFinalScore && <LiveCountdown kickoff={match.kickoff_at} />}
+            {showFinalScore && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700 dark:text-amber-300">
+                <Trophy className="h-3 w-3" /> Terminé
+              </span>
             )}
-            {match.goalscorers && match.goalscorers.length > 0 && (
-              <>
-                <div className="mb-1 flex items-center gap-1 font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span>⚽</span> Buteurs
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest text-muted-foreground">
+              <Radio className="h-2.5 w-2.5" /> Diffusion
+            </span>
+            {getChannels(match).map((c) => (
+              <ChannelBadge key={c.name} name={c.name} />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            {/* Team A */}
+            <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:justify-end sm:gap-3 sm:text-right">
+              {codeA && (
+                <div
+                  className="relative shrink-0 sm:order-2"
+                  style={{ filter: `drop-shadow(0 0 6px ${palA.primary}66)` }}
+                >
+                  <img
+                    srcSet={flagSrcSet(codeA)}
+                    src={`https://flagcdn.com/w80/${codeA}.png`}
+                    alt={nameA}
+                    className="h-9 w-12 rounded-md object-cover ring-2 transition-transform duration-300 hover:scale-110"
+                    style={{ borderColor: palA.primary, boxShadow: `0 0 0 1px ${palA.primary}` }}
+                  />
                 </div>
-                <ul className="space-y-0.5">
-                  {match.goalscorers.map((g, i) => (
-                    <li key={i} className="flex items-center justify-between gap-2">
-                      <span className="truncate">
-                        <span className="font-medium">{g.player}</span>
-                        {g.type === "own" && <span className="ml-1 text-destructive">(c.s.c.)</span>}
-                        {g.type === "penalty" && <span className="ml-1 text-muted-foreground">(p.)</span>}
-                        <span className="ml-1 text-muted-foreground">· {g.team}</span>
-                      </span>
-                      {g.minute != null && (
-                        <span className="shrink-0 font-mono text-muted-foreground">
-                          {g.minute}{g.extra ? `+${g.extra}` : ""}'
+              )}
+              <span className="min-w-0 break-words text-xs font-bold uppercase tracking-wide leading-tight sm:order-1 sm:truncate sm:text-sm">{nameA}</span>
+            </div>
+
+            {/* Score zone */}
+            <div className="flex items-center gap-2">
+              {showFinalScore ? (
+                <div className="flex items-center gap-1 rounded-lg border-2 border-amber-500/40 bg-gradient-to-b from-[#0a0a0f] to-[#15151c] px-3 py-1.5 font-mono text-2xl font-black tabular-nums shadow-inner" style={{ color: "#FFD100", textShadow: "0 0 8px #FFD10088" }}>
+                  {match.score_a}<span className="text-muted-foreground/60">:</span>{match.score_b}
+                </div>
+              ) : (
+                <>
+                  <ScoreStepper value={scoreA} onChange={setScoreA} disabled={!canPredict || locked || busy} color={palA.primary} />
+                  <span className="text-lg font-bold text-muted-foreground/40">:</span>
+                  <ScoreStepper value={scoreB} onChange={setScoreB} disabled={!canPredict || locked || busy} color={palB.primary} />
+                </>
+              )}
+            </div>
+
+            {/* Team B */}
+            <div className="flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-left">
+              {codeB && (
+                <div
+                  className="relative shrink-0"
+                  style={{ filter: `drop-shadow(0 0 6px ${palB.primary}66)` }}
+                >
+                  <img
+                    srcSet={flagSrcSet(codeB)}
+                    src={`https://flagcdn.com/w80/${codeB}.png`}
+                    alt={nameB}
+                    className="h-9 w-12 rounded-md object-cover ring-2 transition-transform duration-300 hover:scale-110"
+                    style={{ borderColor: palB.primary, boxShadow: `0 0 0 1px ${palB.primary}` }}
+                  />
+                </div>
+              )}
+              <span className="min-w-0 break-words text-xs font-bold uppercase tracking-wide leading-tight sm:truncate sm:text-sm">{nameB}</span>
+            </div>
+          </div>
+
+          {match.finished && prediction && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-lg border bg-card/60 px-3 py-2 text-center text-sm shadow-sm backdrop-blur"
+            >
+              <span className="text-xs text-muted-foreground">Votre prono</span>
+              <span className="font-mono font-black tabular-nums">{prediction.score_a} – {prediction.score_b}</span>
+              <Badge variant={prediction.points >= 3 ? "default" : prediction.points > 0 ? "secondary" : "outline"} className="font-bold">
+                {prediction.points > 0 && "+"}{prediction.points} pt{prediction.points > 1 ? "s" : ""}
+              </Badge>
+            </motion.div>
+          )}
+
+          {((match.goalscorers && match.goalscorers.length > 0) || match.stadium) && (
+            <div className="mt-3 rounded-lg border bg-card/40 p-2.5 text-xs backdrop-blur-sm">
+              {match.stadium && (
+                <div className="mb-2 flex items-center gap-1 text-muted-foreground">
+                  <MapPin className="h-3 w-3" />
+                  <span className="truncate">{match.stadium}</span>
+                </div>
+              )}
+              {match.goalscorers && match.goalscorers.length > 0 && (
+                <>
+                  <div className="mb-1 flex items-center gap-1 font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span>⚽</span> Buteurs
+                  </div>
+                  {match.team_a?.name && match.team_b?.name && (
+                    <GoalTimeline goals={match.goalscorers} teamA={match.team_a.name} teamB={match.team_b.name} />
+                  )}
+                  <ul className="mt-2 space-y-0.5">
+                    {match.goalscorers.map((g, i) => (
+                      <li key={i} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          <span className="font-medium">{g.player}</span>
+                          {g.type === "own" && <span className="ml-1 text-destructive">(c.s.c.)</span>}
+                          {g.type === "penalty" && <span className="ml-1 text-muted-foreground">(p.)</span>}
+                          <span className="ml-1 text-muted-foreground">· {g.team}</span>
                         </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </>
+                        {g.minute != null && (
+                          <span className="shrink-0 font-mono text-muted-foreground">
+                            {g.minute}{g.extra ? `+${g.extra}` : ""}'
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="mt-3 flex items-center justify-between gap-2">
+            {locked ? (
+              <span className="flex items-center gap-1 text-xs text-destructive">
+                <Lock className="h-3 w-3" />
+                {match.finished ? "Match terminé" : lockMessage(match.kickoff_at)}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-success">
+                <CheckCircle2 className="h-3 w-3" /> {timeUntilLock(match.kickoff_at)}
+              </span>
+            )}
+            {canPredict && !locked && (
+              <Button3D
+                size="sm"
+                variant={prediction ? "primary" : "gold"}
+                onClick={save}
+                disabled={busy}
+                leftIcon={<span className="text-base leading-none">⚽</span>}
+              >
+                {prediction ? "Modifier" : "Pronostiquer"}
+              </Button3D>
             )}
           </div>
-        )}
-
-        <div className="mt-3 flex items-center justify-between gap-2">
-          {locked ? (
-            <span className="flex items-center gap-1 text-xs text-destructive"><Lock className="h-3 w-3" />{match.finished ? "Match terminé" : lockMessage(match.kickoff_at)}</span>
-          ) : (
-            <span className="flex items-center gap-1 text-xs text-success"><CheckCircle2 className="h-3 w-3" />{timeUntilLock(match.kickoff_at)}</span>
-          )}
-          {canPredict && !locked && (
-            <Button size="sm" onClick={save} disabled={busy}>{prediction ? "Modifier" : "Pronostiquer"}</Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
