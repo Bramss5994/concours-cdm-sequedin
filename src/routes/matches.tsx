@@ -13,6 +13,7 @@ import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import m6Logo from "@/assets/m6.png.asset.json";
+import beinLogo from "@/assets/bein.png.asset.json";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
@@ -141,7 +142,7 @@ type Broadcaster = { name: string; logo: string };
 const BROADCASTERS: Record<string, Broadcaster> = {
   bein: {
     name: "beIN SPORTS",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/2017_beIN_Sports_logo.svg/320px-2017_beIN_Sports_logo.svg.png",
+    logo: beinLogo.url,
   },
   m6: {
     name: "M6",
@@ -262,7 +263,7 @@ function BroadcastersList({ match }: { match: Match }) {
                 className="h-4 w-auto object-contain"
                 loading="lazy"
               />
-              {b.name !== "M6" && (
+              {b.name !== "M6" && b.name !== "beIN SPORTS" && (
                 <span className="text-[10px] font-semibold text-foreground/80">{b.name}</span>
               )}
             </span>
