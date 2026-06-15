@@ -278,21 +278,27 @@ function MatchesPage() {
                         <div key={g}>
                           <h3 className="font-semibold mb-2">Groupe {g === '?' ? 'Non attribué' : g}</h3>
                           <div className="space-y-2 mb-4">
-                            {(matches as Match[])
+{(matches as Match[])
                               .filter((mm) => (mm.group_letter || "?") === g)
                               .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
                               .map((mm) => (
-                                <div key={mm.id} className="flex items-center justify-between rounded-md border bg-white/80 p-3">
-                                  <div className="text-xs text-muted-foreground w-40">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                                    <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
-                                  </div>
-                                  <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
-                                  <div className="flex items-center gap-2 min-w-0 justify-end">
-                                    <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
-                                    {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                                  </div>
+                                <div key={mm.id}>
+                                  {!mm.finished ? (
+                                    <MatchCard match={mm} prediction={predByMatch[mm.id]} />
+                                  ) : (
+                                    <div className="flex items-center justify-between rounded-md border bg-white/80 p-3">
+                                      <div className="text-xs text-muted-foreground w-40">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                        <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
+                                      </div>
+                                      <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                                      <div className="flex items-center gap-2 min-w-0 justify-end">
+                                        <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
+                                        {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                           </div>
@@ -344,18 +350,24 @@ function MatchesPage() {
                         {(matches as Match[])
                           .filter((mm) => (mm.group_letter || "?") === t)
                           .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())
-                          .map((mm) => (
-                            <div key={mm.id} className="flex items-center justify-between rounded-md border bg-white/80 p-3">
-                              <div className="text-xs text-muted-foreground w-40">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
-                              <div className="flex items-center gap-2 min-w-0">
-                                {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                                <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
-                              </div>
-                              <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
-                              <div className="flex items-center gap-2 min-w-0 justify-end">
-                                <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
-                                {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                              </div>
+.map((mm) => (
+                            <div key={mm.id}>
+                              {!mm.finished ? (
+                                <MatchCard match={mm} prediction={predByMatch[mm.id]} />
+                              ) : (
+                                <div className="flex items-center justify-between rounded-md border bg-white/80 p-3">
+                                  <div className="text-xs text-muted-foreground w-40">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                    <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
+                                  </div>
+                                  <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                                  <div className="flex items-center gap-2 min-w-0 justify-end">
+                                    <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
+                                    {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                       </div>
@@ -461,22 +473,28 @@ function MatchesPage() {
                             <div key={`md-${g}-${k}`} className="">
                               <div className="inline-block bg-card rounded-full px-3 py-1 text-xs font-bold mb-2">Journée {dayNum}</div>
                               <div className="grid gap-2">
-                                {mdMatches.map((mm) => (
-                                  <div key={mm.id} className="flex items-center justify-between rounded-lg border bg-white/80 p-2 md:p-3">
-                                    <div className="text-xs text-muted-foreground w-28 hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                                      <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
-                                    </div>
+{mdMatches.map((mm) => (
+                                  <div key={mm.id}>
+                                    {!mm.finished ? (
+                                      <MatchCard match={mm} prediction={predByMatch[mm.id]} />
+                                    ) : (
+                                      <div className="flex items-center justify-between rounded-lg border bg-white/80 p-2 md:p-3">
+                                        <div className="text-xs text-muted-foreground w-28 hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                          <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
+                                        </div>
 
-                                    <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                                        <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
 
-                                    <div className="flex items-center gap-3 min-w-0 justify-end">
-                                      <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
-                                      {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
-                                    </div>
+                                        <div className="flex items-center gap-3 min-w-0 justify-end">
+                                          <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
+                                          {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                                        </div>
 
-                                    <div className="text-xs text-muted-foreground w-32 text-right hidden md:block">{mm.stadium}</div>
+                                        <div className="text-xs text-muted-foreground w-32 text-right hidden md:block">{mm.stadium}</div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
