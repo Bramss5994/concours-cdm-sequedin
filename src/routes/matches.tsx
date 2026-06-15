@@ -142,18 +142,62 @@ function GoalscorersList({ goalscorers, teamA, teamB }: {
 }) {
   if (!goalscorers || goalscorers.length === 0) return null;
   const sorted = [...goalscorers].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
-  const aGoals = sorted.filter((g) => teamA && g.team.toLowerCase() === teamA.toLowerCase());
-  const bGoals = sorted.filter((g) => teamB && g.team.toLowerCase() === teamB.toLowerCase());
-  const unassigned = sorted.filter((g) => !aGoals.includes(g) && !bGoals.includes(g));
+
+  // Les noms d'équipes côté API sont en anglais (ex: "Sweden") alors que la DB
+  // les stocke en français (ex: "Suède"). On groupe par g.team tel quel, puis
+  // on tente d'assigner chaque groupe au bon côté (A/B) du match. À défaut,
+  // on conserve l'ordre d'apparition.
+  const teamsInGoals = Array.from(new Set(sorted.map((g) => g.team)));
+  const norm = (s?: string) =>
+    (s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z]/g, "");
+  const matchScore = (apiName: string, dbName?: string) => {
+    if (!dbName) return 0;
+    const a = norm(apiName);
+    const b = norm(dbName);
+    if (!a || !b) return 0;
+    if (a === b) return 100;
+    if (a.startsWith(b) || b.startsWith(a)) return 80;
+    const prefix = Math.min(a.length, b.length, 4);
+    let common = 0;
+    for (let i = 0; i < prefix; i++) if (a[i] === b[i]) common++;
+    return common * 5;
+  };
+
+  let leftTeamApi: string | null = null;
+  let rightTeamApi: string | null = null;
+  if (teamsInGoals.length >= 1) {
+    const ranked = teamsInGoals.map((t) => ({
+      t,
+      a: matchScore(t, teamA),
+      b: matchScore(t, teamB),
+    }));
+    // Best A match wins left side
+    const bestA = ranked.slice().sort((x, y) => y.a - x.a)[0];
+    if (bestA && bestA.a > 0) leftTeamApi = bestA.t;
+    const remaining = ranked.filter((r) => r.t !== leftTeamApi);
+    const bestB = remaining.slice().sort((x, y) => y.b - x.b)[0];
+    if (bestB && bestB.b > 0) rightTeamApi = bestB.t;
+    // Fallbacks: keep apparition order
+    if (!leftTeamApi) leftTeamApi = teamsInGoals[0] || null;
+    if (!rightTeamApi)
+      rightTeamApi = teamsInGoals.find((t) => t !== leftTeamApi) || null;
+  }
+
+  const aGoals = sorted.filter((g) => g.team === leftTeamApi);
+  const bGoals = sorted.filter((g) => g.team === rightTeamApi);
 
   const renderGoal = (g: Goalscorer, i: number) => {
     const minute = g.minute != null ? `${g.minute}${g.extra ? `+${g.extra}` : ""}'` : "";
     const icon = g.type === "own" ? "🔴" : g.type === "penalty" ? "🅿" : "⚽";
     return (
-      <div key={i} className="flex items-center gap-1.5 text-xs">
+      <div key={i} className="flex items-baseline gap-1.5 text-xs">
         <span>{icon}</span>
-        <span className="font-medium">{g.player}</span>
-        <span className="text-muted-foreground">{minute}</span>
+        <span className="font-medium truncate">{g.player}</span>
+        <span className="text-muted-foreground tabular-nums">{minute}</span>
       </div>
     );
   };
@@ -163,14 +207,22 @@ function GoalscorersList({ goalscorers, teamA, teamB }: {
       <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
         <Goal className="h-3 w-3" /> Buteurs
       </div>
-      {(aGoals.length > 0 || bGoals.length > 0) ? (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">{aGoals.map(renderGoal)}</div>
-          <div className="space-y-1 text-right [&_div]:flex-row-reverse [&_div]:justify-start">{bGoals.map(renderGoal)}</div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          {aGoals.length === 0 ? (
+            <span className="text-xs text-muted-foreground italic">—</span>
+          ) : (
+            aGoals.map(renderGoal)
+          )}
         </div>
-      ) : (
-        <div className="space-y-1">{unassigned.map(renderGoal)}</div>
-      )}
+        <div className="space-y-1 [&>div]:flex-row-reverse [&>div]:justify-start [&>div]:text-right">
+          {bGoals.length === 0 ? (
+            <span className="text-xs text-muted-foreground italic">—</span>
+          ) : (
+            bGoals.map(renderGoal)
+          )}
+        </div>
+      </div>
     </div>
   );
 }
