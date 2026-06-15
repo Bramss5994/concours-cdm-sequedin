@@ -117,15 +117,14 @@ function ReglementPage() {
       </Section>
 
       <Section icon={BarePoints} title="5. Barème des points">
+        <p>Le calcul des points est effectué automatiquement après chaque rencontre selon le barème suivant :</p>
         <ul className="ml-5 list-disc space-y-1">
-          <li><span className="font-semibold text-foreground">Score exact</span> : 3 points (hors match nul)</li>
-          <li><span className="font-semibold text-foreground">Bonne équipe gagnante</span> : 2 points</li>
-          <li><span className="font-semibold text-foreground">Match nul correctement pronostiqué</span> : 1 point</li>
-          <li><span className="font-semibold text-foreground">Mauvais pronostic</span> : 0 point</li>
+          <li><span className="font-semibold text-foreground">Score exact</span> : 3 points (s'applique à tous les scores, y compris les matchs nuls).</li>
+          <li><span className="font-semibold text-foreground">Bonne équipe gagnante</span> : 2 points (pour les matchs avec un vainqueur).</li>
+          <li><span className="font-semibold text-foreground">Match nul trouvé</span> : 1 point (si vous avez prédit un match nul, mais que le score n'est pas exact).</li>
+          <li><span className="font-semibold text-foreground">Mauvais pronostic</span> : 0 point.</li>
         </ul>
-
-
-        <p>
+        <p className="mt-4">
           Bonus longue durée : des points additionnels sont attribués si vous
           avez correctement pronostiqué l'équipe gagnante finale de la Coupe du
           Monde et/ou le Soulier d'Or.
@@ -136,7 +135,6 @@ function ReglementPage() {
           jamais saisis ni modifiables par les participants.
         </p>
       </Section>
-
 
       <Section icon={ShieldCheck} title="6. Classements">
         <p>
@@ -155,8 +153,6 @@ function ReglementPage() {
           d'une même unité sont départagés successivement par : nombre de
           scores exacts, puis nombre de bonnes équipes gagnantes, puis date
           la plus précoce d'inscription.
-
-
         </p>
       </Section>
 
@@ -222,7 +218,6 @@ function ReglementPage() {
   );
 }
 
-// Local icon alias to avoid extra import noise
 function BarePoints(props: any) {
   return <Trophy {...props} />;
 }
