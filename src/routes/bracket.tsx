@@ -234,9 +234,11 @@ function MatchCard({ r, align = "left" }: { r: Resolved; align?: "left" | "right
       style={{ filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.4))" }}
     >
       <div
-        className={`relative rounded-md border bg-gradient-to-br from-[color:var(--wc-card-1)] to-[color:var(--wc-card-2)] border-white/10 overflow-hidden transition-transform duration-300 [transform-style:preserve-3d] group-hover:[transform:rotateY(${align === "right" ? "-" : ""}6deg)_rotateX(-2deg)_translateZ(8px)] ${
-          r.isLive ? "ring-2 ring-[color:var(--wc-red)] animate-pulse" : ""
-        }`}
+        className={`relative rounded-md border bg-gradient-to-br from-[color:var(--wc-card-1)] to-[color:var(--wc-card-2)] border-white/10 overflow-hidden transition-transform duration-300 [transform-style:preserve-3d] ${
+          align === "right"
+            ? "group-hover:[transform:rotateY(-6deg)_rotateX(-2deg)_translateZ(8px)]"
+            : "group-hover:[transform:rotateY(6deg)_rotateX(-2deg)_translateZ(8px)]"
+        } ${r.isLive ? "ring-2 ring-[color:var(--wc-red)]" : ""}`}
       >
         <div className="px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] font-bold text-white/60 bg-black/30 flex justify-between">
           <span>#{r.slot.num}</span>
