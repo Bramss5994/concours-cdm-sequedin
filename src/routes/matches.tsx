@@ -12,6 +12,7 @@ import { Trophy, Lock, CheckCircle2, Radio, Goal } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+import { BracketView } from "@/components/BracketView";
 import m6Logo from "@/assets/m6.png.asset.json";
 import beinLogo from "@/assets/bein.png.asset.json";
 
@@ -641,6 +642,7 @@ function MatchesPage() {
             </TabsTrigger>
             <TabsTrigger value="finished">Terminés ({finishedMatches.length})</TabsTrigger>
             {groupLetters.length > 0 && <TabsTrigger value="groups">Classements</TabsTrigger>}
+            <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="mt-4">
@@ -714,6 +716,10 @@ function MatchesPage() {
               </div>
             </TabsContent>
           )}
+
+          <TabsContent value="bracket" className="mt-4">
+            <BracketView />
+          </TabsContent>
         </Tabs>
       )}
     </div>

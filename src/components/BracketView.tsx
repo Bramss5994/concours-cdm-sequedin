@@ -1,25 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
 import { Trophy } from "lucide-react";
-
-export const Route = createFileRoute("/bracket")({
-  component: BracketPage,
-  head: () => ({
-    meta: [
-      { title: "Tableau final — Coupe du Monde 2026" },
-      {
-        name: "description",
-        content:
-          "Tableau de la Coupe du Monde 2026, des 16es de finale jusqu'à la finale, mis à jour en temps réel.",
-      },
-    ],
-  }),
-});
 
 type Team = { name: string; code?: string | null };
 type Match = {
@@ -38,7 +22,6 @@ type Match = {
   live_score_b: number | null;
 };
 
-// FIFA 2026 official match numbering (73..104) — derived from official schedule.
 type Slot = {
   num: number;
   stage: "r32" | "r16" | "qf" | "sf" | "third" | "final";
@@ -47,7 +30,6 @@ type Slot = {
 };
 
 const SLOTS: Slot[] = [
-  // R32 — matches 73..88
   { num: 73, stage: "r32", a: "2A", b: "2B" },
   { num: 74, stage: "r32", a: "1C", b: "2F" },
   { num: 75, stage: "r32", a: "1E", b: "3ABCDF" },
@@ -64,7 +46,6 @@ const SLOTS: Slot[] = [
   { num: 86, stage: "r32", a: "2D", b: "2G" },
   { num: 87, stage: "r32", a: "1J", b: "2H" },
   { num: 88, stage: "r32", a: "1K", b: "3DEIJL" },
-  // R16 — 89..96
   { num: 89, stage: "r16", a: "W73", b: "W75" },
   { num: 90, stage: "r16", a: "W74", b: "W77" },
   { num: 91, stage: "r16", a: "W76", b: "W78" },
@@ -73,20 +54,16 @@ const SLOTS: Slot[] = [
   { num: 94, stage: "r16", a: "W81", b: "W82" },
   { num: 95, stage: "r16", a: "W86", b: "W88" },
   { num: 96, stage: "r16", a: "W85", b: "W87" },
-  // QF — 97..100
   { num: 97, stage: "qf", a: "W89", b: "W90" },
   { num: 98, stage: "qf", a: "W93", b: "W94" },
   { num: 99, stage: "qf", a: "W91", b: "W92" },
   { num: 100, stage: "qf", a: "W95", b: "W96" },
-  // SF — 101..102
   { num: 101, stage: "sf", a: "W97", b: "W98" },
   { num: 102, stage: "sf", a: "W99", b: "W100" },
-  // 3rd place + final
   { num: 103, stage: "third", a: "L101", b: "L102" },
   { num: 104, stage: "final", a: "W101", b: "W102" },
 ];
 
-// Visual bracket order (top → bottom on each side).
 const LEFT_R32 = [73, 75, 74, 77, 81, 82, 83, 84];
 const LEFT_R16 = [89, 90, 94, 93];
 const LEFT_QF = [97, 98];
@@ -129,7 +106,6 @@ type Resolved = {
 };
 
 function resolveAll(matches: Match[]): Map<number, Resolved> {
-  // Index DB matches by stage + placeholder pair (order-insensitive).
   const byKey = new Map<string, Match>();
   for (const m of matches) {
     const a = m.team_a_placeholder || "";
@@ -159,7 +135,6 @@ function resolveAll(matches: Match[]): Map<number, Resolved> {
     const m = byKey.get(`${slot.stage}|${slot.a}|${slot.b}`) || null;
     let teamA: Team | null = m?.team_a ?? null;
     let teamB: Team | null = m?.team_b ?? null;
-    // If DB doesn't yet have team assignment, derive from previous winners/losers.
     if (!teamA) teamA = labelFromRef(slot.a);
     if (!teamB) teamB = labelFromRef(slot.b);
 
@@ -200,7 +175,7 @@ function TeamRow({
     <div
       className={`flex items-center gap-2 px-2 py-1.5 text-[11px] font-semibold transition-all ${
         align === "right" ? "flex-row-reverse text-right" : "text-left"
-      } ${isWinner ? "text-foreground" : isLoser ? "text-muted-foreground/50 line-through" : "text-foreground/90"}`}
+      } ${isWinner ? "text-white" : isLoser ? "text-white/40 line-through" : "text-white/90"}`}
     >
       {flag ? (
         <img src={flag} alt="" className="h-3.5 w-5 rounded-[2px] object-cover ring-1 ring-white/10 shrink-0" />
@@ -211,7 +186,7 @@ function TeamRow({
       {score != null && (
         <span
           className={`tabular-nums font-bold text-sm ${
-            isWinner ? "text-[color:var(--wc-gold)]" : "text-foreground/70"
+            isWinner ? "text-[color:var(--wc-gold)]" : "text-white/70"
           }`}
         >
           {score}
@@ -221,12 +196,12 @@ function TeamRow({
   );
 }
 
-function MatchCard({ r, align = "left" }: { r: Resolved; align?: "left" | "right" }) {
+function BMatchCard({ r, align = "left" }: { r: Resolved; align?: "left" | "right" }) {
   const winA = r.winner === "a";
   const winB = r.winner === "b";
   const lostA = r.winner === "b";
   const lostB = r.winner === "a";
-  const date = formatFR(r.slot.stage && r.match?.kickoff_at ? r.match.kickoff_at : new Date().toISOString());
+  const date = r.match?.kickoff_at ? formatFR(r.match.kickoff_at) : "—";
 
   return (
     <div
@@ -242,7 +217,7 @@ function MatchCard({ r, align = "left" }: { r: Resolved; align?: "left" | "right
       >
         <div className="px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] font-bold text-white/60 bg-black/30 flex justify-between">
           <span>#{r.slot.num}</span>
-          <span>{r.match ? date : "—"}</span>
+          <span>{date}</span>
         </div>
         <TeamRow team={r.teamA} placeholder={r.slot.a} score={r.scoreA} isWinner={winA} isLoser={lostA} />
         <div className="h-px bg-white/10 mx-2" />
@@ -285,15 +260,14 @@ function Column({
   );
 }
 
-function BracketPage() {
-  useRealtimeSync();
+export function BracketView() {
   const { data: matches, isLoading } = useKnockoutMatches();
   const resolved = useMemo(() => resolveAll(matches || []), [matches]);
 
   const r = (n: number): Resolved => resolved.get(n)!;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0e2c] via-[#0d1a3a] to-[#0a0e2c] text-white">
+    <div className="rounded-xl bg-gradient-to-b from-[#0a0e2c] via-[#0d1a3a] to-[#0a0e2c] text-white">
       <style>{`
         :root {
           --wc-red: #e30613;
@@ -304,12 +278,12 @@ function BracketPage() {
           --wc-card-2: rgba(10, 18, 45, 0.95);
         }
       `}</style>
-      <div className="container mx-auto px-3 py-6">
+      <div className="px-3 py-6">
         <div className="text-center mb-6">
           <div className="text-[10px] uppercase tracking-[0.4em] text-[color:var(--wc-gold)]">
             Coupe du Monde 2026
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight mt-1">TABLEAU FINAL</h1>
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight mt-1">TABLEAU FINAL</h2>
           <p className="text-xs text-white/60 mt-1">
             Mis à jour en temps réel · des 16es à la finale
           </p>
@@ -320,27 +294,25 @@ function BracketPage() {
         ) : (
           <div className="overflow-x-auto -mx-3 px-3 pb-4">
             <div className="min-w-[1400px] flex items-stretch justify-between gap-2">
-              {/* LEFT side */}
               <Column label="16es">
-                {LEFT_R32.map((n) => <MatchCard key={n} r={r(n)} />)}
+                {LEFT_R32.map((n) => <BMatchCard key={n} r={r(n)} />)}
               </Column>
               <Column label="8es">
-                {LEFT_R16.map((n) => <MatchCard key={n} r={r(n)} />)}
+                {LEFT_R16.map((n) => <BMatchCard key={n} r={r(n)} />)}
               </Column>
               <Column label="Quarts">
-                {LEFT_QF.map((n) => <MatchCard key={n} r={r(n)} />)}
+                {LEFT_QF.map((n) => <BMatchCard key={n} r={r(n)} />)}
               </Column>
               <Column label="Demi">
-                <MatchCard r={r(LEFT_SF)} />
+                <BMatchCard r={r(LEFT_SF)} />
               </Column>
 
-              {/* CENTER — Final + 3rd place */}
               <div className="flex flex-col items-center justify-center gap-4 shrink-0 px-2">
                 <StageLabel>Finale</StageLabel>
                 <div className="relative">
                   <div className="absolute inset-0 -m-3 rounded-full bg-[color:var(--wc-gold)]/20 blur-2xl animate-pulse" />
                   <div className="relative">
-                    <MatchCard r={r(104)} />
+                    <BMatchCard r={r(104)} />
                   </div>
                 </div>
                 <div className="my-2 [perspective:600px]">
@@ -350,21 +322,20 @@ function BracketPage() {
                   />
                 </div>
                 <StageLabel>3e place</StageLabel>
-                <MatchCard r={r(103)} />
+                <BMatchCard r={r(103)} />
               </div>
 
-              {/* RIGHT side */}
               <Column label="Demi" align="right">
-                <MatchCard r={r(RIGHT_SF)} align="right" />
+                <BMatchCard r={r(RIGHT_SF)} align="right" />
               </Column>
               <Column label="Quarts" align="right">
-                {RIGHT_QF.map((n) => <MatchCard key={n} r={r(n)} align="right" />)}
+                {RIGHT_QF.map((n) => <BMatchCard key={n} r={r(n)} align="right" />)}
               </Column>
               <Column label="8es" align="right">
-                {RIGHT_R16.map((n) => <MatchCard key={n} r={r(n)} align="right" />)}
+                {RIGHT_R16.map((n) => <BMatchCard key={n} r={r(n)} align="right" />)}
               </Column>
               <Column label="16es" align="right">
-                {RIGHT_R32.map((n) => <MatchCard key={n} r={r(n)} align="right" />)}
+                {RIGHT_R32.map((n) => <BMatchCard key={n} r={r(n)} align="right" />)}
               </Column>
             </div>
           </div>
