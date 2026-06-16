@@ -1,5 +1,5 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { Trophy, Calendar, BarChart3, User as UserIcon, Shield, LogOut, LogIn, Menu, X, Target, ScrollText, Crown, GitBranch } from "lucide-react";
+import { Trophy, Calendar, BarChart3, User as UserIcon, Shield, LogOut, LogIn, Menu, X, Target, ScrollText, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
