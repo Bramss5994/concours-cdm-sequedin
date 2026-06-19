@@ -1,0 +1,236 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { kickoffKeyFromISO } from "./livescores.shared";
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden: admin required");
+}
+
+// Alias EN/variants → nom FR exact présent dans `teams.name`
+const NAME_ALIASES: Record<string, string> = {
+  "south africa": "Afrique du Sud",
+  algeria: "Algérie",
+  germany: "Allemagne",
+  england: "Angleterre",
+  "saudi arabia": "Arabie Saoudite",
+  argentina: "Argentine",
+  australia: "Australie",
+  austria: "Autriche",
+  belgium: "Belgique",
+  "bosnia and herzegovina": "Bosnie-Herzégovine",
+  "bosnia & herzegovina": "Bosnie-Herzégovine",
+  brazil: "Brésil",
+  canada: "Canada",
+  "cape verde": "Cap-Vert",
+  "cabo verde": "Cap-Vert",
+  colombia: "Colombie",
+  "south korea": "Corée du Sud",
+  "korea republic": "Corée du Sud",
+  "ivory coast": "Côte d'Ivoire",
+  "cote d'ivoire": "Côte d'Ivoire",
+  croatia: "Croatie",
+  curacao: "Curaçao",
+  scotland: "Écosse",
+  egypt: "Égypte",
+  ecuador: "Équateur",
+  spain: "Espagne",
+  "united states": "États-Unis",
+  usa: "États-Unis",
+  france: "France",
+  ghana: "Ghana",
+  haiti: "Haïti",
+  iraq: "Irak",
+  iran: "Iran",
+  "ir iran": "Iran",
+  japan: "Japon",
+  jordan: "Jordanie",
+  morocco: "Maroc",
+  mexico: "Mexique",
+  norway: "Norvège",
+  "new zealand": "Nouvelle-Zélande",
+  uzbekistan: "Ouzbékistan",
+  panama: "Panamá",
+  paraguay: "Paraguay",
+  netherlands: "Pays-Bas",
+  portugal: "Portugal",
+  qatar: "Qatar",
+  senegal: "Sénégal",
+  switzerland: "Suisse",
+  tunisia: "Tunisie",
+  turkey: "Turquie",
+  uruguay: "Uruguay",
+  venezuela: "Venezuela",
+  italy: "Italie",
+  denmark: "Danemark",
+  poland: "Pologne",
+  sweden: "Suède",
+  serbia: "Serbie",
+  ukraine: "Ukraine",
+  "czech republic": "Tchéquie",
+  czechia: "Tchéquie",
+  "republic of ireland": "Irlande",
+  ireland: "Irlande",
+  "northern ireland": "Irlande du Nord",
+  wales: "Pays de Galles",
+  greece: "Grèce",
+  finland: "Finlande",
+  hungary: "Hongrie",
+  romania: "Roumanie",
+  bulgaria: "Bulgarie",
+  albania: "Albanie",
+  georgia: "Géorgie",
+  slovakia: "Slovaquie",
+  slovenia: "Slovénie",
+  iceland: "Islande",
+  nigeria: "Nigeria",
+  cameroon: "Cameroun",
+  congo: "Congo",
+  "dr congo": "RD Congo",
+  zambia: "Zambie",
+  angola: "Angola",
+  mali: "Mali",
+  "burkina faso": "Burkina Faso",
+  benin: "Bénin",
+  gabon: "Gabon",
+  togo: "Togo",
+  comoros: "Comores",
+  chile: "Chili",
+  peru: "Pérou",
+  bolivia: "Bolivie",
+  costarica: "Costa Rica",
+  "costa rica": "Costa Rica",
+  honduras: "Honduras",
+  jamaica: "Jamaïque",
+  guatemala: "Guatemala",
+  "el salvador": "Salvador",
+  "trinidad and tobago": "Trinité-et-Tobago",
+  china: "Chine",
+  "china pr": "Chine",
+  india: "Inde",
+  thailand: "Thaïlande",
+  vietnam: "Vietnam",
+  indonesia: "Indonésie",
+  malaysia: "Malaisie",
+  philippines: "Philippines",
+  "united arab emirates": "Émirats arabes unis",
+  uae: "Émirats arabes unis",
+  oman: "Oman",
+  bahrain: "Bahreïn",
+  kuwait: "Koweït",
+  lebanon: "Liban",
+  palestine: "Palestine",
+  syria: "Syrie",
+};
+
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+export const syncBracketTeamsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { fetchLiveScores } = await import("./livescores.server");
+
+    const live = await fetchLiveScores();
+    if (live.error) {
+      return { ok: false, error: live.error, updated: 0, details: [] as any[] };
+    }
+
+    const { data: teams, error: teamsErr } = await supabaseAdmin
+      .from("teams")
+      .select("id, name");
+    if (teamsErr) return { ok: false, error: teamsErr.message, updated: 0, details: [] };
+
+    const teamByNorm = new Map<string, string>();
+    for (const t of teams || []) teamByNorm.set(normalize(t.name), t.id);
+
+    const findTeamId = (apiName: string): string | null => {
+      const norm = normalize(apiName);
+      if (teamByNorm.has(norm)) return teamByNorm.get(norm)!;
+      const aliasFr = NAME_ALIASES[norm];
+      if (aliasFr) {
+        const id = teamByNorm.get(normalize(aliasFr));
+        if (id) return id;
+      }
+      // fallback: prefix match
+      for (const [n, id] of teamByNorm) {
+        if (n.startsWith(norm) || norm.startsWith(n)) return id;
+      }
+      return null;
+    };
+
+    const { data: koMatches, error: koErr } = await supabaseAdmin
+      .from("matches")
+      .select("id, stage, kickoff_at, api_fixture_id, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder")
+      .in("stage", ["r32", "r16", "qf", "sf", "third", "final"]);
+    if (koErr) return { ok: false, error: koErr.message, updated: 0, details: [] };
+
+    const byKickoff = new Map<string, typeof live.fixtures>();
+    const byFixtureId = new Map<number, typeof live.fixtures[number]>();
+    for (const f of live.fixtures) {
+      const arr = byKickoff.get(f.kickoffKey) || [];
+      arr.push(f);
+      byKickoff.set(f.kickoffKey, arr);
+      byFixtureId.set(f.apiFixtureId, f);
+    }
+
+    const details: any[] = [];
+    const errors: string[] = [];
+    let updated = 0;
+
+    for (const m of koMatches || []) {
+      if (m.team_a_id && m.team_b_id) continue;
+      let fixture = m.api_fixture_id ? byFixtureId.get(m.api_fixture_id) : null;
+      if (!fixture) {
+        const cands = byKickoff.get(kickoffKeyFromISO(m.kickoff_at)) || [];
+        if (cands.length === 1) fixture = cands[0];
+      }
+      if (!fixture) continue;
+      if (fixture.teamHome.toLowerCase().includes("tbd") || fixture.teamAway.toLowerCase().includes("tbd")) continue;
+
+      const homeId = findTeamId(fixture.teamHome);
+      const awayId = findTeamId(fixture.teamAway);
+
+      const patch: Record<string, any> = {};
+      if (!m.team_a_id && homeId) patch.team_a_id = homeId;
+      if (!m.team_b_id && awayId) patch.team_b_id = awayId;
+      if (!m.api_fixture_id) patch.api_fixture_id = fixture.apiFixtureId;
+
+      if (Object.keys(patch).length === 0) {
+        if (!homeId) errors.push(`Équipe inconnue: "${fixture.teamHome}" (slot ${m.team_a_placeholder})`);
+        if (!awayId) errors.push(`Équipe inconnue: "${fixture.teamAway}" (slot ${m.team_b_placeholder})`);
+        continue;
+      }
+
+      const { error: e } = await supabaseAdmin.from("matches").update(patch as any).eq("id", m.id);
+      if (e) {
+        errors.push(`${m.stage} ${m.team_a_placeholder} vs ${m.team_b_placeholder}: ${e.message}`);
+        continue;
+      }
+      updated += 1;
+      details.push({
+        stage: m.stage,
+        slot: `${m.team_a_placeholder} vs ${m.team_b_placeholder}`,
+        home: fixture.teamHome,
+        away: fixture.teamAway,
+        homeMatched: !!homeId,
+        awayMatched: !!awayId,
+      });
+    }
+
+    return { ok: true, updated, details, errors, checkedFixtures: live.fixtures.length };
+  });
