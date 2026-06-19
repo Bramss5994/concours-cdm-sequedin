@@ -6,7 +6,7 @@ import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
 import { Trophy, RefreshCw } from "lucide-react";
 import { syncBracketTeamsFn } from "@/lib/bracket-sync.functions";
-import { useAuth } from "@/lib/auth";
+import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
 
 type Team = { name: string; code?: string | null };
@@ -385,7 +385,12 @@ export function BracketView() {
   const { data: groupMatches } = useGroupStandings();
   const standings = useMemo(() => computeStandings(groupMatches || []), [groupMatches]);
   const resolved = useMemo(() => resolveAll(matches || [], standings), [matches, standings]);
-  const { isAdmin } = useAuth();
+  const checkSuper = useServerFn(isSequedinSuperAdminFn);
+  const { data: isSuper } = useQuery({
+    queryKey: ["is-super-admin"],
+    queryFn: () => checkSuper().then((r: any) => !!r?.ok).catch(() => false),
+    staleTime: 60_000,
+  });
   const qc = useQueryClient();
   const syncFn = useServerFn(syncBracketTeamsFn);
   const [syncing, setSyncing] = useState(false);
@@ -435,7 +440,7 @@ export function BracketView() {
           <p className="text-xs text-white/60 mt-1">
             Mis à jour en temps réel · des 16es à la finale
           </p>
-          {isAdmin && (
+          {isSuper && (
             <button
               onClick={handleSync}
               disabled={syncing}

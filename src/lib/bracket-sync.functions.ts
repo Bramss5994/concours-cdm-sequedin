@@ -2,15 +2,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { kickoffKeyFromISO } from "./livescores.shared";
 
-async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase
+async function assertSuperAdmin(supabase: any, userId: string) {
+  const { data: roleData, error: e1 } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
     .eq("role", "admin")
     .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden: admin required");
+  if (e1) throw new Error(e1.message);
+  if (!roleData) throw new Error("Forbidden: admin required");
+  const { data: prof, error: e2 } = await supabase
+    .from("profiles")
+    .select("depot")
+    .eq("id", userId)
+    .maybeSingle();
+  if (e2) throw new Error(e2.message);
+  if (!prof || prof.depot !== "sequedin") {
+    throw new Error("Forbidden: super-admin (Sequedin) requis");
+  }
 }
 
 // Alias EN/variants → nom FR exact présent dans `teams.name`
@@ -141,7 +150,7 @@ function normalize(s: string): string {
 export const syncBracketTeamsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { fetchLiveScores } = await import("./livescores.server");
 
