@@ -188,6 +188,11 @@ function UniteDashboard() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/">
+              <Home className="mr-1 h-4 w-4" /> Accueil
+            </Link>
+          </Button>
           {isSuper && (
             <Button asChild variant="secondary" size="sm">
               <Link to="/unite/gestion">
