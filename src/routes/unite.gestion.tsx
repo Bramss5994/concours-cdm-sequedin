@@ -105,10 +105,12 @@ function GestionPage() {
         <TabsList>
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="matches">Matchs</TabsTrigger>
+          <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
+        <TabsContent value="bracket"><BracketTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
       </Tabs>
     </div>
