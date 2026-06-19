@@ -359,7 +359,9 @@ function Column({
 
 export function BracketView() {
   const { data: matches, isLoading } = useKnockoutMatches();
-  const resolved = useMemo(() => resolveAll(matches || []), [matches]);
+  const { data: groupMatches } = useGroupStandings();
+  const standings = useMemo(() => computeStandings(groupMatches || []), [groupMatches]);
+  const resolved = useMemo(() => resolveAll(matches || [], standings), [matches, standings]);
 
   const r = (n: number): Resolved => resolved.get(n)!;
 
