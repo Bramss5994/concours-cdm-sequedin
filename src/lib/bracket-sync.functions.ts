@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireUnitAdmin, SUPER_ADMIN_DEPOT } from "./unit-admin.functions";
 import { kickoffKeyFromISO } from "./livescores.shared";
 
 async function assertSuperAdmin(supabase: any, userId: string) {
