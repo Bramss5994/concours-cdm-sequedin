@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, ShieldPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { formatFR } from "@/lib/time";
 import {
@@ -47,6 +47,10 @@ import {
   toggleUnitAdminAsSuperFn,
   deleteUnitAdminAsSuperFn,
 } from "@/lib/unit-admin.functions";
+import {
+  syncBracketTeamsAsUnitAdminFn,
+  backfillGoalscorersAsUnitAdminFn,
+} from "@/lib/bracket-sync.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
