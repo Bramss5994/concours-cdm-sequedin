@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
 import { Trophy, RefreshCw } from "lucide-react";
-import { syncBracketTeamsFn } from "@/lib/bracket-sync.functions";
+import { syncBracketTeamsFn, backfillGoalscorersFn } from "@/lib/bracket-sync.functions";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
 
@@ -393,7 +393,9 @@ export function BracketView() {
   });
   const qc = useQueryClient();
   const syncFn = useServerFn(syncBracketTeamsFn);
+  const backfillFn = useServerFn(backfillGoalscorersFn);
   const [syncing, setSyncing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
 
   const r = (n: number): Resolved => resolved.get(n)!;
 
@@ -419,6 +421,28 @@ export function BracketView() {
     }
   };
 
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    try {
+      const res: any = await backfillFn();
+      if (!res.ok) {
+        toast.error(`Échec : ${res.error}`);
+      } else {
+        toast.success(`Buteurs rafraîchis : ${res.updated}/${res.processed} match(s)`);
+        if (res.errors?.length) {
+          console.warn("Backfill warnings:", res.errors);
+          toast.warning(`${res.errors.length} en attente — relancez si besoin`);
+        }
+        qc.invalidateQueries({ queryKey: ["matches"] });
+        qc.invalidateQueries({ queryKey: ["bracket-matches"] });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur inconnue");
+    } finally {
+      setBackfilling(false);
+    }
+  };
+
   return (
     <div className="rounded-xl bg-gradient-to-b from-[#0a0e2c] via-[#0d1a3a] to-[#0a0e2c] text-white">
       <style>{`
@@ -441,14 +465,24 @@ export function BracketView() {
             Mis à jour en temps réel · des 16es à la finale
           </p>
           {isSuper && (
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="mt-3 inline-flex items-center gap-2 rounded-full bg-[color:var(--wc-gold)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black hover:opacity-90 disabled:opacity-50"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
-              {syncing ? "Synchronisation…" : "Synchroniser via API Football"}
-            </button>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="inline-flex items-center gap-2 rounded-full bg-[color:var(--wc-gold)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black hover:opacity-90 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Synchronisation…" : "Synchroniser via API Football"}
+              </button>
+              <button
+                onClick={handleBackfill}
+                disabled={backfilling}
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/15 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${backfilling ? "animate-spin" : ""}`} />
+                {backfilling ? "Récupération…" : "Rafraîchir buteurs manquants"}
+              </button>
+            </div>
           )}
         </div>
 

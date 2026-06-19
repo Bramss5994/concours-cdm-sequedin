@@ -243,3 +243,61 @@ export const syncBracketTeamsFn = createServerFn({ method: "POST" })
 
     return { ok: true, updated, details, errors, checkedFixtures: live.fixtures.length };
   });
+
+export const backfillGoalscorersFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { fetchFixtureEvents } = await import("./livescores.server");
+
+    const { data: matches, error } = await supabaseAdmin
+      .from("matches")
+      .select("id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at")
+      .eq("finished", true)
+      .order("kickoff_at", { ascending: false });
+    if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
+
+    const MAX_PER_RUN = 6;
+    const DELAY_MS = 1500;
+    const updates: any[] = [];
+    const errors: string[] = [];
+    let processed = 0;
+
+    for (const m of matches || []) {
+      const hasGoals = Array.isArray(m.goalscorers) && (m.goalscorers as any[]).length > 0;
+      const expectedGoals = (m.score_a ?? 0) + (m.score_b ?? 0);
+      if (hasGoals || expectedGoals === 0 || !m.api_fixture_id) continue;
+      if (processed >= MAX_PER_RUN) {
+        errors.push(`${m.id}: reporté (limite ${MAX_PER_RUN}/run)`);
+        continue;
+      }
+      processed += 1;
+      if (processed > 1) await new Promise((r) => setTimeout(r, DELAY_MS));
+      const ev = await fetchFixtureEvents(m.api_fixture_id);
+      if (ev.error) {
+        errors.push(`${m.id}: ${ev.error}`);
+        continue;
+      }
+      const payload = ev.goals.map((g) => ({
+        minute: g.minute,
+        extra: g.extra,
+        team: g.team,
+        player: g.player,
+        api_player_id: g.apiPlayerId,
+        assist: g.assist,
+        type: g.type,
+      }));
+      const { error: e } = await supabaseAdmin
+        .from("matches")
+        .update({ goalscorers: payload } as any)
+        .eq("id", m.id);
+      if (e) {
+        errors.push(`${m.id}: ${e.message}`);
+        continue;
+      }
+      updates.push({ id: m.id, count: payload.length });
+    }
+
+    return { ok: true, processed, updated: updates.length, details: updates, errors };
+  });
