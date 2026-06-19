@@ -119,9 +119,16 @@ function useGroupStandings() {
 }
 
 type Standing = { team: Team; pts: number; gd: number; gf: number; group: string };
+type StandingsInfo = {
+  byGroup: Map<string, Standing[]>;
+  completeGroups: Set<string>;
+  totalByGroup: Map<string, { played: number; finished: number }>;
+  allComplete: boolean;
+};
 
-function computeStandings(groupMatches: GroupMatch[]): Map<string, Standing[]> {
+function computeStandings(groupMatches: GroupMatch[]): StandingsInfo {
   const byGroup = new Map<string, Map<string, Standing>>();
+  const totals = new Map<string, { played: number; finished: number }>();
   const ensure = (g: string, code: string, team: Team) => {
     if (!byGroup.has(g)) byGroup.set(g, new Map());
     const m = byGroup.get(g)!;
@@ -129,10 +136,14 @@ function computeStandings(groupMatches: GroupMatch[]): Map<string, Standing[]> {
     return m.get(code)!;
   };
   for (const m of groupMatches) {
+    const g = m.group_letter || m.team_a?.group_letter || m.team_b?.group_letter;
+    if (!g) continue;
+    const t = totals.get(g) || { played: 0, finished: 0 };
+    t.played += 1;
+    if (m.finished && m.score_a != null && m.score_b != null) t.finished += 1;
+    totals.set(g, t);
     if (!m.finished || m.score_a == null || m.score_b == null) continue;
     if (!m.team_a || !m.team_b) continue;
-    const g = m.group_letter || m.team_a.group_letter || m.team_b.group_letter;
-    if (!g) continue;
     const a = ensure(g, m.team_a.code || m.team_a.name, m.team_a);
     const b = ensure(g, m.team_b.code || m.team_b.name, m.team_b);
     a.gf += m.score_a; a.gd += m.score_a - m.score_b;
@@ -148,27 +159,35 @@ function computeStandings(groupMatches: GroupMatch[]): Map<string, Standing[]> {
     );
     out.set(g, arr);
   }
-  return out;
+  const completeGroups = new Set<string>();
+  for (const [g, t] of totals) {
+    if (t.played > 0 && t.played === t.finished) completeGroups.add(g);
+  }
+  const allComplete = totals.size > 0 && completeGroups.size === totals.size;
+  return { byGroup: out, completeGroups, totalByGroup: totals, allComplete };
 }
 
 function resolveGroupPlaceholder(
   ref: string,
-  standings: Map<string, Standing[]>,
+  info: StandingsInfo,
   usedThirds: Set<string>,
 ): Team | null {
   if (!ref) return null;
   const m1 = ref.match(/^([12])([A-L])$/);
   if (m1) {
+    const g = m1[2];
+    if (!info.completeGroups.has(g)) return null;
     const pos = parseInt(m1[1]) - 1;
-    const arr = standings.get(m1[2]);
+    const arr = info.byGroup.get(g);
     return arr && arr[pos] ? arr[pos].team : null;
   }
   const m3 = ref.match(/^3([A-L]+)$/);
   if (m3) {
+    if (!info.allComplete) return null;
     const groups = m3[1].split("");
     const thirds: Standing[] = [];
     for (const g of groups) {
-      const arr = standings.get(g);
+      const arr = info.byGroup.get(g);
       if (arr && arr[2]) thirds.push(arr[2]);
     }
     thirds.sort((x, y) =>
@@ -200,7 +219,7 @@ type Resolved = {
 
 function resolveAll(
   matches: Match[],
-  standings: Map<string, Standing[]>,
+  standings: StandingsInfo,
 ): Map<number, Resolved> {
   const byKey = new Map<string, Match>();
   for (const m of matches) {
