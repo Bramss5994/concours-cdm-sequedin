@@ -1,9 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
-import { Trophy } from "lucide-react";
+import { Trophy, RefreshCw } from "lucide-react";
+import { syncBracketTeamsFn } from "@/lib/bracket-sync.functions";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 type Team = { name: string; code?: string | null };
 type Match = {
