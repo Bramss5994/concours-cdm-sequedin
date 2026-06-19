@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
 import { Trophy, RefreshCw } from "lucide-react";
-import { syncBracketTeamsFn } from "@/lib/bracket-sync.functions";
+import { syncBracketTeamsFn, backfillGoalscorersFn } from "@/lib/bracket-sync.functions";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
 
