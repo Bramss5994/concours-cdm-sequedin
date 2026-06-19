@@ -385,8 +385,34 @@ export function BracketView() {
   const { data: groupMatches } = useGroupStandings();
   const standings = useMemo(() => computeStandings(groupMatches || []), [groupMatches]);
   const resolved = useMemo(() => resolveAll(matches || [], standings), [matches, standings]);
+  const { isAdmin } = useAuth();
+  const qc = useQueryClient();
+  const syncFn = useServerFn(syncBracketTeamsFn);
+  const [syncing, setSyncing] = useState(false);
 
   const r = (n: number): Resolved => resolved.get(n)!;
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const res: any = await syncFn();
+      if (!res.ok) {
+        toast.error(`Échec : ${res.error}`);
+      } else {
+        toast.success(`Tableau synchronisé : ${res.updated} match(s) mis à jour`);
+        if (res.errors?.length) {
+          console.warn("Sync warnings:", res.errors);
+          toast.warning(`${res.errors.length} avertissement(s) — voir console`);
+        }
+        qc.invalidateQueries({ queryKey: ["bracket-matches"] });
+        qc.invalidateQueries({ queryKey: ["matches"] });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur inconnue");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <div className="rounded-xl bg-gradient-to-b from-[#0a0e2c] via-[#0d1a3a] to-[#0a0e2c] text-white">
@@ -409,7 +435,18 @@ export function BracketView() {
           <p className="text-xs text-white/60 mt-1">
             Mis à jour en temps réel · des 16es à la finale
           </p>
+          {isAdmin && (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-[color:var(--wc-gold)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black hover:opacity-90 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Synchronisation…" : "Synchroniser via API Football"}
+            </button>
+          )}
         </div>
+
 
         {isLoading ? (
           <p className="text-center text-white/60 py-20">Chargement…</p>
