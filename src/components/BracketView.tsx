@@ -421,6 +421,28 @@ export function BracketView() {
     }
   };
 
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    try {
+      const res: any = await backfillFn();
+      if (!res.ok) {
+        toast.error(`Échec : ${res.error}`);
+      } else {
+        toast.success(`Buteurs rafraîchis : ${res.updated}/${res.processed} match(s)`);
+        if (res.errors?.length) {
+          console.warn("Backfill warnings:", res.errors);
+          toast.warning(`${res.errors.length} en attente — relancez si besoin`);
+        }
+        qc.invalidateQueries({ queryKey: ["matches"] });
+        qc.invalidateQueries({ queryKey: ["bracket-matches"] });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur inconnue");
+    } finally {
+      setBackfilling(false);
+    }
+  };
+
   return (
     <div className="rounded-xl bg-gradient-to-b from-[#0a0e2c] via-[#0d1a3a] to-[#0a0e2c] text-white">
       <style>{`
