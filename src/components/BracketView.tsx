@@ -440,7 +440,7 @@ export function BracketView() {
           <p className="text-xs text-white/60 mt-1">
             Mis à jour en temps réel · des 16es à la finale
           </p>
-          {isAdmin && (
+          {isSuper && (
             <button
               onClick={handleSync}
               disabled={syncing}
