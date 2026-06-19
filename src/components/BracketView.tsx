@@ -388,7 +388,7 @@ export function BracketView() {
   const checkSuper = useServerFn(isSequedinSuperAdminFn);
   const { data: isSuper } = useQuery({
     queryKey: ["is-super-admin"],
-    queryFn: () => checkSuper().then((r: any) => !!r?.ok).catch(() => false),
+    queryFn: () => checkSuper().then((r: any) => r === true || !!r?.ok).catch(() => false),
     staleTime: 60_000,
   });
   const qc = useQueryClient();
