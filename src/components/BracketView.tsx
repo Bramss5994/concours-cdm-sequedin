@@ -385,7 +385,12 @@ export function BracketView() {
   const { data: groupMatches } = useGroupStandings();
   const standings = useMemo(() => computeStandings(groupMatches || []), [groupMatches]);
   const resolved = useMemo(() => resolveAll(matches || [], standings), [matches, standings]);
-  const { isAdmin } = useAuth();
+  const checkSuper = useServerFn(isSequedinSuperAdminFn);
+  const { data: isSuper } = useQuery({
+    queryKey: ["is-super-admin"],
+    queryFn: () => checkSuper().then((r: any) => !!r?.ok).catch(() => false),
+    staleTime: 60_000,
+  });
   const qc = useQueryClient();
   const syncFn = useServerFn(syncBracketTeamsFn);
   const [syncing, setSyncing] = useState(false);
