@@ -92,6 +92,99 @@ function useKnockoutMatches() {
   });
 }
 
+type GroupMatch = {
+  group_letter: string | null;
+  finished: boolean;
+  score_a: number | null;
+  score_b: number | null;
+  team_a: { name: string; code: string | null; group_letter: string | null } | null;
+  team_b: { name: string; code: string | null; group_letter: string | null } | null;
+};
+
+function useGroupStandings() {
+  return useQuery({
+    queryKey: ["bracket-group-standings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("matches")
+        .select(
+          "group_letter, finished, score_a, score_b, team_a:teams!matches_team_a_id_fkey(name,code,group_letter), team_b:teams!matches_team_b_id_fkey(name,code,group_letter)",
+        )
+        .eq("stage", "group");
+      if (error) throw error;
+      return (data || []) as unknown as GroupMatch[];
+    },
+    staleTime: 30_000,
+  });
+}
+
+type Standing = { team: Team; pts: number; gd: number; gf: number; group: string };
+
+function computeStandings(groupMatches: GroupMatch[]): Map<string, Standing[]> {
+  const byGroup = new Map<string, Map<string, Standing>>();
+  const ensure = (g: string, code: string, team: Team) => {
+    if (!byGroup.has(g)) byGroup.set(g, new Map());
+    const m = byGroup.get(g)!;
+    if (!m.has(code)) m.set(code, { team, pts: 0, gd: 0, gf: 0, group: g });
+    return m.get(code)!;
+  };
+  for (const m of groupMatches) {
+    if (!m.finished || m.score_a == null || m.score_b == null) continue;
+    if (!m.team_a || !m.team_b) continue;
+    const g = m.group_letter || m.team_a.group_letter || m.team_b.group_letter;
+    if (!g) continue;
+    const a = ensure(g, m.team_a.code || m.team_a.name, m.team_a);
+    const b = ensure(g, m.team_b.code || m.team_b.name, m.team_b);
+    a.gf += m.score_a; a.gd += m.score_a - m.score_b;
+    b.gf += m.score_b; b.gd += m.score_b - m.score_a;
+    if (m.score_a > m.score_b) a.pts += 3;
+    else if (m.score_b > m.score_a) b.pts += 3;
+    else { a.pts += 1; b.pts += 1; }
+  }
+  const out = new Map<string, Standing[]>();
+  for (const [g, mp] of byGroup) {
+    const arr = Array.from(mp.values()).sort((x, y) =>
+      y.pts - x.pts || y.gd - x.gd || y.gf - x.gf || x.team.name.localeCompare(y.team.name),
+    );
+    out.set(g, arr);
+  }
+  return out;
+}
+
+function resolveGroupPlaceholder(
+  ref: string,
+  standings: Map<string, Standing[]>,
+  usedThirds: Set<string>,
+): Team | null {
+  if (!ref) return null;
+  const m1 = ref.match(/^([12])([A-L])$/);
+  if (m1) {
+    const pos = parseInt(m1[1]) - 1;
+    const arr = standings.get(m1[2]);
+    return arr && arr[pos] ? arr[pos].team : null;
+  }
+  const m3 = ref.match(/^3([A-L]+)$/);
+  if (m3) {
+    const groups = m3[1].split("");
+    const thirds: Standing[] = [];
+    for (const g of groups) {
+      const arr = standings.get(g);
+      if (arr && arr[2]) thirds.push(arr[2]);
+    }
+    thirds.sort((x, y) =>
+      y.pts - x.pts || y.gd - x.gd || y.gf - x.gf || x.team.name.localeCompare(y.team.name),
+    );
+    for (const t of thirds) {
+      const key = t.team.code || t.team.name;
+      if (!usedThirds.has(key)) {
+        usedThirds.add(key);
+        return t.team;
+      }
+    }
+  }
+  return null;
+}
+
 type Resolved = {
   slot: Slot;
   match: Match | null;
