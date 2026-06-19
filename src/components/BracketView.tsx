@@ -393,7 +393,9 @@ export function BracketView() {
   });
   const qc = useQueryClient();
   const syncFn = useServerFn(syncBracketTeamsFn);
+  const backfillFn = useServerFn(backfillGoalscorersFn);
   const [syncing, setSyncing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
 
   const r = (n: number): Resolved => resolved.get(n)!;
 
