@@ -6,7 +6,7 @@ import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
 import { Trophy, RefreshCw } from "lucide-react";
 import { syncBracketTeamsFn } from "@/lib/bracket-sync.functions";
-import { useAuth } from "@/lib/auth";
+import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
 
 type Team = { name: string; code?: string | null };
