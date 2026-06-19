@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown, Sparkles } from "lucide-react";
+import { KeyRound, LogOut, Trash2, ShieldCheck, ListChecks, Settings, Eye, BarChart3, Target, Crown, Sparkles, Home } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatFR } from "@/lib/time";
 import {
@@ -188,6 +188,11 @@ function UniteDashboard() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/">
+              <Home className="mr-1 h-4 w-4" /> Accueil
+            </Link>
+          </Button>
           {isSuper && (
             <Button asChild variant="secondary" size="sm">
               <Link to="/unite/gestion">
