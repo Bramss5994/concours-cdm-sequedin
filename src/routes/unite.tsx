@@ -189,9 +189,9 @@ function UniteDashboard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link to="/">
+            <a href="/" target="_blank" rel="noopener noreferrer">
               <Home className="mr-1 h-4 w-4" /> Accueil
-            </Link>
+            </a>
           </Button>
           {isSuper && (
             <Button asChild variant="secondary" size="sm">
