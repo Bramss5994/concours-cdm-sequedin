@@ -216,7 +216,7 @@ export const syncBracketTeamsFn = createServerFn({ method: "POST" })
         continue;
       }
 
-      const { error: e } = await supabaseAdmin.from("matches").update(patch).eq("id", m.id);
+      const { error: e } = await supabaseAdmin.from("matches").update(patch as any).eq("id", m.id);
       if (e) {
         errors.push(`${m.stage} ${m.team_a_placeholder} vs ${m.team_b_placeholder}: ${e.message}`);
         continue;
