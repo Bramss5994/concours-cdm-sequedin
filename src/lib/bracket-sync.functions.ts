@@ -150,7 +150,7 @@ function normalize(s: string): string {
 export const syncBracketTeamsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase, context.userId);
+    await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { fetchLiveScores } = await import("./livescores.server");
 
