@@ -198,7 +198,10 @@ type Resolved = {
   loser: "a" | "b" | null;
 };
 
-function resolveAll(matches: Match[]): Map<number, Resolved> {
+function resolveAll(
+  matches: Match[],
+  standings: Map<string, Standing[]>,
+): Map<number, Resolved> {
   const byKey = new Map<string, Match>();
   for (const m of matches) {
     const a = m.team_a_placeholder || "";
@@ -208,6 +211,7 @@ function resolveAll(matches: Match[]): Map<number, Resolved> {
   }
 
   const out = new Map<number, Resolved>();
+  const usedThirds = new Set<string>();
 
   const winnerOf = (r: Resolved | undefined): Team | null => {
     if (!r || !r.finished || r.winner == null) return null;
@@ -221,7 +225,7 @@ function resolveAll(matches: Match[]): Map<number, Resolved> {
   const labelFromRef = (ref: string): Team | null => {
     if (ref.startsWith("W")) return winnerOf(out.get(parseInt(ref.slice(1))));
     if (ref.startsWith("L")) return loserOf(out.get(parseInt(ref.slice(1))));
-    return null;
+    return resolveGroupPlaceholder(ref, standings, usedThirds);
   };
 
   for (const slot of SLOTS) {
