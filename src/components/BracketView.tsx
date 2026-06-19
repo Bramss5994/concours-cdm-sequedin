@@ -219,7 +219,7 @@ type Resolved = {
 
 function resolveAll(
   matches: Match[],
-  standings: Map<string, Standing[]>,
+  standings: StandingsInfo,
 ): Map<number, Resolved> {
   const byKey = new Map<string, Match>();
   for (const m of matches) {
