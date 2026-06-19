@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireUnitAdmin, SUPER_ADMIN_DEPOT } from "./unit-admin.functions";
 import { kickoffKeyFromISO } from "./livescores.shared";
 
 async function assertSuperAdmin(supabase: any, userId: string) {
@@ -147,157 +148,179 @@ function normalize(s: string): string {
     .trim();
 }
 
+async function runSyncBracketTeams() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { fetchLiveScores } = await import("./livescores.server");
+
+  const live = await fetchLiveScores();
+  if (live.error) {
+    return { ok: false, error: live.error, updated: 0, details: [] as any[] };
+  }
+
+  const { data: teams, error: teamsErr } = await supabaseAdmin
+    .from("teams")
+    .select("id, name");
+  if (teamsErr) return { ok: false, error: teamsErr.message, updated: 0, details: [] };
+
+  const teamByNorm = new Map<string, string>();
+  for (const t of teams || []) teamByNorm.set(normalize(t.name), t.id);
+
+  const findTeamId = (apiName: string): string | null => {
+    const norm = normalize(apiName);
+    if (teamByNorm.has(norm)) return teamByNorm.get(norm)!;
+    const aliasFr = NAME_ALIASES[norm];
+    if (aliasFr) {
+      const id = teamByNorm.get(normalize(aliasFr));
+      if (id) return id;
+    }
+    for (const [n, id] of teamByNorm) {
+      if (n.startsWith(norm) || norm.startsWith(n)) return id;
+    }
+    return null;
+  };
+
+  const { data: koMatches, error: koErr } = await supabaseAdmin
+    .from("matches")
+    .select("id, stage, kickoff_at, api_fixture_id, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder")
+    .in("stage", ["r32", "r16", "qf", "sf", "third", "final"]);
+  if (koErr) return { ok: false, error: koErr.message, updated: 0, details: [] };
+
+  const byKickoff = new Map<string, typeof live.fixtures>();
+  const byFixtureId = new Map<number, typeof live.fixtures[number]>();
+  for (const f of live.fixtures) {
+    const arr = byKickoff.get(f.kickoffKey) || [];
+    arr.push(f);
+    byKickoff.set(f.kickoffKey, arr);
+    byFixtureId.set(f.apiFixtureId, f);
+  }
+
+  const details: any[] = [];
+  const errors: string[] = [];
+  let updated = 0;
+
+  for (const m of koMatches || []) {
+    if (m.team_a_id && m.team_b_id) continue;
+    let fixture = m.api_fixture_id ? byFixtureId.get(m.api_fixture_id) : null;
+    if (!fixture) {
+      const cands = byKickoff.get(kickoffKeyFromISO(m.kickoff_at)) || [];
+      if (cands.length === 1) fixture = cands[0];
+    }
+    if (!fixture) continue;
+    if (fixture.teamHome.toLowerCase().includes("tbd") || fixture.teamAway.toLowerCase().includes("tbd")) continue;
+
+    const homeId = findTeamId(fixture.teamHome);
+    const awayId = findTeamId(fixture.teamAway);
+
+    const patch: Record<string, any> = {};
+    if (!m.team_a_id && homeId) patch.team_a_id = homeId;
+    if (!m.team_b_id && awayId) patch.team_b_id = awayId;
+    if (!m.api_fixture_id) patch.api_fixture_id = fixture.apiFixtureId;
+
+    if (Object.keys(patch).length === 0) {
+      if (!homeId) errors.push(`Équipe inconnue: "${fixture.teamHome}" (slot ${m.team_a_placeholder})`);
+      if (!awayId) errors.push(`Équipe inconnue: "${fixture.teamAway}" (slot ${m.team_b_placeholder})`);
+      continue;
+    }
+
+    const { error: e } = await supabaseAdmin.from("matches").update(patch as any).eq("id", m.id);
+    if (e) {
+      errors.push(`${m.stage} ${m.team_a_placeholder} vs ${m.team_b_placeholder}: ${e.message}`);
+      continue;
+    }
+    updated += 1;
+    details.push({
+      stage: m.stage,
+      slot: `${m.team_a_placeholder} vs ${m.team_b_placeholder}`,
+      home: fixture.teamHome,
+      away: fixture.teamAway,
+      homeMatched: !!homeId,
+      awayMatched: !!awayId,
+    });
+  }
+
+  return { ok: true, updated, details, errors, checkedFixtures: live.fixtures.length };
+}
+
+async function runBackfillGoalscorers() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { fetchFixtureEvents } = await import("./livescores.server");
+
+  const { data: matches, error } = await supabaseAdmin
+    .from("matches")
+    .select("id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at")
+    .eq("finished", true)
+    .order("kickoff_at", { ascending: false });
+  if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
+
+  const MAX_PER_RUN = 6;
+  const DELAY_MS = 1500;
+  const updates: any[] = [];
+  const errors: string[] = [];
+  let processed = 0;
+
+  for (const m of matches || []) {
+    const hasGoals = Array.isArray(m.goalscorers) && (m.goalscorers as any[]).length > 0;
+    const expectedGoals = (m.score_a ?? 0) + (m.score_b ?? 0);
+    if (hasGoals || expectedGoals === 0 || !m.api_fixture_id) continue;
+    if (processed >= MAX_PER_RUN) {
+      errors.push(`${m.id}: reporté (limite ${MAX_PER_RUN}/run)`);
+      continue;
+    }
+    processed += 1;
+    if (processed > 1) await new Promise((r) => setTimeout(r, DELAY_MS));
+    const ev = await fetchFixtureEvents(m.api_fixture_id);
+    if (ev.error) {
+      errors.push(`${m.id}: ${ev.error}`);
+      continue;
+    }
+    const payload = ev.goals.map((g) => ({
+      minute: g.minute,
+      extra: g.extra,
+      team: g.team,
+      player: g.player,
+      api_player_id: g.apiPlayerId,
+      assist: g.assist,
+      type: g.type,
+    }));
+    const { error: e } = await supabaseAdmin
+      .from("matches")
+      .update({ goalscorers: payload } as any)
+      .eq("id", m.id);
+    if (e) {
+      errors.push(`${m.id}: ${e.message}`);
+      continue;
+    }
+    updates.push({ id: m.id, count: payload.length });
+  }
+
+  return { ok: true, processed, updated: updates.length, details: updates, errors };
+}
+
 export const syncBracketTeamsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { fetchLiveScores } = await import("./livescores.server");
-
-    const live = await fetchLiveScores();
-    if (live.error) {
-      return { ok: false, error: live.error, updated: 0, details: [] as any[] };
-    }
-
-    const { data: teams, error: teamsErr } = await supabaseAdmin
-      .from("teams")
-      .select("id, name");
-    if (teamsErr) return { ok: false, error: teamsErr.message, updated: 0, details: [] };
-
-    const teamByNorm = new Map<string, string>();
-    for (const t of teams || []) teamByNorm.set(normalize(t.name), t.id);
-
-    const findTeamId = (apiName: string): string | null => {
-      const norm = normalize(apiName);
-      if (teamByNorm.has(norm)) return teamByNorm.get(norm)!;
-      const aliasFr = NAME_ALIASES[norm];
-      if (aliasFr) {
-        const id = teamByNorm.get(normalize(aliasFr));
-        if (id) return id;
-      }
-      // fallback: prefix match
-      for (const [n, id] of teamByNorm) {
-        if (n.startsWith(norm) || norm.startsWith(n)) return id;
-      }
-      return null;
-    };
-
-    const { data: koMatches, error: koErr } = await supabaseAdmin
-      .from("matches")
-      .select("id, stage, kickoff_at, api_fixture_id, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder")
-      .in("stage", ["r32", "r16", "qf", "sf", "third", "final"]);
-    if (koErr) return { ok: false, error: koErr.message, updated: 0, details: [] };
-
-    const byKickoff = new Map<string, typeof live.fixtures>();
-    const byFixtureId = new Map<number, typeof live.fixtures[number]>();
-    for (const f of live.fixtures) {
-      const arr = byKickoff.get(f.kickoffKey) || [];
-      arr.push(f);
-      byKickoff.set(f.kickoffKey, arr);
-      byFixtureId.set(f.apiFixtureId, f);
-    }
-
-    const details: any[] = [];
-    const errors: string[] = [];
-    let updated = 0;
-
-    for (const m of koMatches || []) {
-      if (m.team_a_id && m.team_b_id) continue;
-      let fixture = m.api_fixture_id ? byFixtureId.get(m.api_fixture_id) : null;
-      if (!fixture) {
-        const cands = byKickoff.get(kickoffKeyFromISO(m.kickoff_at)) || [];
-        if (cands.length === 1) fixture = cands[0];
-      }
-      if (!fixture) continue;
-      if (fixture.teamHome.toLowerCase().includes("tbd") || fixture.teamAway.toLowerCase().includes("tbd")) continue;
-
-      const homeId = findTeamId(fixture.teamHome);
-      const awayId = findTeamId(fixture.teamAway);
-
-      const patch: Record<string, any> = {};
-      if (!m.team_a_id && homeId) patch.team_a_id = homeId;
-      if (!m.team_b_id && awayId) patch.team_b_id = awayId;
-      if (!m.api_fixture_id) patch.api_fixture_id = fixture.apiFixtureId;
-
-      if (Object.keys(patch).length === 0) {
-        if (!homeId) errors.push(`Équipe inconnue: "${fixture.teamHome}" (slot ${m.team_a_placeholder})`);
-        if (!awayId) errors.push(`Équipe inconnue: "${fixture.teamAway}" (slot ${m.team_b_placeholder})`);
-        continue;
-      }
-
-      const { error: e } = await supabaseAdmin.from("matches").update(patch as any).eq("id", m.id);
-      if (e) {
-        errors.push(`${m.stage} ${m.team_a_placeholder} vs ${m.team_b_placeholder}: ${e.message}`);
-        continue;
-      }
-      updated += 1;
-      details.push({
-        stage: m.stage,
-        slot: `${m.team_a_placeholder} vs ${m.team_b_placeholder}`,
-        home: fixture.teamHome,
-        away: fixture.teamAway,
-        homeMatched: !!homeId,
-        awayMatched: !!awayId,
-      });
-    }
-
-    return { ok: true, updated, details, errors, checkedFixtures: live.fixtures.length };
+    return runSyncBracketTeams();
   });
 
 export const backfillGoalscorersFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertSuperAdmin(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { fetchFixtureEvents } = await import("./livescores.server");
+    return runBackfillGoalscorers();
+  });
 
-    const { data: matches, error } = await supabaseAdmin
-      .from("matches")
-      .select("id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at")
-      .eq("finished", true)
-      .order("kickoff_at", { ascending: false });
-    if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
+// Variants accessibles via la session cookie super-admin (panel /unite/gestion)
+export const syncBracketTeamsAsUnitAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
+    return runSyncBracketTeams();
+  });
 
-    const MAX_PER_RUN = 6;
-    const DELAY_MS = 1500;
-    const updates: any[] = [];
-    const errors: string[] = [];
-    let processed = 0;
-
-    for (const m of matches || []) {
-      const hasGoals = Array.isArray(m.goalscorers) && (m.goalscorers as any[]).length > 0;
-      const expectedGoals = (m.score_a ?? 0) + (m.score_b ?? 0);
-      if (hasGoals || expectedGoals === 0 || !m.api_fixture_id) continue;
-      if (processed >= MAX_PER_RUN) {
-        errors.push(`${m.id}: reporté (limite ${MAX_PER_RUN}/run)`);
-        continue;
-      }
-      processed += 1;
-      if (processed > 1) await new Promise((r) => setTimeout(r, DELAY_MS));
-      const ev = await fetchFixtureEvents(m.api_fixture_id);
-      if (ev.error) {
-        errors.push(`${m.id}: ${ev.error}`);
-        continue;
-      }
-      const payload = ev.goals.map((g) => ({
-        minute: g.minute,
-        extra: g.extra,
-        team: g.team,
-        player: g.player,
-        api_player_id: g.apiPlayerId,
-        assist: g.assist,
-        type: g.type,
-      }));
-      const { error: e } = await supabaseAdmin
-        .from("matches")
-        .update({ goalscorers: payload } as any)
-        .eq("id", m.id);
-      if (e) {
-        errors.push(`${m.id}: ${e.message}`);
-        continue;
-      }
-      updates.push({ id: m.id, count: payload.length });
-    }
-
-    return { ok: true, processed, updated: updates.length, details: updates, errors };
+export const backfillGoalscorersAsUnitAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
+    return runBackfillGoalscorers();
   });

@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, ShieldPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { formatFR } from "@/lib/time";
 import {
@@ -47,6 +47,10 @@ import {
   toggleUnitAdminAsSuperFn,
   deleteUnitAdminAsSuperFn,
 } from "@/lib/unit-admin.functions";
+import {
+  syncBracketTeamsAsUnitAdminFn,
+  backfillGoalscorersAsUnitAdminFn,
+} from "@/lib/bracket-sync.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
@@ -101,10 +105,12 @@ function GestionPage() {
         <TabsList>
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="matches">Matchs</TabsTrigger>
+          <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
+        <TabsContent value="bracket"><BracketTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
       </Tabs>
     </div>
@@ -394,7 +400,146 @@ function MatchRow({ m, onSave }: { m: any; onSave: (id: string, patch: any) => P
   );
 }
 
+/* ----------------------- BRACKET ----------------------- */
+
+function BracketTab() {
+  const qc = useQueryClient();
+  const syncFn = useServerFn(syncBracketTeamsAsUnitAdminFn);
+  const backfillFn = useServerFn(backfillGoalscorersAsUnitAdminFn);
+  const [syncing, setSyncing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [lastSync, setLastSync] = useState<any | null>(null);
+  const [lastBackfill, setLastBackfill] = useState<any | null>(null);
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res: any = await syncFn();
+      setLastSync(res);
+      if (!res.ok) {
+        toast.error(`Échec : ${res.error}`);
+      } else {
+        toast.success(`Tableau synchronisé : ${res.updated} match(s) mis à jour`);
+        qc.invalidateQueries({ queryKey: ["bracket-matches"] });
+        qc.invalidateQueries({ queryKey: ["matches"] });
+        qc.invalidateQueries({ queryKey: ["super-matches"] });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur inconnue");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function handleBackfill() {
+    setBackfilling(true);
+    try {
+      const res: any = await backfillFn();
+      setLastBackfill(res);
+      if (!res.ok) {
+        toast.error(`Échec : ${res.error}`);
+      } else {
+        toast.success(`Buteurs rafraîchis : ${res.updated}/${res.processed} match(s)`);
+        qc.invalidateQueries({ queryKey: ["matches"] });
+        qc.invalidateQueries({ queryKey: ["bracket-matches"] });
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur inconnue");
+    } finally {
+      setBackfilling(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Trophy className="h-4 w-4" /> Tableau final — Phase à élimination directe
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <p className="text-sm font-semibold">Synchroniser les équipes qualifiées</p>
+            <p className="text-xs text-muted-foreground">
+              Récupère via API-Football les fixtures des 16es à la finale et place les équipes qualifiées dans le tableau.
+            </p>
+            <div className="mt-3">
+              <Button size="sm" onClick={handleSync} disabled={syncing}>
+                <RefreshCw className={`mr-1 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Synchronisation…" : "Synchroniser via API Football"}
+              </Button>
+            </div>
+            {lastSync && lastSync.ok && (
+              <div className="mt-3 space-y-1 text-xs">
+                <p>
+                  <span className="font-semibold">{lastSync.updated}</span> match(s) mis à jour ·{" "}
+                  <span className="text-muted-foreground">{lastSync.checkedFixtures} fixtures analysés</span>
+                </p>
+                {lastSync.details?.length > 0 && (
+                  <ul className="ml-4 list-disc text-muted-foreground">
+                    {lastSync.details.slice(0, 10).map((d: any, i: number) => (
+                      <li key={i}>
+                        [{d.stage}] {d.slot} → {d.home} vs {d.away}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {lastSync.errors?.length > 0 && (
+                  <div className="mt-2 rounded border border-amber-500/40 bg-amber-500/10 p-2">
+                    <p className="font-semibold text-amber-700 dark:text-amber-400">
+                      {lastSync.errors.length} avertissement(s)
+                    </p>
+                    <ul className="ml-4 list-disc">
+                      {lastSync.errors.slice(0, 10).map((e: string, i: number) => (
+                        <li key={i}>{e}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <p className="text-sm font-semibold">Rafraîchir les buteurs manquants</p>
+            <p className="text-xs text-muted-foreground">
+              Pour les matchs terminés avec score &gt; 0 mais sans buteurs renseignés (max 6 par exécution, espacés pour respecter la limite API).
+            </p>
+            <div className="mt-3">
+              <Button size="sm" variant="secondary" onClick={handleBackfill} disabled={backfilling}>
+                <RefreshCw className={`mr-1 h-4 w-4 ${backfilling ? "animate-spin" : ""}`} />
+                {backfilling ? "En cours…" : "Rafraîchir buteurs manquants"}
+              </Button>
+            </div>
+            {lastBackfill && lastBackfill.ok && (
+              <div className="mt-3 text-xs">
+                <p>
+                  <span className="font-semibold">{lastBackfill.updated}</span> / {lastBackfill.processed} match(s) mis à jour
+                </p>
+                {lastBackfill.errors?.length > 0 && (
+                  <div className="mt-2 rounded border border-amber-500/40 bg-amber-500/10 p-2">
+                    <p className="font-semibold text-amber-700 dark:text-amber-400">
+                      {lastBackfill.errors.length} avertissement(s)
+                    </p>
+                    <ul className="ml-4 list-disc">
+                      {lastBackfill.errors.slice(0, 10).map((e: string, i: number) => (
+                        <li key={i}>{e}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ----------------------- UNIT ADMINS ----------------------- */
+
 
 function UnitAdminsTab() {
   const qc = useQueryClient();
