@@ -358,3 +358,49 @@ export const backfillGoalscorersAsUnitAdminFn = createServerFn({ method: "POST" 
     if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
     return runBackfillGoalscorers();
   });
+
+import { z } from "zod";
+
+const KO_STAGES = ["r16", "qf", "sf", "third", "final"] as const;
+
+export const listKoMatchesAsUnitAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: matches, error: e1 }, { data: teams, error: e2 }] = await Promise.all([
+      supabaseAdmin
+        .from("matches")
+        .select(
+          "id, stage, kickoff_at, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder",
+        )
+        .in("stage", KO_STAGES as unknown as string[])
+        .order("kickoff_at", { ascending: true }),
+      supabaseAdmin.from("teams").select("id, name, code").order("name"),
+    ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+    return { matches: matches ?? [], teams: teams ?? [] };
+  });
+
+export const assignKoTeamsAsUnitAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        team_a_id: z.string().uuid().nullable(),
+        team_b_id: z.string().uuid().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("matches")
+      .update({ team_a_id: data.team_a_id, team_b_id: data.team_b_id })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
