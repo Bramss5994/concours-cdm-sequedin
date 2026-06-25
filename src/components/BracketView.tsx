@@ -281,7 +281,7 @@ function TeamLine({
     >
       {team?.code ? (
         <img
-          src={flagUrl(team.code, 48)}
+          src={flagUrl(team.code, 40)}
           alt=""
           className="h-5 w-7 rounded-sm object-cover ring-1 ring-border shrink-0"
         />
