@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireUnitAdmin, SUPER_ADMIN_DEPOT } from "./unit-admin.functions";
 import { kickoffKeyFromISO } from "./livescores.shared";
+import { z } from "zod";
 
 async function assertSuperAdmin(supabase: any, userId: string) {
   const { data: roleData, error: e1 } = await supabase
@@ -243,7 +244,7 @@ async function runSyncBracketTeams() {
 
 async function runBackfillGoalscorers() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { fetchFixtureEvents } = await import("./livescores.server");
+  const { fetchFixtureEvents, fetchLiveScores } = await import("./livescores.server");
 
   const { data: matches, error } = await supabaseAdmin
     .from("matches")
@@ -251,6 +252,12 @@ async function runBackfillGoalscorers() {
     .eq("finished", true)
     .order("kickoff_at", { ascending: false });
   if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
+
+  const live = await fetchLiveScores();
+  const fixtureMap = new Map<number, { home: string; away: string }>();
+  for (const f of live.fixtures) {
+    fixtureMap.set(f.apiFixtureId, { home: f.teamHome, away: f.teamAway });
+  }
 
   const MAX_PER_RUN = 6;
   const DELAY_MS = 1500;
@@ -273,15 +280,19 @@ async function runBackfillGoalscorers() {
       errors.push(`${m.id}: ${ev.error}`);
       continue;
     }
-    const payload = ev.goals.map((g) => ({
-      minute: g.minute,
-      extra: g.extra,
-      team: g.team,
-      player: g.player,
-      api_player_id: g.apiPlayerId,
-      assist: g.assist,
-      type: g.type,
-    }));
+    const fx = fixtureMap.get(m.api_fixture_id);
+    const payload = dedupeGoals(
+      ev.goals.map((g) => ({
+        minute: g.minute,
+        extra: g.extra,
+        team: g.team,
+        player: g.player,
+        api_player_id: g.apiPlayerId,
+        assist: g.assist,
+        type: g.type,
+        side: sideOfGoal(g.team, fx),
+      })),
+    );
     const { error: e } = await supabaseAdmin
       .from("matches")
       .update({ goalscorers: payload } as any)
@@ -294,6 +305,30 @@ async function runBackfillGoalscorers() {
   }
 
   return { ok: true, processed, updated: updates.length, details: updates, errors };
+}
+
+export function sideOfGoal(team: string, fx?: { home: string; away: string }): "home" | "away" | null {
+  if (!fx) return null;
+  const t = normalize(team);
+  const h = normalize(fx.home);
+  const a = normalize(fx.away);
+  if (t === h) return "home";
+  if (t === a) return "away";
+  if (h.startsWith(t) || t.startsWith(h)) return "home";
+  if (a.startsWith(t) || t.startsWith(a)) return "away";
+  return null;
+}
+
+export function dedupeGoals<T extends { minute: number | null; extra: number | null; player: string; team: string }>(arr: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const g of arr) {
+    const key = `${g.minute ?? "x"}|${g.extra ?? "x"}|${normalize(g.player)}|${normalize(g.team)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(g);
+  }
+  return out;
 }
 
 export const syncBracketTeamsFn = createServerFn({ method: "POST" })
@@ -323,4 +358,49 @@ export const backfillGoalscorersAsUnitAdminFn = createServerFn({ method: "POST" 
   .handler(async ({ context }) => {
     if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
     return runBackfillGoalscorers();
+  });
+
+
+const KO_STAGES = ["r16", "qf", "sf", "third", "final"] as const;
+
+export const listKoMatchesAsUnitAdminFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: matches, error: e1 }, { data: teams, error: e2 }] = await Promise.all([
+      supabaseAdmin
+        .from("matches")
+        .select(
+          "id, stage, kickoff_at, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder",
+        )
+        .in("stage", KO_STAGES as unknown as ("r16"|"qf"|"sf"|"third"|"final")[])
+        .order("kickoff_at", { ascending: true }),
+      supabaseAdmin.from("teams").select("id, name, code").order("name"),
+    ]);
+    if (e1) throw new Error(e1.message);
+    if (e2) throw new Error(e2.message);
+    return { matches: matches ?? [], teams: teams ?? [] };
+  });
+
+export const assignKoTeamsAsUnitAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        team_a_id: z.string().uuid().nullable(),
+        team_b_id: z.string().uuid().nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    if (context.depot !== SUPER_ADMIN_DEPOT) throw new Error("Forbidden: super admin requis");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("matches")
+      .update({ team_a_id: data.team_a_id, team_b_id: data.team_b_id })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
