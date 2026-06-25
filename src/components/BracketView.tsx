@@ -4,7 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { flagUrl } from "@/lib/flag";
 import { formatFR } from "@/lib/time";
-import { Trophy, RefreshCw } from "lucide-react";
+import { Trophy, RefreshCw, Radio, CheckCircle2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { syncBracketTeamsFn, backfillGoalscorersFn } from "@/lib/bracket-sync.functions";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
@@ -68,16 +70,6 @@ const SLOTS: Slot[] = [
   { num: 104, stage: "final", a: "W101", b: "W102" },
 ];
 
-const LEFT_R32 = [73, 75, 74, 77, 81, 82, 83, 84];
-const LEFT_R16 = [89, 90, 94, 93];
-const LEFT_QF = [97, 98];
-const LEFT_SF = 101;
-
-const RIGHT_R32 = [76, 78, 79, 80, 86, 88, 85, 87];
-const RIGHT_R16 = [91, 92, 95, 96];
-const RIGHT_QF = [99, 100];
-const RIGHT_SF = 102;
-
 function useKnockoutMatches() {
   return useQuery({
     queryKey: ["bracket-matches"],
@@ -126,7 +118,6 @@ type Standing = { team: Team; pts: number; gd: number; gf: number; group: string
 type StandingsInfo = {
   byGroup: Map<string, Standing[]>;
   completeGroups: Set<string>;
-  totalByGroup: Map<string, { played: number; finished: number }>;
   allComplete: boolean;
 };
 
@@ -168,7 +159,7 @@ function computeStandings(groupMatches: GroupMatch[]): StandingsInfo {
     if (t.played > 0 && t.played === t.finished) completeGroups.add(g);
   }
   const allComplete = totals.size > 0 && completeGroups.size === totals.size;
-  return { byGroup: out, completeGroups, totalByGroup: totals, allComplete };
+  return { byGroup: out, completeGroups, allComplete };
 }
 
 function resolveGroupPlaceholder(
@@ -218,13 +209,9 @@ type Resolved = {
   isLive: boolean;
   finished: boolean;
   winner: "a" | "b" | null;
-  loser: "a" | "b" | null;
 };
 
-function resolveAll(
-  matches: Match[],
-  standings: StandingsInfo,
-): Map<number, Resolved> {
+function resolveAll(matches: Match[], standings: StandingsInfo): Map<number, Resolved> {
   const byKey = new Map<string, Match>();
   for (const m of matches) {
     const a = m.team_a_placeholder || "";
@@ -232,151 +219,146 @@ function resolveAll(
     byKey.set(`${m.stage}|${a}|${b}`, m);
     byKey.set(`${m.stage}|${b}|${a}`, m);
   }
-
   const out = new Map<number, Resolved>();
   const usedThirds = new Set<string>();
-
-  const winnerOf = (r: Resolved | undefined): Team | null => {
-    if (!r || !r.finished || r.winner == null) return null;
-    return r.winner === "a" ? r.teamA : r.teamB;
-  };
-  const loserOf = (r: Resolved | undefined): Team | null => {
-    if (!r || !r.finished || r.winner == null) return null;
-    return r.winner === "a" ? r.teamB : r.teamA;
-  };
-
+  const winnerOf = (r: Resolved | undefined): Team | null =>
+    !r || !r.finished || r.winner == null ? null : r.winner === "a" ? r.teamA : r.teamB;
+  const loserOf = (r: Resolved | undefined): Team | null =>
+    !r || !r.finished || r.winner == null ? null : r.winner === "a" ? r.teamB : r.teamA;
   const labelFromRef = (ref: string): Team | null => {
     if (ref.startsWith("W")) return winnerOf(out.get(parseInt(ref.slice(1))));
     if (ref.startsWith("L")) return loserOf(out.get(parseInt(ref.slice(1))));
     return resolveGroupPlaceholder(ref, standings, usedThirds);
   };
-
   for (const slot of SLOTS) {
     const m = byKey.get(`${slot.stage}|${slot.a}|${slot.b}`) || null;
     let teamA: Team | null = m?.team_a ?? null;
     let teamB: Team | null = m?.team_b ?? null;
     if (!teamA) teamA = labelFromRef(slot.a);
     if (!teamB) teamB = labelFromRef(slot.b);
-
-    const isLive = !!m && (m.live_status === "1H" || m.live_status === "2H" || m.live_status === "HT" || m.live_status === "ET" || m.live_status === "P" || m.live_status === "LIVE");
+    const isLive = !!m && ["1H", "2H", "HT", "ET", "P", "LIVE"].includes(m.live_status || "");
     const finished = !!m && m.finished && m.score_a != null && m.score_b != null;
     const scoreA = m?.live_score_a ?? m?.score_a ?? null;
     const scoreB = m?.live_score_b ?? m?.score_b ?? null;
     let winner: "a" | "b" | null = null;
-    let loser: "a" | "b" | null = null;
     if (finished && m && m.score_a != null && m.score_b != null) {
-      if (m.score_a > m.score_b) { winner = "a"; loser = "b"; }
-      else if (m.score_b > m.score_a) { winner = "b"; loser = "a"; }
+      if (m.score_a > m.score_b) winner = "a";
+      else if (m.score_b > m.score_a) winner = "b";
     }
-
-    out.set(slot.num, { slot, match: m, teamA, teamB, scoreA, scoreB, isLive, finished, winner, loser });
+    out.set(slot.num, { slot, match: m, teamA, teamB, scoreA, scoreB, isLive, finished, winner });
   }
   return out;
 }
 
-function TeamRow({
+const STAGE_LABEL: Record<string, string> = {
+  r32: "32es de finale",
+  r16: "8es de finale",
+  qf: "Quarts de finale",
+  sf: "Demi-finales",
+  third: "Match pour la 3e place",
+  final: "Finale",
+};
+
+function TeamLine({
   team,
   placeholder,
   score,
   isWinner,
   isLoser,
-  align = "left",
 }: {
   team: Team | null;
   placeholder: string;
   score: number | null;
   isWinner: boolean;
   isLoser: boolean;
-  align?: "left" | "right";
 }) {
   const name = team?.name || placeholder;
-  const flag = team?.code ? flagUrl(team.code, 40) : null;
   return (
     <div
-      className={`flex items-center gap-2 px-2 py-1.5 text-[11px] font-semibold transition-all ${
-        align === "right" ? "flex-row-reverse text-right" : "text-left"
-      } ${isWinner ? "text-white" : isLoser ? "text-white/40 line-through" : "text-white/90"}`}
+      className={`flex items-center gap-2 px-3 py-2 ${
+        isWinner ? "bg-primary/5" : ""
+      }`}
     >
-      {flag ? (
-        <img src={flag} alt="" className="h-3.5 w-5 rounded-[2px] object-cover ring-1 ring-white/10 shrink-0" />
+      {team?.code ? (
+        <img
+          src={flagUrl(team.code, 48)}
+          alt=""
+          className="h-5 w-7 rounded-sm object-cover ring-1 ring-border shrink-0"
+        />
       ) : (
-        <div className="h-3.5 w-5 rounded-[2px] bg-white/10 shrink-0" />
+        <div className="h-5 w-7 rounded-sm bg-muted shrink-0 flex items-center justify-center text-[10px] text-muted-foreground">
+          ?
+        </div>
       )}
-      <span className="flex-1 truncate uppercase tracking-wide">{name}</span>
-      {score != null && (
-        <span
-          className={`tabular-nums font-bold text-sm ${
-            isWinner ? "text-[color:var(--wc-gold)]" : "text-white/70"
-          }`}
-        >
-          {score}
-        </span>
-      )}
+      <span
+        className={`flex-1 text-sm truncate ${
+          isWinner ? "font-bold" : isLoser ? "text-muted-foreground" : "font-medium"
+        }`}
+      >
+        {name}
+      </span>
+      <span
+        className={`tabular-nums font-bold text-base w-6 text-right ${
+          score == null ? "text-muted-foreground/40" : isWinner ? "text-primary" : ""
+        }`}
+      >
+        {score ?? "–"}
+      </span>
     </div>
   );
 }
 
-function BMatchCard({ r, align = "left" }: { r: Resolved; align?: "left" | "right" }) {
+function BracketCard({ r }: { r: Resolved }) {
   const winA = r.winner === "a";
   const winB = r.winner === "b";
-  const lostA = r.winner === "b";
-  const lostB = r.winner === "a";
   const date = r.match?.kickoff_at ? formatFR(r.match.kickoff_at) : "—";
-
   return (
-    <div
-      className="group [perspective:900px] w-[170px] sm:w-[195px]"
-      style={{ filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.4))" }}
-    >
-      <div
-        className={`relative rounded-md border bg-gradient-to-br from-[color:var(--wc-card-1)] to-[color:var(--wc-card-2)] border-white/10 overflow-hidden transition-transform duration-300 [transform-style:preserve-3d] ${
-          align === "right"
-            ? "group-hover:[transform:rotateY(-6deg)_rotateX(-2deg)_translateZ(8px)]"
-            : "group-hover:[transform:rotateY(6deg)_rotateX(-2deg)_translateZ(8px)]"
-        } ${r.isLive ? "ring-2 ring-[color:var(--wc-red)]" : ""}`}
-      >
-        <div className="px-2 py-0.5 text-[8px] uppercase tracking-[0.15em] font-bold text-white/60 bg-black/30 flex justify-between">
-          <span>#{r.slot.num}</span>
-          <span>{date}</span>
-        </div>
-        <TeamRow team={r.teamA} placeholder={r.slot.a} score={r.scoreA} isWinner={winA} isLoser={lostA} />
-        <div className="h-px bg-white/10 mx-2" />
-        <TeamRow team={r.teamB} placeholder={r.slot.b} score={r.scoreB} isWinner={winB} isLoser={lostB} />
-        {r.isLive && (
-          <div className="absolute top-1 right-1 flex items-center gap-1 text-[8px] font-bold text-white bg-[color:var(--wc-red)] px-1.5 py-0.5 rounded-full">
-            <span className="h-1 w-1 rounded-full bg-white animate-pulse" />
-            LIVE
-          </div>
-        )}
+    <Card className="overflow-hidden border-border/60 p-0 shadow-sm">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-muted/40 border-b border-border/60">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+          #{r.slot.num} · {date}
+        </span>
+        {r.isLive ? (
+          <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-300 animate-pulse text-[9px] h-4 px-1.5">
+            <Radio className="h-2.5 w-2.5 mr-0.5" /> LIVE
+          </Badge>
+        ) : r.finished ? (
+          <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[9px] h-4 px-1.5">
+            <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" /> Terminé
+          </Badge>
+        ) : null}
       </div>
-    </div>
+      <TeamLine team={r.teamA} placeholder={r.slot.a} score={r.scoreA} isWinner={winA} isLoser={winB} />
+      <div className="h-px bg-border/60" />
+      <TeamLine team={r.teamB} placeholder={r.slot.b} score={r.scoreB} isWinner={winB} isLoser={winA} />
+    </Card>
   );
 }
 
-function StageLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] font-bold text-[color:var(--wc-gold)] text-center mb-2">
-      {children}
-    </div>
-  );
-}
-
-function Column({
+function StageSection({
   label,
-  align = "left",
-  children,
+  slots,
+  resolved,
 }: {
   label: string;
-  align?: "left" | "right";
-  children: React.ReactNode;
+  slots: number[];
+  resolved: Map<number, Resolved>;
 }) {
   return (
-    <div className="flex flex-col justify-around gap-3 shrink-0">
-      <StageLabel>{label}</StageLabel>
-      <div className={`flex flex-col justify-around flex-1 gap-3 ${align === "right" ? "items-end" : "items-start"}`}>
-        {children}
+    <section>
+      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+        <span className="h-px flex-1 bg-border" />
+        <span>{label}</span>
+        <span className="h-px flex-1 bg-border" />
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {slots.map((n) => {
+          const r = resolved.get(n);
+          if (!r) return null;
+          return <BracketCard key={n} r={r} />;
+        })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -397,20 +379,13 @@ export function BracketView() {
   const [syncing, setSyncing] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
 
-  const r = (n: number): Resolved => resolved.get(n)!;
-
   const handleSync = async () => {
     setSyncing(true);
     try {
       const res: any = await syncFn();
-      if (!res.ok) {
-        toast.error(`Échec : ${res.error}`);
-      } else {
+      if (!res.ok) toast.error(`Échec : ${res.error}`);
+      else {
         toast.success(`Tableau synchronisé : ${res.updated} match(s) mis à jour`);
-        if (res.errors?.length) {
-          console.warn("Sync warnings:", res.errors);
-          toast.warning(`${res.errors.length} avertissement(s) — voir console`);
-        }
         qc.invalidateQueries({ queryKey: ["bracket-matches"] });
         qc.invalidateQueries({ queryKey: ["matches"] });
       }
@@ -425,14 +400,9 @@ export function BracketView() {
     setBackfilling(true);
     try {
       const res: any = await backfillFn();
-      if (!res.ok) {
-        toast.error(`Échec : ${res.error}`);
-      } else {
+      if (!res.ok) toast.error(`Échec : ${res.error}`);
+      else {
         toast.success(`Buteurs rafraîchis : ${res.updated}/${res.processed} match(s)`);
-        if (res.errors?.length) {
-          console.warn("Backfill warnings:", res.errors);
-          toast.warning(`${res.errors.length} en attente — relancez si besoin`);
-        }
         qc.invalidateQueries({ queryKey: ["matches"] });
         qc.invalidateQueries({ queryKey: ["bracket-matches"] });
       }
@@ -443,106 +413,72 @@ export function BracketView() {
     }
   };
 
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground py-10 text-center">Chargement du tableau…</p>;
+  }
+
   return (
-    <div className="rounded-xl bg-gradient-to-b from-[#0a0e2c] via-[#0d1a3a] to-[#0a0e2c] text-white">
-      <style>{`
-        :root {
-          --wc-red: #e30613;
-          --wc-blue: #2541b2;
-          --wc-green: #009739;
-          --wc-gold: #f5c542;
-          --wc-card-1: rgba(20, 30, 70, 0.95);
-          --wc-card-2: rgba(10, 18, 45, 0.95);
-        }
-      `}</style>
-      <div className="px-3 py-6">
-        <div className="text-center mb-6">
-          <div className="text-[10px] uppercase tracking-[0.4em] text-[color:var(--wc-gold)]">
-            Coupe du Monde 2026
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-3">
+          <Trophy className="h-6 w-6 text-primary" />
+          <div>
+            <h2 className="text-lg font-bold">Tableau final — Coupe du Monde 2026</h2>
+            <p className="text-xs text-muted-foreground">Phase à élimination directe, mise à jour en direct.</p>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight mt-1">TABLEAU FINAL</h2>
-          <p className="text-xs text-white/60 mt-1">
-            Mis à jour en temps réel · des 16es à la finale
-          </p>
-          {isSuper && (
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <button
-                onClick={handleSync}
-                disabled={syncing}
-                className="inline-flex items-center gap-2 rounded-full bg-[color:var(--wc-gold)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-black hover:opacity-90 disabled:opacity-50"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
-                {syncing ? "Synchronisation…" : "Synchroniser via API Football"}
-              </button>
-              <button
-                onClick={handleBackfill}
-                disabled={backfilling}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-white/15 disabled:opacity-50"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${backfilling ? "animate-spin" : ""}`} />
-                {backfilling ? "Récupération…" : "Rafraîchir buteurs manquants"}
-              </button>
-            </div>
-          )}
         </div>
-
-
-        {isLoading ? (
-          <p className="text-center text-white/60 py-20">Chargement…</p>
-        ) : (
-          <div className="overflow-x-auto -mx-3 px-3 pb-4">
-            <div className="min-w-[1400px] flex items-stretch justify-between gap-2">
-              <Column label="16es">
-                {LEFT_R32.map((n) => <BMatchCard key={n} r={r(n)} />)}
-              </Column>
-              <Column label="8es">
-                {LEFT_R16.map((n) => <BMatchCard key={n} r={r(n)} />)}
-              </Column>
-              <Column label="Quarts">
-                {LEFT_QF.map((n) => <BMatchCard key={n} r={r(n)} />)}
-              </Column>
-              <Column label="Demi">
-                <BMatchCard r={r(LEFT_SF)} />
-              </Column>
-
-              <div className="flex flex-col items-center justify-center gap-4 shrink-0 px-2">
-                <StageLabel>Finale</StageLabel>
-                <div className="relative">
-                  <div className="absolute inset-0 -m-3 rounded-full bg-[color:var(--wc-gold)]/20 blur-2xl animate-pulse" />
-                  <div className="relative">
-                    <BMatchCard r={r(104)} />
-                  </div>
-                </div>
-                <div className="my-2 [perspective:600px]">
-                  <Trophy
-                    className="h-20 w-20 sm:h-28 sm:w-28 text-[color:var(--wc-gold)] drop-shadow-[0_0_20px_rgba(245,197,66,0.6)] animate-[spin_18s_linear_infinite]"
-                    style={{ transformStyle: "preserve-3d" }}
-                  />
-                </div>
-                <StageLabel>3e place</StageLabel>
-                <BMatchCard r={r(103)} />
-              </div>
-
-              <Column label="Demi" align="right">
-                <BMatchCard r={r(RIGHT_SF)} align="right" />
-              </Column>
-              <Column label="Quarts" align="right">
-                {RIGHT_QF.map((n) => <BMatchCard key={n} r={r(n)} align="right" />)}
-              </Column>
-              <Column label="8es" align="right">
-                {RIGHT_R16.map((n) => <BMatchCard key={n} r={r(n)} align="right" />)}
-              </Column>
-              <Column label="16es" align="right">
-                {RIGHT_R32.map((n) => <BMatchCard key={n} r={r(n)} align="right" />)}
-              </Column>
-            </div>
+        {isSuper && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Synchro…" : "Synchroniser"}
+            </button>
+            <button
+              onClick={handleBackfill}
+              disabled={backfilling}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${backfilling ? "animate-spin" : ""}`} />
+              {backfilling ? "…" : "Buteurs manquants"}
+            </button>
           </div>
         )}
-
-        <p className="text-center text-[10px] text-white/40 mt-4">
-          Glissez horizontalement pour explorer le tableau →
-        </p>
       </div>
+
+      <StageSection
+        label={STAGE_LABEL.r32}
+        slots={SLOTS.filter((s) => s.stage === "r32").map((s) => s.num)}
+        resolved={resolved}
+      />
+      <StageSection
+        label={STAGE_LABEL.r16}
+        slots={SLOTS.filter((s) => s.stage === "r16").map((s) => s.num)}
+        resolved={resolved}
+      />
+      <StageSection
+        label={STAGE_LABEL.qf}
+        slots={SLOTS.filter((s) => s.stage === "qf").map((s) => s.num)}
+        resolved={resolved}
+      />
+      <StageSection
+        label={STAGE_LABEL.sf}
+        slots={SLOTS.filter((s) => s.stage === "sf").map((s) => s.num)}
+        resolved={resolved}
+      />
+      <StageSection
+        label={STAGE_LABEL.third}
+        slots={[103]}
+        resolved={resolved}
+      />
+      <StageSection
+        label={STAGE_LABEL.final}
+        slots={[104]}
+        resolved={resolved}
+      />
     </div>
   );
 }
