@@ -50,6 +50,8 @@ import {
 import {
   syncBracketTeamsAsUnitAdminFn,
   backfillGoalscorersAsUnitAdminFn,
+  listKoMatchesAsUnitAdminFn,
+  assignKoTeamsAsUnitAdminFn,
 } from "@/lib/bracket-sync.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
