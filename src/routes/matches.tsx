@@ -282,19 +282,27 @@ function GoalscorersList({ goalscorers, teamA, teamB }: {
   teamB?: string;
 }) {
   if (!goalscorers || goalscorers.length === 0) return null;
-  const sorted = [...goalscorers].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
 
-  // Les noms d'équipes côté API sont en anglais (ex: "Sweden") alors que la DB
-  // les stocke en français (ex: "Suède"). On groupe par g.team tel quel, puis
-  // on tente d'assigner chaque groupe au bon côté (A/B) du match. À défaut,
-  // on conserve l'ordre d'apparition.
-  const teamsInGoals = Array.from(new Set(sorted.map((g) => g.team)));
   const norm = (s?: string) =>
     (s || "")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z]/g, "");
+
+  // Dedupe (some APIs return duplicates of the same event).
+  const seen = new Set<string>();
+  const unique: Goalscorer[] = [];
+  for (const g of goalscorers) {
+    const k = `${g.minute ?? "x"}|${g.extra ?? "x"}|${norm(g.player)}|${norm(g.team)}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    unique.push(g);
+  }
+  const sorted = [...unique].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+
+  // 1) Si "side" est présent (sync récente), on l'utilise : 'home' = A, 'away' = B.
+  // 2) Sinon fallback : match du nom API contre teamA/teamB par préfixe normalisé.
   const matchScore = (apiName: string, dbName?: string) => {
     if (!dbName) return 0;
     const a = norm(apiName);
@@ -302,34 +310,19 @@ function GoalscorersList({ goalscorers, teamA, teamB }: {
     if (!a || !b) return 0;
     if (a === b) return 100;
     if (a.startsWith(b) || b.startsWith(a)) return 80;
-    const prefix = Math.min(a.length, b.length, 4);
-    let common = 0;
-    for (let i = 0; i < prefix; i++) if (a[i] === b[i]) common++;
-    return common * 5;
+    return 0;
   };
 
-  let leftTeamApi: string | null = null;
-  let rightTeamApi: string | null = null;
-  if (teamsInGoals.length >= 1) {
-    const ranked = teamsInGoals.map((t) => ({
-      t,
-      a: matchScore(t, teamA),
-      b: matchScore(t, teamB),
-    }));
-    // Best A match wins left side
-    const bestA = ranked.slice().sort((x, y) => y.a - x.a)[0];
-    if (bestA && bestA.a > 0) leftTeamApi = bestA.t;
-    const remaining = ranked.filter((r) => r.t !== leftTeamApi);
-    const bestB = remaining.slice().sort((x, y) => y.b - x.b)[0];
-    if (bestB && bestB.b > 0) rightTeamApi = bestB.t;
-    // Fallbacks: keep apparition order
-    if (!leftTeamApi) leftTeamApi = teamsInGoals[0] || null;
-    if (!rightTeamApi)
-      rightTeamApi = teamsInGoals.find((t) => t !== leftTeamApi) || null;
-  }
+  const assignSide = (g: Goalscorer): "a" | "b" => {
+    if (g.side === "home") return "a";
+    if (g.side === "away") return "b";
+    const sa = matchScore(g.team, teamA);
+    const sb = matchScore(g.team, teamB);
+    return sb > sa ? "b" : "a";
+  };
 
-  const aGoals = sorted.filter((g) => g.team === leftTeamApi);
-  const bGoals = sorted.filter((g) => g.team === rightTeamApi);
+  const aGoals = sorted.filter((g) => assignSide(g) === "a");
+  const bGoals = sorted.filter((g) => assignSide(g) === "b");
 
   const renderGoal = (g: Goalscorer, i: number) => {
     const minute = g.minute != null ? `${g.minute}${g.extra ? `+${g.extra}` : ""}'` : "";
