@@ -26,6 +26,7 @@ type Goalscorer = {
   api_player_id?: number | null;
   assist?: string | null;
   type?: string;
+  side?: "home" | "away" | null;
 };
 
 type Match = {
