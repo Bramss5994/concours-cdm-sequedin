@@ -536,6 +536,151 @@ function BracketTab() {
           </div>
         </CardContent>
       </Card>
+
+      <ManualBracketAssign />
+    </div>
+  );
+}
+
+const STAGE_LABELS: Record<string, string> = {
+  r16: "8es de finale",
+  qf: "Quarts de finale",
+  sf: "Demi-finales",
+  third: "Match pour la 3e place",
+  final: "Finale",
+};
+
+function ManualBracketAssign() {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listKoMatchesAsUnitAdminFn);
+  const assignFn = useServerFn(assignKoTeamsAsUnitAdminFn);
+  const { data, isLoading } = useQuery({
+    queryKey: ["ko-matches-admin"],
+    queryFn: () => listFn(),
+  });
+
+  const matchesByStage = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    for (const m of data?.matches ?? []) {
+      if (!map[m.stage]) map[m.stage] = [];
+      map[m.stage].push(m);
+    }
+    return map;
+  }, [data]);
+
+  const teams = data?.teams ?? [];
+
+  async function save(id: string, team_a_id: string | null, team_b_id: string | null) {
+    try {
+      await assignFn({ data: { id, team_a_id, team_b_id } });
+      toast.success("Équipes enregistrées");
+      qc.invalidateQueries({ queryKey: ["ko-matches-admin"] });
+      qc.invalidateQueries({ queryKey: ["bracket-matches"] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Trophy className="h-4 w-4" /> Placement manuel des équipes qualifiées
+        </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          À partir des 8es de finale : sélectionnez les équipes qualifiées pour chaque match.
+          Laissez vide pour conserver le placeholder (ex. « W73 »).
+        </p>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : (
+          <div className="space-y-6">
+            {(["r16", "qf", "sf", "third", "final"] as const).map((stage) => (
+              <div key={stage}>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  {STAGE_LABELS[stage]}
+                </h4>
+                <div className="space-y-2">
+                  {(matchesByStage[stage] ?? []).map((m) => (
+                    <KoMatchAssignRow key={m.id} m={m} teams={teams} onSave={save} />
+                  ))}
+                  {!matchesByStage[stage]?.length && (
+                    <p className="text-xs text-muted-foreground italic">Aucun match.</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function KoMatchAssignRow({
+  m,
+  teams,
+  onSave,
+}: {
+  m: any;
+  teams: Array<{ id: string; name: string; code: string | null }>;
+  onSave: (id: string, a: string | null, b: string | null) => Promise<void>;
+}) {
+  const [a, setA] = useState<string>(m.team_a_id ?? "__none__");
+  const [b, setB] = useState<string>(m.team_b_id ?? "__none__");
+  const [busy, setBusy] = useState(false);
+  const dirty = a !== (m.team_a_id ?? "__none__") || b !== (m.team_b_id ?? "__none__");
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto] items-center gap-2 rounded-lg border bg-muted/20 p-2">
+      <Select value={a} onValueChange={setA}>
+        <SelectTrigger className="h-9">
+          <SelectValue placeholder={m.team_a_placeholder || "Équipe A"} />
+        </SelectTrigger>
+        <SelectContent className="max-h-72">
+          <SelectItem value="__none__">
+            <em>— Placeholder ({m.team_a_placeholder || "?"})</em>
+          </SelectItem>
+          {teams.map((t) => (
+            <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="text-center text-xs text-muted-foreground font-semibold">VS</span>
+      <Select value={b} onValueChange={setB}>
+        <SelectTrigger className="h-9">
+          <SelectValue placeholder={m.team_b_placeholder || "Équipe B"} />
+        </SelectTrigger>
+        <SelectContent className="max-h-72">
+          <SelectItem value="__none__">
+            <em>— Placeholder ({m.team_b_placeholder || "?"})</em>
+          </SelectItem>
+          {teams.map((t) => (
+            <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        size="sm"
+        disabled={!dirty || busy}
+        onClick={async () => {
+          setBusy(true);
+          try {
+            await onSave(
+              m.id,
+              a === "__none__" ? null : a,
+              b === "__none__" ? null : b,
+            );
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? "…" : "Enregistrer"}
+      </Button>
     </div>
   );
 }
