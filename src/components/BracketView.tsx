@@ -252,7 +252,7 @@ function resolveAll(matches: Match[], standings: StandingsInfo): Map<number, Res
 
 const STAGE_LABEL: Record<string, string> = {
   r32: "32es de finale",
-  r16: "8es de finale",
+  r16: "16es de finale",
   qf: "Quarts de finale",
   sf: "Demi-finales",
   third: "Match pour la 3e place",
