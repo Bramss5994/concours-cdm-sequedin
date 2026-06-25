@@ -543,7 +543,8 @@ function BracketTab() {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  r16: "8es de finale",
+  r32: "1/16 de finale",
+  r16: "1/8 de finale",
   qf: "Quarts de finale",
   sf: "Demi-finales",
   third: "Match pour la 3e place",
@@ -598,7 +599,7 @@ function ManualBracketAssign() {
           <p className="text-sm text-muted-foreground">Chargement…</p>
         ) : (
           <div className="space-y-6">
-            {(["r16", "qf", "sf", "third", "final"] as const).map((stage) => (
+            {(["r32", "r16", "qf", "sf", "third", "final"] as const).map((stage) => (
               <div key={stage}>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
                   {STAGE_LABELS[stage]}
