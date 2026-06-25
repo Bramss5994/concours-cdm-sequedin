@@ -105,15 +105,20 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             if (ev.error) {
               errors.push(`events ${m.id}: ${ev.error}`);
             } else {
-              const payload = ev.goals.map((g: GoalEvent) => ({
-                minute: g.minute,
-                extra: g.extra,
-                team: g.team,
-                player: g.player,
-                api_player_id: g.apiPlayerId,
-                assist: g.assist,
-                type: g.type,
-              }));
+              const { sideOfGoal, dedupeGoals } = await import("@/lib/bracket-sync.functions");
+              const fx = { home: pick.teamHome, away: pick.teamAway };
+              const payload = dedupeGoals(
+                ev.goals.map((g: GoalEvent) => ({
+                  minute: g.minute,
+                  extra: g.extra,
+                  team: g.team,
+                  player: g.player,
+                  api_player_id: g.apiPlayerId,
+                  assist: g.assist,
+                  type: g.type,
+                  side: sideOfGoal(g.team, fx),
+                })),
+              );
               const { error: e } = await supabaseAdmin
                 .from("matches")
                 .update({ goalscorers: payload })
