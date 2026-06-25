@@ -243,7 +243,7 @@ async function runSyncBracketTeams() {
 
 async function runBackfillGoalscorers() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { fetchFixtureEvents } = await import("./livescores.server");
+  const { fetchFixtureEvents, fetchLiveScores } = await import("./livescores.server");
 
   const { data: matches, error } = await supabaseAdmin
     .from("matches")
@@ -251,6 +251,12 @@ async function runBackfillGoalscorers() {
     .eq("finished", true)
     .order("kickoff_at", { ascending: false });
   if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
+
+  const live = await fetchLiveScores();
+  const fixtureMap = new Map<number, { home: string; away: string }>();
+  for (const f of live.fixtures) {
+    fixtureMap.set(f.apiFixtureId, { home: f.teamHome, away: f.teamAway });
+  }
 
   const MAX_PER_RUN = 6;
   const DELAY_MS = 1500;
@@ -273,15 +279,19 @@ async function runBackfillGoalscorers() {
       errors.push(`${m.id}: ${ev.error}`);
       continue;
     }
-    const payload = ev.goals.map((g) => ({
-      minute: g.minute,
-      extra: g.extra,
-      team: g.team,
-      player: g.player,
-      api_player_id: g.apiPlayerId,
-      assist: g.assist,
-      type: g.type,
-    }));
+    const fx = fixtureMap.get(m.api_fixture_id);
+    const payload = dedupeGoals(
+      ev.goals.map((g) => ({
+        minute: g.minute,
+        extra: g.extra,
+        team: g.team,
+        player: g.player,
+        api_player_id: g.apiPlayerId,
+        assist: g.assist,
+        type: g.type,
+        side: sideOfGoal(g.team, fx),
+      })),
+    );
     const { error: e } = await supabaseAdmin
       .from("matches")
       .update({ goalscorers: payload } as any)
@@ -294,6 +304,30 @@ async function runBackfillGoalscorers() {
   }
 
   return { ok: true, processed, updated: updates.length, details: updates, errors };
+}
+
+export function sideOfGoal(team: string, fx?: { home: string; away: string }): "home" | "away" | null {
+  if (!fx) return null;
+  const t = normalize(team);
+  const h = normalize(fx.home);
+  const a = normalize(fx.away);
+  if (t === h) return "home";
+  if (t === a) return "away";
+  if (h.startsWith(t) || t.startsWith(h)) return "home";
+  if (a.startsWith(t) || t.startsWith(a)) return "away";
+  return null;
+}
+
+export function dedupeGoals<T extends { minute: number | null; extra: number | null; player: string; team: string }>(arr: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const g of arr) {
+    const key = `${g.minute ?? "x"}|${g.extra ?? "x"}|${normalize(g.player)}|${normalize(g.team)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(g);
+  }
+  return out;
 }
 
 export const syncBracketTeamsFn = createServerFn({ method: "POST" })
