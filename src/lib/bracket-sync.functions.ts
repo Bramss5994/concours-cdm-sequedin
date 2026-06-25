@@ -360,7 +360,6 @@ export const backfillGoalscorersAsUnitAdminFn = createServerFn({ method: "POST" 
     return runBackfillGoalscorers();
   });
 
-import { z } from "zod";
 
 const KO_STAGES = ["r16", "qf", "sf", "third", "final"] as const;
 
@@ -375,7 +374,7 @@ export const listKoMatchesAsUnitAdminFn = createServerFn({ method: "GET" })
         .select(
           "id, stage, kickoff_at, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder",
         )
-        .in("stage", KO_STAGES as unknown as string[])
+        .in("stage", KO_STAGES as unknown as ("r16"|"qf"|"sf"|"third"|"final")[])
         .order("kickoff_at", { ascending: true }),
       supabaseAdmin.from("teams").select("id, name, code").order("name"),
     ]);
