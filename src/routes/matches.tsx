@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { isLocked, formatFR, LOCK_MS } from "@/lib/time";
 import { toast } from "sonner";
-import { Trophy, Lock, CheckCircle2, Radio, Goal } from "lucide-react";
+import { Trophy, Lock, CheckCircle2, Radio, Goal, Target } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -637,6 +637,7 @@ function MatchesPage() {
             <TabsTrigger value="finished">Terminés ({finishedMatches.length})</TabsTrigger>
             {groupLetters.length > 0 && <TabsTrigger value="groups">Classements</TabsTrigger>}
             <TabsTrigger value="bracket">Tableau final</TabsTrigger>
+            <TabsTrigger value="scorers"><Target className="h-3 w-3 mr-1" />Buteurs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="mt-4">
@@ -713,6 +714,10 @@ function MatchesPage() {
 
           <TabsContent value="bracket" className="mt-4">
             <BracketView />
+          </TabsContent>
+
+          <TabsContent value="scorers" className="mt-4">
+            <TopScorersList />
           </TabsContent>
         </Tabs>
       )}
