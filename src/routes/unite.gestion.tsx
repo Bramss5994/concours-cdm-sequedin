@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy } from "lucide-react";
+import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy, Target, Save } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { formatFR } from "@/lib/time";
 import {
@@ -53,6 +53,10 @@ import {
   listKoMatchesAsUnitAdminFn,
   assignKoTeamsAsUnitAdminFn,
 } from "@/lib/bracket-sync.functions";
+import {
+  listPlayersAsUnitAdminFn,
+  updatePlayerStatsAsUnitAdminFn,
+} from "@/lib/players-admin.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
@@ -108,11 +112,13 @@ function GestionPage() {
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="matches">Matchs</TabsTrigger>
           <TabsTrigger value="bracket">Tableau final</TabsTrigger>
+          <TabsTrigger value="scorers">Buteurs</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
         <TabsContent value="bracket"><BracketTab /></TabsContent>
+        <TabsContent value="scorers"><ScorersTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
       </Tabs>
     </div>
