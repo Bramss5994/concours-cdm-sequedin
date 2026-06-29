@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { isLocked, formatFR, LOCK_MS } from "@/lib/time";
 import { toast } from "sonner";
-import { Trophy, Lock, CheckCircle2, Radio, Goal } from "lucide-react";
+import { Trophy, Lock, CheckCircle2, Radio, Goal, Target } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
@@ -637,6 +637,7 @@ function MatchesPage() {
             <TabsTrigger value="finished">Terminés ({finishedMatches.length})</TabsTrigger>
             {groupLetters.length > 0 && <TabsTrigger value="groups">Classements</TabsTrigger>}
             <TabsTrigger value="bracket">Tableau final</TabsTrigger>
+            <TabsTrigger value="scorers"><Target className="h-3 w-3 mr-1" />Buteurs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="upcoming" className="mt-4">
@@ -714,8 +715,128 @@ function MatchesPage() {
           <TabsContent value="bracket" className="mt-4">
             <BracketView />
           </TabsContent>
+
+          <TabsContent value="scorers" className="mt-4">
+            <TopScorersList />
+          </TabsContent>
         </Tabs>
       )}
     </div>
   );
 }
+
+type ScorerRow = {
+  id: string;
+  name: string;
+  club: string | null;
+  goals: number;
+  assists: number;
+  teams: { name: string; code: string } | null;
+};
+
+function TopScorersList() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["top-scorers-public"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, club, goals, assists, teams:team_id(name, code)")
+        .gt("goals", 0)
+        .order("goals", { ascending: false })
+        .order("assists", { ascending: false })
+        .order("name", { ascending: true })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as unknown as ScorerRow[];
+    },
+  });
+
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground">Chargement du classement des buteurs…</p>;
+  }
+  if (!data || data.length === 0) {
+    return (
+      <Card className="p-6 text-center text-sm text-muted-foreground">
+        Aucun but enregistré pour l'instant. Le classement se mettra à jour automatiquement après chaque match.
+      </Card>
+    );
+  }
+
+  // Build ranks with ties (same goals = same rank)
+  let lastGoals = -1;
+  let lastRank = 0;
+  const rows = data.map((p, i) => {
+    if (p.goals !== lastGoals) {
+      lastRank = i + 1;
+      lastGoals = p.goals;
+    }
+    return { ...p, rank: lastRank };
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Target className="h-4 w-4 text-[#FFD100]" />
+        <span>Classement officiel des buteurs de la Coupe du Monde 2026 — mise à jour après chaque match.</span>
+      </div>
+      <Card className="overflow-hidden">
+        <div className="hidden sm:grid grid-cols-[60px_1fr_140px_80px_80px] gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted/40">
+          <div>Rang</div>
+          <div>Joueur</div>
+          <div>Équipe</div>
+          <div className="text-center">Buts</div>
+          <div className="text-center">Passes</div>
+        </div>
+        <ul>
+          {rows.map((r) => {
+            const isPodium = r.rank <= 3;
+            const medal = r.rank === 1 ? "bg-gradient-to-br from-[#FFD100] to-[#B45309] text-black" :
+              r.rank === 2 ? "bg-gradient-to-br from-slate-300 to-slate-500 text-black" :
+              r.rank === 3 ? "bg-gradient-to-br from-amber-600 to-amber-900 text-white" :
+              "bg-muted text-foreground";
+            return (
+              <li
+                key={r.id}
+                className="grid grid-cols-[44px_1fr_auto] sm:grid-cols-[60px_1fr_140px_80px_80px] items-center gap-2 px-3 sm:px-4 py-2.5 border-t hover:bg-muted/30"
+              >
+                <div className="flex justify-center">
+                  <span className={`grid h-8 w-8 place-items-center rounded-full text-xs font-black shadow ring-1 ring-black/10 ${medal}`}>
+                    {isPodium ? <Trophy className="h-3.5 w-3.5" /> : r.rank}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate font-semibold">{r.name}</div>
+                  {r.club && <div className="truncate text-[11px] text-muted-foreground">{r.club}</div>}
+                  <div className="sm:hidden mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+                    {r.teams?.code && <img src={flagUrl(r.teams.code, 40)} alt="" className="h-3 w-4 rounded-sm object-cover" />}
+                    <span>{r.teams?.name}</span>
+                    <span className="ml-auto inline-flex items-center gap-1 font-bold text-foreground">
+                      <Goal className="h-3 w-3 text-[#E4002B]" /> {r.goals}
+                    </span>
+                    {r.assists > 0 && <span className="font-medium">A: {r.assists}</span>}
+                  </div>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 min-w-0">
+                  {r.teams?.code && <img src={flagUrl(r.teams.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                  <span className="truncate text-sm">{r.teams?.name}</span>
+                </div>
+                <div className="hidden sm:flex items-center justify-center">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E4002B]/10 px-2.5 py-0.5 text-sm font-black tabular-nums text-[#E4002B]">
+                    <Goal className="h-3.5 w-3.5" /> {r.goals}
+                  </span>
+                </div>
+                <div className="hidden sm:flex items-center justify-center text-sm font-semibold tabular-nums text-muted-foreground">
+                  {r.assists}
+                </div>
+                <div className="sm:hidden text-right text-sm font-black tabular-nums text-[#E4002B]">
+                  {r.goals}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+    </div>
+  );
+}
+

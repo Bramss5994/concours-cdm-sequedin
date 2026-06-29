@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy } from "lucide-react";
+import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy, Target, Save } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { formatFR } from "@/lib/time";
 import {
@@ -53,6 +53,10 @@ import {
   listKoMatchesAsUnitAdminFn,
   assignKoTeamsAsUnitAdminFn,
 } from "@/lib/bracket-sync.functions";
+import {
+  listPlayersAsUnitAdminFn,
+  updatePlayerStatsAsUnitAdminFn,
+} from "@/lib/players-admin.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
@@ -108,11 +112,13 @@ function GestionPage() {
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="matches">Matchs</TabsTrigger>
           <TabsTrigger value="bracket">Tableau final</TabsTrigger>
+          <TabsTrigger value="scorers">Buteurs</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
         <TabsContent value="bracket"><BracketTab /></TabsContent>
+        <TabsContent value="scorers"><ScorersTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
       </Tabs>
     </div>
@@ -683,6 +689,173 @@ function KoMatchAssignRow({
         {busy ? "…" : "Enregistrer"}
       </Button>
     </div>
+  );
+}
+
+/* ----------------------- SCORERS ----------------------- */
+
+type PlayerRow = {
+  id: string;
+  name: string;
+  club: string | null;
+  goals: number;
+  assists: number;
+  api_player_id: number | null;
+  team_id: string;
+  teams: { name: string; code: string } | null;
+};
+
+function ScorersTab() {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listPlayersAsUnitAdminFn);
+  const [search, setSearch] = useState("");
+  const [onlyScorers, setOnlyScorers] = useState(true);
+  const [teamFilter, setTeamFilter] = useState<string>("all");
+
+  const { data: players = [], isLoading } = useQuery({
+    queryKey: ["super-players"],
+    queryFn: () => listFn() as unknown as Promise<PlayerRow[]>,
+  });
+
+  const teams = useMemo(() => {
+    const set = new Map<string, string>();
+    for (const p of players) if (p.teams?.name) set.set(p.team_id, p.teams.name);
+    return [...set.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [players]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return players
+      .filter((p) => (onlyScorers ? p.goals > 0 : true))
+      .filter((p) => (teamFilter === "all" ? true : p.team_id === teamFilter))
+      .filter((p) => (q ? `${p.name} ${p.club ?? ""} ${p.teams?.name ?? ""}`.toLowerCase().includes(q) : true));
+  }, [players, search, onlyScorers, teamFilter]);
+
+  const totalGoals = useMemo(() => players.reduce((s, p) => s + (p.goals || 0), 0), [players]);
+
+  return (
+    <div className="mt-4 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Target className="h-4 w-4" /> Classement des buteurs — Édition manuelle
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Modifiez ici le nombre de buts et de passes décisives si l'API ne synchronise pas correctement.
+            Les changements sont immédiatement visibles sur la page Matchs &gt; Buteurs.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              placeholder="Rechercher un joueur, un club, une équipe…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 max-w-sm"
+            />
+            <Select value={teamFilter} onValueChange={setTeamFilter}>
+              <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="all">Toutes les équipes</SelectItem>
+                {teams.map(([id, name]) => (
+                  <SelectItem key={id} value={id}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <label className="inline-flex items-center gap-2 text-xs">
+              <Switch checked={onlyScorers} onCheckedChange={setOnlyScorers} />
+              Buteurs uniquement
+            </label>
+            <div className="ml-auto text-xs text-muted-foreground">
+              {filtered.length} joueur(s) · {totalGoals} but(s) au total
+            </div>
+          </div>
+
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Chargement…</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic">Aucun joueur correspondant.</p>
+          ) : (
+            <div className="rounded-lg border overflow-hidden">
+              <div className="grid grid-cols-[1fr_140px_90px_90px_90px] gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40">
+                <div>Joueur</div>
+                <div>Équipe</div>
+                <div className="text-center">Buts</div>
+                <div className="text-center">Passes</div>
+                <div></div>
+              </div>
+              <ul className="max-h-[60vh] overflow-y-auto">
+                {filtered.map((p) => (
+                  <PlayerEditRow key={p.id} p={p} onSaved={() => qc.invalidateQueries({ queryKey: ["super-players"] })} />
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function PlayerEditRow({ p, onSaved }: { p: PlayerRow; onSaved: () => void }) {
+  const updateFn = useServerFn(updatePlayerStatsAsUnitAdminFn);
+  const [goals, setGoals] = useState(p.goals);
+  const [assists, setAssists] = useState(p.assists);
+  const [busy, setBusy] = useState(false);
+  const dirty = goals !== p.goals || assists !== p.assists;
+
+  useEffect(() => {
+    setGoals(p.goals);
+    setAssists(p.assists);
+  }, [p.goals, p.assists]);
+
+  async function save() {
+    setBusy(true);
+    try {
+      await updateFn({ data: { id: p.id, goals, assists } });
+      toast.success(`${p.name} : ${goals} but(s), ${assists} passe(s)`);
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="grid grid-cols-[1fr_140px_90px_90px_90px] gap-2 items-center px-3 py-2 border-t hover:bg-muted/30">
+      <div className="min-w-0">
+        <div className="truncate text-sm font-semibold">{p.name}</div>
+        {p.club && <div className="truncate text-[11px] text-muted-foreground">{p.club}</div>}
+      </div>
+      <div className="text-xs truncate">{p.teams?.name ?? "—"}</div>
+      <div className="flex justify-center">
+        <Input
+          type="number"
+          min={0}
+          max={99}
+          value={goals}
+          onChange={(e) => setGoals(Math.max(0, Number(e.target.value) || 0))}
+          className="h-8 w-16 text-center"
+        />
+      </div>
+      <div className="flex justify-center">
+        <Input
+          type="number"
+          min={0}
+          max={99}
+          value={assists}
+          onChange={(e) => setAssists(Math.max(0, Number(e.target.value) || 0))}
+          className="h-8 w-16 text-center"
+        />
+      </div>
+      <div className="flex justify-end">
+        <Button size="sm" variant={dirty ? "default" : "ghost"} disabled={!dirty || busy} onClick={save}>
+          <Save className="h-3.5 w-3.5 mr-1" />
+          {busy ? "…" : "OK"}
+        </Button>
+      </div>
+    </li>
   );
 }
 
