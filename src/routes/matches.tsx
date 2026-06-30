@@ -20,6 +20,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
+import { syncLiveNowFn } from "@/lib/live-sync.functions";
+import { LIVE_STATUS_LABEL } from "@/lib/livescores.shared";
+
 
 
 
