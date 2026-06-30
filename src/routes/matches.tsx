@@ -749,80 +749,17 @@ type ScorerRow = {
 
 function TopScorersList() {
   const { data, isLoading } = useQuery({
-    queryKey: ["top-scorers-aggregated"],
+    queryKey: ["top-scorers-from-players"],
     queryFn: async () => {
-      const { data: matches, error: mErr } = await supabase
-        .from("matches")
-        .select("goalscorers")
-        .eq("finished", true)
-        .not("goalscorers", "is", null);
-      if (mErr) throw mErr;
-
-      type Agg = { goals: number; assists: number; apiId: number | null; team: string | null };
-      const byKey = new Map<string, Agg>();
-      const norm = (s: string) =>
-        s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-
-      for (const m of matches ?? []) {
-        const gs = ((m as any).goalscorers as any[]) ?? [];
-        const seen = new Set<string>();
-        for (const g of gs) {
-          const sig = `${g.player}|${g.minute}|${g.extra ?? ""}|${g.type}|${g.assist ?? ""}`;
-          if (seen.has(sig)) continue;
-          seen.add(sig);
-
-          if (g.type !== "own" && g.player) {
-            const key = g.api_player_id ? `id:${g.api_player_id}` : `n:${norm(g.player)}`;
-            const cur = byKey.get(key) ?? { goals: 0, assists: 0, apiId: g.api_player_id ?? null, team: g.team ?? null };
-            cur.goals += 1;
-            if (!cur.team && g.team) cur.team = g.team;
-            byKey.set(key, cur);
-          }
-          if (g.assist) {
-            const key = `n:${norm(g.assist)}`;
-            const cur = byKey.get(key) ?? { goals: 0, assists: 0, apiId: null, team: g.team ?? null };
-            cur.assists += 1;
-            byKey.set(key, cur);
-          }
-        }
-      }
-
-      const { data: players, error: pErr } = await supabase
+      const { data: players, error } = await supabase
         .from("players")
-        .select("id, name, club, api_player_id, teams:team_id(name, code)");
-      if (pErr) throw pErr;
-
-      const byApi = new Map<number, any>();
-      const byName = new Map<string, any>();
-      for (const p of players ?? []) {
-        if ((p as any).api_player_id) byApi.set((p as any).api_player_id, p);
-        byName.set(norm((p as any).name), p);
-      }
-
-      const rows: ScorerRow[] = [];
-      for (const [key, agg] of byKey.entries()) {
-        if (agg.goals === 0) continue;
-        let player: any = null;
-        let displayName = "";
-        if (key.startsWith("id:") && agg.apiId) player = byApi.get(agg.apiId) ?? null;
-        if (!player) {
-          const raw = key.startsWith("n:") ? key.slice(2) : "";
-          if (raw) player = byName.get(raw) ?? null;
-        }
-        displayName = player?.name ?? (key.startsWith("n:")
-          ? key.slice(2).replace(/\b\w/g, (c) => c.toUpperCase())
-          : "Inconnu");
-        rows.push({
-          id: player?.id ?? key,
-          name: displayName,
-          club: player?.club ?? null,
-          goals: agg.goals,
-          assists: agg.assists,
-          teams: player?.teams ?? (agg.team ? { name: agg.team, code: "" } : null),
-        });
-      }
-      rows.sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name));
-      return rows.slice(0, 100);
+        .select("id, name, club, goals, assists, teams:team_id(name, code)")
+        .gt("goals", 0)
+        .order("goals", { ascending: false })
+        .order("assists", { ascending: false })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (players ?? []) as unknown as ScorerRow[];
     },
   });
 
@@ -836,6 +773,7 @@ function TopScorersList() {
       </Card>
     );
   }
+
 
   // Build ranks with ties (same goals = same rank)
   let lastGoals = -1;
