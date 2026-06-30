@@ -12,6 +12,7 @@ import { isLocked, formatFR, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
 import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network, Pencil } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
+import { Flag3D } from "@/components/Flag3D";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { BracketView } from "@/components/BracketView";
