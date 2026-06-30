@@ -30,7 +30,11 @@ export type Database = {
           live_updated_at: string | null
           matchday: number | null
           score_a: number | null
+          score_a_et: number | null
+          score_a_pen: number | null
           score_b: number | null
+          score_b_et: number | null
+          score_b_pen: number | null
           stadium: string | null
           stage: Database["public"]["Enums"]["match_stage"]
           team_a_id: string | null
@@ -54,7 +58,11 @@ export type Database = {
           live_updated_at?: string | null
           matchday?: number | null
           score_a?: number | null
+          score_a_et?: number | null
+          score_a_pen?: number | null
           score_b?: number | null
+          score_b_et?: number | null
+          score_b_pen?: number | null
           stadium?: string | null
           stage: Database["public"]["Enums"]["match_stage"]
           team_a_id?: string | null
@@ -78,7 +86,11 @@ export type Database = {
           live_updated_at?: string | null
           matchday?: number | null
           score_a?: number | null
+          score_a_et?: number | null
+          score_a_pen?: number | null
           score_b?: number | null
+          score_b_et?: number | null
+          score_b_pen?: number | null
           stadium?: string | null
           stage?: Database["public"]["Enums"]["match_stage"]
           team_a_id?: string | null
