@@ -345,6 +345,8 @@ function MatchesTab() {
                   <th className="px-3 py-2 text-left">Match</th>
                   <th className="px-3 py-2">Date / heure</th>
                   <th className="px-3 py-2">Score</th>
+                  <th className="px-3 py-2">Statut</th>
+                  <th className="px-3 py-2">Prolong. / Tirs au but</th>
                   <th className="px-3 py-2">Validé</th>
                   <th></th>
                 </tr>
