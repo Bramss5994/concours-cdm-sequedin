@@ -423,37 +423,65 @@ function LiveStatusChip({ m }: { m: Match }) {
   );
 }
 
-function LiveScorersList({ m }: { m: Match }) {
+function normalizeName(s: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Recalcule le côté ("a"|"b") d'un buteur à l'affichage à partir des noms
+ *  DB, pour corriger les anciennes valeurs "home"/"away" ou les côtés nulls. */
+function resolveGoalSide(g: GoalScorer, m: Match): "a" | "b" | null {
+  if (g.side === "a" || g.side === "b") return g.side;
+  const t = normalizeName(g.team || "");
+  const na = normalizeName(m.team_a?.name || "");
+  const nb = normalizeName(m.team_b?.name || "");
+  if (!t) return null;
+  if (t === na || (na && (na.startsWith(t) || t.startsWith(na)))) return "a";
+  if (t === nb || (nb && (nb.startsWith(t) || t.startsWith(nb)))) return "b";
+  // Compat: ancien format home/away
+  if ((g.side as any) === "home") return "a";
+  if ((g.side as any) === "away") return "b";
+  return null;
+}
+
+function ScorersGrid({ m, tone = "live" }: { m: Match; tone?: "live" | "result" }) {
   const goals = Array.isArray(m.goalscorers) ? m.goalscorers : [];
   if (goals.length === 0) return null;
-  const left = goals.filter((g) => g.side === "a");
-  const right = goals.filter((g) => g.side === "b");
+  const withSide = goals.map((g) => ({ ...g, _side: resolveGoalSide(g, m) }));
+  const left = withSide.filter((g) => g._side === "a");
+  const right = withSide.filter((g) => g._side === "b");
+  const orphans = withSide.filter((g) => g._side !== "a" && g._side !== "b");
   const fmtMin = (g: GoalScorer) =>
     g.minute != null ? `${g.minute}${g.extra ? `+${g.extra}` : ""}'` : "";
+  const minColor = tone === "live" ? "text-red-700" : "text-amber-700";
+  const borderColor = tone === "live" ? "border-red-200" : "border-amber-200";
+  const renderItem = (g: GoalScorer, key: string) => (
+    <li key={key} className="truncate">
+      <span className={`font-mono ${minColor}`}>{fmtMin(g)}</span>{" "}
+      <span className="font-medium">{g.player}</span>
+      {g.type === "own" && <span className="text-muted-foreground"> (csc)</span>}
+      {g.type === "penalty" && <span className="text-muted-foreground"> (p)</span>}
+    </li>
+  );
   return (
-    <div className="mt-2 grid grid-cols-2 gap-2 border-t border-red-200 pt-2 text-[11px]">
-      <ul className="space-y-0.5 text-right">
-        {left.map((g, i) => (
-          <li key={`a${i}`} className="truncate">
-            <span className="font-mono text-red-700">{fmtMin(g)}</span>{" "}
-            <span className="font-medium">{g.player}</span>
-            {g.type === "own" && <span className="text-muted-foreground"> (csc)</span>}
-            {g.type === "penalty" && <span className="text-muted-foreground"> (p)</span>}
-          </li>
-        ))}
-      </ul>
-      <ul className="space-y-0.5">
-        {right.map((g, i) => (
-          <li key={`b${i}`} className="truncate">
-            <span className="font-mono text-red-700">{fmtMin(g)}</span>{" "}
-            <span className="font-medium">{g.player}</span>
-            {g.type === "own" && <span className="text-muted-foreground"> (csc)</span>}
-            {g.type === "penalty" && <span className="text-muted-foreground"> (p)</span>}
-          </li>
-        ))}
-      </ul>
+    <div className={`mt-2 grid grid-cols-2 gap-2 border-t ${borderColor} pt-2 text-[11px]`}>
+      <ul className="space-y-0.5 text-right">{left.map((g, i) => renderItem(g, `a${i}`))}</ul>
+      <ul className="space-y-0.5">{right.map((g, i) => renderItem(g, `b${i}`))}</ul>
+      {orphans.length > 0 && (
+        <ul className="col-span-2 space-y-0.5 text-center text-muted-foreground">
+          {orphans.map((g, i) => renderItem(g, `o${i}`))}
+        </ul>
+      )}
     </div>
   );
+}
+
+function LiveScorersList({ m }: { m: Match }) {
+  return <ScorersGrid m={m} tone="live" />;
 }
 
 function LiveRow({ m }: { m: Match }) {
