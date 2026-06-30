@@ -25,6 +25,15 @@ import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
+type GoalScorer = {
+  minute: number | null;
+  extra?: number | null;
+  team?: string | null;
+  player: string;
+  side?: "a" | "b" | null;
+  type?: string | null;
+};
+
 type Match = {
   id: string;
   kickoff_at: string;
@@ -49,6 +58,7 @@ type Match = {
   live_score_a?: number | null;
   live_score_b?: number | null;
   live_elapsed?: number | null;
+  goalscorers?: GoalScorer[] | null;
 };
 
 type Prediction = { match_id: string; score_a: number; score_b: number; points?: number | null };
