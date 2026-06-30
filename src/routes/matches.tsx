@@ -466,6 +466,12 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
   const showScore = match.finished || isLive;
   const displayA = isLive ? match.live_score_a ?? 0 : match.score_a;
   const displayB = isLive ? match.live_score_b ?? 0 : match.score_b;
+  const extraTimeLabel =
+    match.finished && match.live_status === "AET"
+      ? "a.p."
+      : match.finished && match.live_status === "PEN"
+        ? "t.a.b."
+        : null;
 
   return (
     <Card className="relative overflow-hidden border-border/60 bg-card p-4 shadow-sm">
@@ -478,9 +484,16 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
         <TeamBlock team={match.team_a} placeholder={match.team_a_placeholder} />
         <div className="text-center min-w-[60px]">
           {showScore ? (
-            <div className="text-3xl font-extrabold tabular-nums">
-              {displayA ?? "–"} <span className="text-muted-foreground">:</span> {displayB ?? "–"}
-            </div>
+            <>
+              <div className="text-3xl font-extrabold tabular-nums">
+                {displayA ?? "–"} <span className="text-muted-foreground">:</span> {displayB ?? "–"}
+              </div>
+              {extraTimeLabel && (
+                <div className="mt-1 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-800 ring-1 ring-amber-300">
+                  {extraTimeLabel}
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-lg font-bold text-muted-foreground">VS</div>
           )}
