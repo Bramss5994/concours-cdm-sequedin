@@ -443,6 +443,15 @@ export type Database = {
       }
     }
     Functions: {
+      get_match_stats: {
+        Args: { match_id_param: string }
+        Returns: {
+          perc_a: number
+          perc_b: number
+          perc_draw: number
+          total_votes: number
+        }[]
+      }
       get_own_email: { Args: never; Returns: string }
       get_public_profiles: {
         Args: never
