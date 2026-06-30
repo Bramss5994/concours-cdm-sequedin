@@ -249,6 +249,7 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
           </div>
         </>
       )}
+      <MatchVoteBar matchId={match.id} nameA={teamName(match, "a")} nameB={teamName(match, "b")} />
     </Card>
   );
 }
