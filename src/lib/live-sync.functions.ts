@@ -103,6 +103,7 @@ export const syncLiveNowFn = createServerFn({ method: "POST" })
         if (!ev.error) {
           const { sideOfGoal, dedupeGoals } = await import("./bracket-sync.functions");
           const fx = { home: pick.teamHome, away: pick.teamAway };
+          const dbTeams = { a: (m.team_a as any)?.name, b: (m.team_b as any)?.name };
           const payload = dedupeGoals(
             ev.goals.map((g) => ({
               minute: g.minute,
@@ -112,7 +113,7 @@ export const syncLiveNowFn = createServerFn({ method: "POST" })
               api_player_id: g.apiPlayerId,
               assist: g.assist,
               type: g.type,
-              side: sideOfGoal(g.team, fx),
+              side: sideOfGoal(g.team, dbTeams, fx),
             })),
           );
           await supabaseAdmin.from("matches").update({ goalscorers: payload }).eq("id", m.id);
