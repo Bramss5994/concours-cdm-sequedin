@@ -212,14 +212,14 @@ function ResultRow({ m }: { m: Match }) {
       <div className="text-xs text-muted-foreground w-28 hidden sm:block">{formatFR(m.kickoff_at)}</div>
       <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
         <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
-        {m.team_a?.code && <img src={flagUrl(m.team_a.code, 24)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        {m.team_a?.code && <img src={flagUrl(m.team_a.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
       </div>
       <div className="px-2 flex items-center">
         <FinalScore m={m} />
         <ExtraTimeBadge m={m} />
       </div>
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {m.team_b?.code && <img src={flagUrl(m.team_b.code, 24)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        {m.team_b?.code && <img src={flagUrl(m.team_b.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
         <span className="truncate font-medium">{teamName(m, "b")}</span>
       </div>
     </div>
@@ -234,11 +234,11 @@ function LiveRow({ m }: { m: Match }) {
       <Badge className="bg-red-600 text-white animate-pulse"><Radio className="h-3 w-3 mr-1" />LIVE</Badge>
       <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
         <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
-        {m.team_a?.code && <img src={flagUrl(m.team_a.code, 24)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        {m.team_a?.code && <img src={flagUrl(m.team_a.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
       </div>
       <div className="font-mono font-bold tabular-nums">{a ?? 0}-{b ?? 0}</div>
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {m.team_b?.code && <img src={flagUrl(m.team_b.code, 24)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        {m.team_b?.code && <img src={flagUrl(m.team_b.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
         <span className="truncate font-medium">{teamName(m, "b")}</span>
       </div>
       <div className="text-xs font-semibold text-red-700 w-12 text-right">
