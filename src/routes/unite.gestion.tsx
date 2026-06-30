@@ -345,6 +345,8 @@ function MatchesTab() {
                   <th className="px-3 py-2 text-left">Match</th>
                   <th className="px-3 py-2">Date / heure</th>
                   <th className="px-3 py-2">Score</th>
+                  <th className="px-3 py-2">Statut</th>
+                  <th className="px-3 py-2">Prolong. / Tirs au but</th>
                   <th className="px-3 py-2">Validé</th>
                   <th></th>
                 </tr>
@@ -365,8 +367,16 @@ function MatchRow({ m, onSave }: { m: any; onSave: (id: string, patch: any) => P
   const [sb, setSb] = useState(m.score_b != null ? String(m.score_b) : "");
   const [fin, setFin] = useState<boolean>(m.finished);
   const [kickoff, setKickoff] = useState(toLocalInput(m.kickoff_at));
+  const [status, setStatus] = useState<string>(((m.live_status || (m.finished ? "FT" : "NS")) as string).toUpperCase());
+  const [etA, setEtA] = useState(m.score_a_et != null ? String(m.score_a_et) : "");
+  const [etB, setEtB] = useState(m.score_b_et != null ? String(m.score_b_et) : "");
+  const [penA, setPenA] = useState(m.score_a_pen != null ? String(m.score_a_pen) : "");
+  const [penB, setPenB] = useState(m.score_b_pen != null ? String(m.score_b_pen) : "");
   const nameA = m.team_a?.name || m.team_a_placeholder || "?";
   const nameB = m.team_b?.name || m.team_b_placeholder || "?";
+
+  const showEt = status === "AET" || status === "PEN";
+  const showPen = status === "PEN";
 
   return (
     <tr className="border-t">
@@ -392,13 +402,58 @@ function MatchRow({ m, onSave }: { m: any; onSave: (id: string, patch: any) => P
           <Input type="number" min={0} max={20} value={sb} onChange={(e) => setSb(e.target.value)} className="h-8 w-14 text-center" />
         </div>
       </td>
+      <td className="px-3 py-2">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="h-8 rounded-md border bg-background px-2 text-xs"
+        >
+          <option value="NS">À venir</option>
+          <option value="LIVE">En direct</option>
+          <option value="HT">Mi-temps</option>
+          <option value="FT">Terminé</option>
+          <option value="AET">Terminé a.p.</option>
+          <option value="PEN">Terminé t.a.b.</option>
+        </select>
+      </td>
+      <td className="px-3 py-2">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] w-8 text-muted-foreground">a.p.</span>
+            <Input type="number" min={0} max={20} value={etA} disabled={!showEt}
+              onChange={(e) => setEtA(e.target.value)} className="h-7 w-12 text-center" />
+            <span>-</span>
+            <Input type="number" min={0} max={20} value={etB} disabled={!showEt}
+              onChange={(e) => setEtB(e.target.value)} className="h-7 w-12 text-center" />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] w-8 text-muted-foreground">t.a.b.</span>
+            <Input type="number" min={0} max={20} value={penA} disabled={!showPen}
+              onChange={(e) => setPenA(e.target.value)} className="h-7 w-12 text-center" />
+            <span>-</span>
+            <Input type="number" min={0} max={20} value={penB} disabled={!showPen}
+              onChange={(e) => setPenB(e.target.value)} className="h-7 w-12 text-center" />
+          </div>
+        </div>
+      </td>
       <td className="px-3 py-2 text-center"><Switch checked={fin} onCheckedChange={setFin} /></td>
       <td className="px-3 py-2 text-right">
         <Button size="sm" onClick={async () => {
           const a = sa === "" ? null : Number(sa);
           const b = sb === "" ? null : Number(sb);
-          if (fin && (a == null || b == null)) { toast.error("Scores requis pour valider"); return; }
-          const patch: any = { score_a: a, score_b: b, finished: fin };
+          const finalFinished = fin || ["FT", "AET", "PEN"].includes(status);
+          if (finalFinished && (a == null || b == null)) { toast.error("Scores requis pour valider"); return; }
+          const num = (v: string) => (v === "" ? null : Number(v));
+          const patch: any = {
+            score_a: a,
+            score_b: b,
+            finished: finalFinished,
+            live_status: status,
+            score_a_et: showEt ? num(etA) : null,
+            score_b_et: showEt ? num(etB) : null,
+            score_a_pen: showPen ? num(penA) : null,
+            score_b_pen: showPen ? num(penB) : null,
+          };
           const newIso = fromLocalInput(kickoff);
           if (newIso && newIso !== m.kickoff_at) patch.kickoff_at = newIso;
           await onSave(m.id, patch);
