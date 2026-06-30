@@ -380,7 +380,7 @@ export const listAdminMatchesFn = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("matches")
         .select(
-          "id, kickoff_at, stage, group_letter, matchday, stadium, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder, score_a, score_b, finished",
+          "id, kickoff_at, stage, group_letter, matchday, stadium, team_a_id, team_b_id, team_a_placeholder, team_b_placeholder, score_a, score_b, finished, score_a_et, score_b_et, score_a_pen, score_b_pen, live_status",
         )
         .order("kickoff_at", { ascending: true }),
       supabaseAdmin.from("teams").select("id, name, code"),
