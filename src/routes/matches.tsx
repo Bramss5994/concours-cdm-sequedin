@@ -94,6 +94,45 @@ function FinalScore({ m }: { m: Match }) {
   );
 }
 
+function MatchVoteBar({ matchId, nameA, nameB }: { matchId: string; nameA: string; nameB: string }) {
+  const { data } = useQuery({
+    queryKey: ["match-stats", matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_match_stats", { match_id_param: matchId });
+      if (error) throw error;
+      return (data?.[0] ?? null) as { total_votes: number; perc_a: number; perc_b: number; perc_draw: number } | null;
+    },
+    staleTime: 60_000,
+  });
+  if (!data || !data.total_votes) {
+    return (
+      <div className="mt-3 text-center text-[11px] text-muted-foreground border-t pt-2">
+        Aucun pronostic pour l'instant
+      </div>
+    );
+  }
+  const a = Number(data.perc_a) || 0;
+  const b = Number(data.perc_b) || 0;
+  const d = Number(data.perc_draw) || 0;
+  return (
+    <div className="mt-3 border-t pt-2">
+      <div className="flex justify-between text-[10px] font-semibold text-muted-foreground mb-1">
+        <span>{nameA} {a}%</span>
+        <span>Nul {d}%</span>
+        <span>{b}% {nameB}</span>
+      </div>
+      <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="bg-primary" style={{ width: `${a}%` }} />
+        <div className="bg-muted-foreground/40" style={{ width: `${d}%` }} />
+        <div className="bg-destructive" style={{ width: `${b}%` }} />
+      </div>
+      <div className="text-center text-[10px] text-muted-foreground mt-1">
+        {data.total_votes} pronostic{data.total_votes > 1 ? "s" : ""}
+      </div>
+    </div>
+  );
+}
+
 function MatchCard({ match, prediction }: { match: Match; prediction?: Prediction }) {
   const qc = useQueryClient();
   const { user } = useAuth();
