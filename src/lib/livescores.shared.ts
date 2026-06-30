@@ -41,3 +41,19 @@ export function kickoffKeyFromISO(iso: string): string {
   d.setSeconds(0, 0);
   return d.toISOString().slice(0, 16);
 }
+
+export const LIVE_STATUS_LABEL: Record<string, string> = {
+  NS: "À venir",
+  "1H": "1ʳᵉ MT",
+  HT: "Mi-temps",
+  "2H": "2ᵉ MT",
+  ET: "Prolong.",
+  BT: "Pause prolong.",
+  P: "Tirs au but",
+  SUSP: "Suspendu",
+  INT: "Interrompu",
+  LIVE: "En direct",
+  FT: "Terminé",
+  AET: "Terminé (a.p.)",
+  PEN: "Terminé (t.a.b.)",
+};

@@ -20,10 +20,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
+import { syncLiveNowFn } from "@/lib/live-sync.functions";
+import { LIVE_STATUS_LABEL } from "@/lib/livescores.shared";
+
 
 
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
+
+type GoalScorer = {
+  minute: number | null;
+  extra?: number | null;
+  team?: string | null;
+  player: string;
+  side?: "a" | "b" | null;
+  type?: string | null;
+};
 
 type Match = {
   id: string;
@@ -49,6 +61,7 @@ type Match = {
   live_score_a?: number | null;
   live_score_b?: number | null;
   live_elapsed?: number | null;
+  goalscorers?: GoalScorer[] | null;
 };
 
 type Prediction = { match_id: string; score_a: number; score_b: number; points?: number | null };
@@ -393,27 +406,89 @@ function ResultRow({ m }: { m: Match }) {
 }
 
 
-function LiveRow({ m }: { m: Match }) {
-  const a = m.live_score_a ?? m.score_a;
-  const b = m.live_score_b ?? m.score_b;
+function LiveStatusChip({ m }: { m: Match }) {
+  const s = (m.live_status || "").toUpperCase();
+  const label = LIVE_STATUS_LABEL[s] || s || "LIVE";
+  const showClock = ["1H", "2H", "ET"].includes(s) && m.live_elapsed != null;
+  const blink = ["HT", "BT"].includes(s) ? "" : "animate-pulse";
   return (
-    <div className="flex items-center gap-3 rounded-lg border-2 border-red-400 bg-red-50/40 p-3">
-      <Badge className="bg-red-600 text-white animate-pulse"><Radio className="h-3 w-3 mr-1" />LIVE</Badge>
-      <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
-        <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
-        <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
-      </div>
-      <div className="font-mono font-bold tabular-nums">{a ?? 0}-{b ?? 0}</div>
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        <Flag3D code={m.team_b?.code} name={teamName(m, "b")} size="sm" />
-        <span className="truncate font-medium">{teamName(m, "b")}</span>
-      </div>
-      <div className="text-xs font-semibold text-red-700 w-12 text-right">
-        {m.live_elapsed ? `${m.live_elapsed}'` : m.live_status || ""}
-      </div>
+    <div className="flex items-center gap-2">
+      <Badge className={`bg-red-600 text-white ${blink}`}>
+        <Radio className="h-3 w-3 mr-1" />LIVE
+      </Badge>
+      <span className="text-[11px] font-bold uppercase tracking-wide text-red-700">
+        {showClock ? `${m.live_elapsed}'` : label}
+      </span>
     </div>
   );
 }
+
+function LiveScorersList({ m }: { m: Match }) {
+  const goals = Array.isArray(m.goalscorers) ? m.goalscorers : [];
+  if (goals.length === 0) return null;
+  const left = goals.filter((g) => g.side === "a");
+  const right = goals.filter((g) => g.side === "b");
+  const fmtMin = (g: GoalScorer) =>
+    g.minute != null ? `${g.minute}${g.extra ? `+${g.extra}` : ""}'` : "";
+  return (
+    <div className="mt-2 grid grid-cols-2 gap-2 border-t border-red-200 pt-2 text-[11px]">
+      <ul className="space-y-0.5 text-right">
+        {left.map((g, i) => (
+          <li key={`a${i}`} className="truncate">
+            <span className="font-mono text-red-700">{fmtMin(g)}</span>{" "}
+            <span className="font-medium">{g.player}</span>
+            {g.type === "own" && <span className="text-muted-foreground"> (csc)</span>}
+            {g.type === "penalty" && <span className="text-muted-foreground"> (p)</span>}
+          </li>
+        ))}
+      </ul>
+      <ul className="space-y-0.5">
+        {right.map((g, i) => (
+          <li key={`b${i}`} className="truncate">
+            <span className="font-mono text-red-700">{fmtMin(g)}</span>{" "}
+            <span className="font-medium">{g.player}</span>
+            {g.type === "own" && <span className="text-muted-foreground"> (csc)</span>}
+            {g.type === "penalty" && <span className="text-muted-foreground"> (p)</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function LiveRow({ m }: { m: Match }) {
+  const a = m.live_score_a ?? m.score_a;
+  const b = m.live_score_b ?? m.score_b;
+  const s = (m.live_status || "").toUpperCase();
+  const showPen = s === "P" || (m.score_a_pen != null && m.score_b_pen != null);
+  return (
+    <div className="rounded-xl border-2 border-red-400 bg-gradient-to-br from-red-50 to-white p-3 shadow-sm">
+      <div className="flex items-center gap-3">
+        <LiveStatusChip m={m} />
+        <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+          <span className="truncate font-semibold text-right">{teamName(m, "a")}</span>
+          <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="font-mono text-xl font-black tabular-nums tracking-tight">
+            {a ?? 0} - {b ?? 0}
+          </div>
+          {showPen && m.score_a_pen != null && m.score_b_pen != null && (
+            <div className="text-[10px] font-bold text-amber-700">
+              t.a.b. {m.score_a_pen}-{m.score_b_pen}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Flag3D code={m.team_b?.code} name={teamName(m, "b")} size="sm" />
+          <span className="truncate font-semibold">{teamName(m, "b")}</span>
+        </div>
+      </div>
+      <LiveScorersList m={m} />
+    </div>
+  );
+}
+
 
 const STAGE_LABELS: Record<string, string> = {
   group: "Phase de groupes",
@@ -467,6 +542,40 @@ function MatchesPage() {
       return liveStatus || within;
     });
   }, [matches]);
+
+  // Poll API-Football toutes les 30s tant qu'un match peut être en direct,
+  // pour rafraîchir scores, temps, statut (HT/ET/P) et buteurs.
+  const qc = useQueryClient();
+  const syncLive = useServerFn(syncLiveNowFn);
+  const hasPotentialLive = useMemo(() => {
+    const now = Date.now();
+    return matches.some((m) => {
+      if (m.finished) return false;
+      const ko = new Date(m.kickoff_at).getTime();
+      return ko - 5 * 60 * 1000 <= now && now <= ko + 3 * 60 * 60 * 1000;
+    });
+  }, [matches]);
+  useEffect(() => {
+    if (!user || !hasPotentialLive) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const r: any = await syncLive();
+        if (!cancelled && r?.ok && (r.updatedMatches > 0 || r.goalUpdates > 0)) {
+          qc.invalidateQueries({ queryKey: ["matches"] });
+        }
+      } catch {
+        // silencieux : pas critique
+      }
+    };
+    tick();
+    const id = setInterval(tick, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [user, hasPotentialLive, syncLive, qc]);
+
 
 
 
