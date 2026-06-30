@@ -82,7 +82,7 @@ export const syncLiveNowFn = createServerFn({ method: "POST" })
       }
       if (!pick) continue;
 
-      const patch: Record<string, unknown> = {
+      const patch: any = {
         live_status: pick.status,
         live_elapsed: pick.elapsed,
         live_score_a: pick.scoreHome,
