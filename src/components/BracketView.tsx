@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { syncBracketTeamsFn, backfillGoalscorersFn } from "@/lib/bracket-sync.functions";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 type Team = { name: string; code?: string | null };
 type Match = {
@@ -367,10 +368,12 @@ export function BracketView() {
   const { data: groupMatches } = useGroupStandings();
   const standings = useMemo(() => computeStandings(groupMatches || []), [groupMatches]);
   const resolved = useMemo(() => resolveAll(matches || [], standings), [matches, standings]);
+  const { session } = useAuth();
   const checkSuper = useServerFn(isSequedinSuperAdminFn);
   const { data: isSuper } = useQuery({
-    queryKey: ["is-super-admin"],
+    queryKey: ["is-super-admin", session?.user?.id ?? null],
     queryFn: () => checkSuper().then((r: any) => r === true || !!r?.ok).catch(() => false),
+    enabled: !!session,
     staleTime: 60_000,
   });
   const qc = useQueryClient();
