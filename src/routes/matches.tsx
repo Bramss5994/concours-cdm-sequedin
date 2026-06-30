@@ -12,6 +12,7 @@ import { isLocked, formatFR, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
 import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network, Pencil } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
+import { Flag3D } from "@/components/Flag3D";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { BracketView } from "@/components/BracketView";
@@ -150,20 +151,12 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
         <div className="flex flex-col items-center gap-1 text-center">
-          {match.team_a?.code ? (
-            <img src={flagUrl(match.team_a.code, 40)} srcSet={flagSrcSet(match.team_a.code)} alt="" className="h-8 w-12 rounded-sm object-cover" />
-          ) : (
-            <span className="text-2xl">🏳️</span>
-          )}
+          <Flag3D code={match.team_a?.code} name={teamName(match, "a")} size="lg" />
           <span className="font-bold text-sm leading-tight">{teamName(match, "a")}</span>
         </div>
         <div className="text-xs text-muted-foreground font-semibold">VS</div>
         <div className="flex flex-col items-center gap-1 text-center">
-          {match.team_b?.code ? (
-            <img src={flagUrl(match.team_b.code, 40)} srcSet={flagSrcSet(match.team_b.code)} alt="" className="h-8 w-12 rounded-sm object-cover" />
-          ) : (
-            <span className="text-2xl">🏳️</span>
-          )}
+          <Flag3D code={match.team_b?.code} name={teamName(match, "b")} size="lg" />
           <span className="font-bold text-sm leading-tight">{teamName(match, "b")}</span>
         </div>
       </div>
@@ -344,14 +337,14 @@ function ResultRow({ m }: { m: Match }) {
       <div className="text-xs text-muted-foreground w-28 hidden sm:block">{formatFR(m.kickoff_at)}</div>
       <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
         <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
-        {m.team_a?.code && <img src={flagUrl(m.team_a.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
       </div>
       <div className="px-2 flex items-center">
         <FinalScore m={m} />
         <ExtraTimeBadge m={m} />
       </div>
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {m.team_b?.code && <img src={flagUrl(m.team_b.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        <Flag3D code={m.team_b?.code} name={teamName(m, "b")} size="sm" />
         <span className="truncate font-medium">{teamName(m, "b")}</span>
       </div>
       <SuperAdminMatchEdit m={m} />
@@ -368,11 +361,11 @@ function LiveRow({ m }: { m: Match }) {
       <Badge className="bg-red-600 text-white animate-pulse"><Radio className="h-3 w-3 mr-1" />LIVE</Badge>
       <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
         <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
-        {m.team_a?.code && <img src={flagUrl(m.team_a.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
       </div>
       <div className="font-mono font-bold tabular-nums">{a ?? 0}-{b ?? 0}</div>
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {m.team_b?.code && <img src={flagUrl(m.team_b.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+        <Flag3D code={m.team_b?.code} name={teamName(m, "b")} size="sm" />
         <span className="truncate font-medium">{teamName(m, "b")}</span>
       </div>
       <div className="text-xs font-semibold text-red-700 w-12 text-right">
@@ -613,7 +606,7 @@ function GroupStandings({ matches }: { matches: Match[] }) {
                 <tr key={s.team_id} className="border-t">
                   <td className="px-1 py-1">{i + 1}</td>
                   <td className="px-1 py-1 flex items-center gap-2">
-                    {s.code && <img src={flagUrl(s.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                    <Flag3D code={s.code} name={s.name} size="xs" />
                     <span className="truncate">{s.name}</span>
                   </td>
                   <td className="text-center px-1">{s.played}</td>
@@ -674,7 +667,7 @@ function TopScorersList() {
                 <td className="px-2 py-1 font-medium">{p.name}</td>
                 <td className="px-2 py-1">
                   <span className="inline-flex items-center gap-2">
-                    {p.teams?.code && <img src={flagUrl(p.teams.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                    <Flag3D code={p.teams?.code} name={p.teams?.name} size="xs" />
                     <span className="truncate">{p.teams?.name || "—"}</span>
                   </span>
                 </td>
