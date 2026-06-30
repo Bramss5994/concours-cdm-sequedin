@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
@@ -8,11 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { isLocked, formatFR, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
-import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network } from "lucide-react";
+import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network, Pencil } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { BracketView } from "@/components/BracketView";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
+import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
+
 
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
@@ -208,6 +214,123 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
   );
 }
 
+function useIsSuperAdmin() {
+  const { session } = useAuth();
+  const checkSuper = useServerFn(isSequedinSuperAdminFn);
+  const { data } = useQuery({
+    queryKey: ["is-super-admin", session?.user?.id ?? null],
+    queryFn: () => checkSuper().then((r: any) => r === true || !!r?.ok).catch(() => false),
+    enabled: !!session,
+    staleTime: 60_000,
+  });
+  return !!data;
+}
+
+function SuperAdminMatchEdit({ m }: { m: Match }) {
+  const isSuper = useIsSuperAdmin();
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateBracketMatchAsSuperFn);
+  const [open, setOpen] = useState(false);
+  const [scoreA, setScoreA] = useState<string>(m.score_a?.toString() ?? "");
+  const [scoreB, setScoreB] = useState<string>(m.score_b?.toString() ?? "");
+  const [etA, setEtA] = useState<string>(m.score_a_et?.toString() ?? "");
+  const [etB, setEtB] = useState<string>(m.score_b_et?.toString() ?? "");
+  const [penA, setPenA] = useState<string>(m.score_a_pen?.toString() ?? "");
+  const [penB, setPenB] = useState<string>(m.score_b_pen?.toString() ?? "");
+  const [status, setStatus] = useState<string>(((m.live_status || (m.finished ? "FT" : "NS")) as string).toUpperCase());
+  const [busy, setBusy] = useState(false);
+
+  if (!isSuper) return null;
+
+  const num = (s: string) => (s === "" ? null : Number(s));
+  const save = async () => {
+    setBusy(true);
+    try {
+      await updateFn({
+        data: {
+          id: m.id,
+          score_a: num(scoreA),
+          score_b: num(scoreB),
+          score_a_et: status === "AET" || status === "PEN" ? num(etA) : null,
+          score_b_et: status === "AET" || status === "PEN" ? num(etB) : null,
+          score_a_pen: status === "PEN" ? num(penA) : null,
+          score_b_pen: status === "PEN" ? num(penB) : null,
+          live_status: status,
+          finished: ["FT", "AET", "PEN"].includes(status),
+        },
+      });
+      toast.success("Match mis à jour");
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      setOpen(false);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-amber-700" aria-label="Modifier le score">
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{teamName(m, "a")} – {teamName(m, "b")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Statut final</label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NS">À venir</SelectItem>
+                <SelectItem value="FT">Terminé (temps réglementaire)</SelectItem>
+                <SelectItem value="AET">Terminé après prolongation (a.p.)</SelectItem>
+                <SelectItem value="PEN">Terminé aux tirs au but (t.a.b.)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Score final (incluant prolongation)</label>
+            <div className="flex items-center gap-2 mt-1">
+              <input type="number" min={0} value={scoreA} onChange={(e) => setScoreA(e.target.value)} className="w-16 p-2 border rounded text-center font-bold" />
+              <span>-</span>
+              <input type="number" min={0} value={scoreB} onChange={(e) => setScoreB(e.target.value)} className="w-16 p-2 border rounded text-center font-bold" />
+            </div>
+          </div>
+          {(status === "AET" || status === "PEN") && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Score à la fin des prolongations</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input type="number" min={0} value={etA} onChange={(e) => setEtA(e.target.value)} className="w-16 p-2 border rounded text-center" />
+                <span>-</span>
+                <input type="number" min={0} value={etB} onChange={(e) => setEtB(e.target.value)} className="w-16 p-2 border rounded text-center" />
+              </div>
+            </div>
+          )}
+          {status === "PEN" && (
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Tirs au but</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input type="number" min={0} value={penA} onChange={(e) => setPenA(e.target.value)} className="w-16 p-2 border rounded text-center font-bold text-amber-700" />
+                <span>-</span>
+                <input type="number" min={0} value={penB} onChange={(e) => setPenB(e.target.value)} className="w-16 p-2 border rounded text-center font-bold text-amber-700" />
+              </div>
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>Annuler</Button>
+          <Button onClick={save} disabled={busy}>Enregistrer</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ResultRow({ m }: { m: Match }) {
   return (
     <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
@@ -224,9 +347,11 @@ function ResultRow({ m }: { m: Match }) {
         {m.team_b?.code && <img src={flagUrl(m.team_b.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
         <span className="truncate font-medium">{teamName(m, "b")}</span>
       </div>
+      <SuperAdminMatchEdit m={m} />
     </div>
   );
 }
+
 
 function LiveRow({ m }: { m: Match }) {
   const a = m.live_score_a ?? m.score_a;

@@ -361,6 +361,7 @@ export const updateBracketMatchAsSuperFn = createServerFn({ method: "POST" })
         score_a_pen: z.number().int().min(0).max(99).nullable().optional(),
         score_b_pen: z.number().int().min(0).max(99).nullable().optional(),
         finished: z.boolean().optional(),
+        live_status: z.string().max(8).nullable().optional(),
       })
       .parse(input),
   )
@@ -378,6 +379,7 @@ export const updateBracketMatchAsSuperFn = createServerFn({ method: "POST" })
       "score_a_pen",
       "score_b_pen",
       "finished",
+      "live_status",
     ] as const) {
       if (k in data) patch[k] = (data as Record<string, unknown>)[k];
     }
