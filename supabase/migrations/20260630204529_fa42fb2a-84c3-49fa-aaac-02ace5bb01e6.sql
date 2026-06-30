@@ -1,0 +1,1 @@
+UPDATE public.matches SET live_status='PEN' WHERE id IN ('2c4d5e0d-b78a-4631-b4f5-16f87ddb0cee','bd623262-7d58-49e5-a7fe-0d89e245c109');

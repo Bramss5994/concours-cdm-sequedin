@@ -7,6 +7,10 @@ export type LiveFixture = {
   elapsed: number | null;
   scoreHome: number | null;
   scoreAway: number | null;
+  scoreHomeET: number | null;
+  scoreAwayET: number | null;
+  scoreHomePEN: number | null;
+  scoreAwayPEN: number | null;
   teamHome: string;
   teamAway: string;
   isLive: boolean;
