@@ -201,9 +201,15 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
               className="w-14 p-2 border rounded-lg text-center font-bold text-lg bg-background"
               aria-label={`Score ${teamName(match, "b")}`}
             />
-            <Button onClick={save} disabled={busy} className="ml-2">
+            <Button3D
+              onClick={save}
+              disabled={busy}
+              variant={prediction ? "gold" : "success"}
+              size="md"
+              className="ml-2"
+            >
               {prediction ? "Modifier" : "Valider"}
-            </Button>
+            </Button3D>
           </div>
           <div className="text-center text-[11px] text-muted-foreground mt-2">
             {timeUntilLock(match.kickoff_at)}
