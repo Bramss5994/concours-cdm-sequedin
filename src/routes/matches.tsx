@@ -151,20 +151,12 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
         <div className="flex flex-col items-center gap-1 text-center">
-          {match.team_a?.code ? (
-            <img src={flagUrl(match.team_a.code, 40)} srcSet={flagSrcSet(match.team_a.code)} alt="" className="h-8 w-12 rounded-sm object-cover" />
-          ) : (
-            <span className="text-2xl">🏳️</span>
-          )}
+          <Flag3D code={match.team_a?.code} name={teamName(match, "a")} size="lg" />
           <span className="font-bold text-sm leading-tight">{teamName(match, "a")}</span>
         </div>
         <div className="text-xs text-muted-foreground font-semibold">VS</div>
         <div className="flex flex-col items-center gap-1 text-center">
-          {match.team_b?.code ? (
-            <img src={flagUrl(match.team_b.code, 40)} srcSet={flagSrcSet(match.team_b.code)} alt="" className="h-8 w-12 rounded-sm object-cover" />
-          ) : (
-            <span className="text-2xl">🏳️</span>
-          )}
+          <Flag3D code={match.team_b?.code} name={teamName(match, "b")} size="lg" />
           <span className="font-bold text-sm leading-tight">{teamName(match, "b")}</span>
         </div>
       </div>
