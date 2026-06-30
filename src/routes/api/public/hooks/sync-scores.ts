@@ -137,7 +137,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             pick.scoreHome !== null &&
             pick.scoreAway !== null
           ) {
-            const patch: Record<string, unknown> = {
+            const patch = {
               score_a: pick.scoreHome,
               score_b: pick.scoreAway,
               finished: true,
@@ -146,7 +146,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
               score_b_et: pick.scoreAwayET,
               score_a_pen: pick.scoreHomePEN,
               score_b_pen: pick.scoreAwayPEN,
-            };
+            } as const;
             const { error: e } = await supabaseAdmin
               .from("matches")
               .update(patch)
