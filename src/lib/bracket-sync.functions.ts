@@ -248,7 +248,9 @@ async function runBackfillGoalscorers() {
 
   const { data: matches, error } = await supabaseAdmin
     .from("matches")
-    .select("id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at")
+    .select(
+      "id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)",
+    )
     .eq("finished", true)
     .order("kickoff_at", { ascending: false });
   if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
@@ -281,6 +283,7 @@ async function runBackfillGoalscorers() {
       continue;
     }
     const fx = fixtureMap.get(m.api_fixture_id);
+    const dbTeams = { a: (m.team_a as any)?.name, b: (m.team_b as any)?.name };
     const payload = dedupeGoals(
       ev.goals.map((g) => ({
         minute: g.minute,
@@ -290,7 +293,7 @@ async function runBackfillGoalscorers() {
         api_player_id: g.apiPlayerId,
         assist: g.assist,
         type: g.type,
-        side: sideOfGoal(g.team, fx),
+        side: sideOfGoal(g.team, dbTeams, fx),
       })),
     );
     const { error: e } = await supabaseAdmin
