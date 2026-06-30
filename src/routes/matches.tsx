@@ -465,13 +465,15 @@ function MatchesPage() {
       )}
 
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-auto gap-1 bg-gradient-to-r from-blue-950 to-blue-900 p-1.5 rounded-xl">
-          <TabsTrigger value="upcoming" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><CalendarClock className="h-4 w-4" />À venir</TabsTrigger>
-          <TabsTrigger value="results" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><ListChecks className="h-4 w-4" />Résultats</TabsTrigger>
-          <TabsTrigger value="standings" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><Table2 className="h-4 w-4" />Classements</TabsTrigger>
-          <TabsTrigger value="scorers" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><Goal className="h-4 w-4" />Buteurs</TabsTrigger>
-          <TabsTrigger value="bracket" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><Network className="h-4 w-4" />Tableau final</TabsTrigger>
-        </TabsList>
+        <div className="-mx-2 px-2 overflow-x-auto sm:mx-0 sm:px-0 sm:overflow-visible">
+          <TabsList className="inline-flex w-max sm:w-full sm:grid sm:grid-cols-5 h-auto gap-1 bg-gradient-to-r from-blue-950 to-blue-900 p-1.5 rounded-xl">
+            <TabsTrigger value="upcoming" className="shrink-0 gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold whitespace-nowrap"><CalendarClock className="h-4 w-4" />À venir</TabsTrigger>
+            <TabsTrigger value="results" className="shrink-0 gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold whitespace-nowrap"><ListChecks className="h-4 w-4" />Résultats</TabsTrigger>
+            <TabsTrigger value="standings" className="shrink-0 gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold whitespace-nowrap"><Table2 className="h-4 w-4" />Classements</TabsTrigger>
+            <TabsTrigger value="scorers" className="shrink-0 gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold whitespace-nowrap"><Goal className="h-4 w-4" />Buteurs</TabsTrigger>
+            <TabsTrigger value="bracket" className="shrink-0 gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold whitespace-nowrap"><Network className="h-4 w-4" />Tableau final</TabsTrigger>
+          </TabsList>
+        </div>
 
 
         {/* À venir */}
