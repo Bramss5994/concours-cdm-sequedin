@@ -363,7 +363,6 @@ function MatchesTab() {
 }
 
 function MatchRow({ m, onSave }: { m: any; onSave: (id: string, patch: any) => Promise<boolean> }) {
-function MatchRow({ m, onSave }: { m: any; onSave: (id: string, patch: any) => Promise<boolean> }) {
   const [sa, setSa] = useState(m.score_a != null ? String(m.score_a) : "");
   const [sb, setSb] = useState(m.score_b != null ? String(m.score_b) : "");
   const [fin, setFin] = useState<boolean>(m.finished);
