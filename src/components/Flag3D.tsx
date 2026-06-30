@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 
 type Size = "xs" | "sm" | "md" | "lg" | "xl";
 
-const SIZES: Record<Size, { wrap: string; img: number }> = {
-  xs: { wrap: "h-5 w-7", img: 40 },
-  sm: { wrap: "h-7 w-10", img: 40 },
-  md: { wrap: "h-9 w-14", img: 80 },
-  lg: { wrap: "h-12 w-[72px]", img: 80 },
-  xl: { wrap: "h-16 w-24", img: 160 },
+const SIZES: Record<Size, { wrap: string; img: 80 | 160 | 320 | 640 }> = {
+  xs: { wrap: "h-5 w-7", img: 80 },
+  sm: { wrap: "h-7 w-10", img: 160 },
+  md: { wrap: "h-9 w-14", img: 160 },
+  lg: { wrap: "h-12 w-[72px]", img: 320 },
+  xl: { wrap: "h-16 w-24", img: 640 },
 };
 
 interface Props {
@@ -57,10 +57,11 @@ export function Flag3D({ code, name, size = "md", className, rounded = "md" }: P
       title={name}
     >
       <img
-        src={flagUrl(code, s.img as 40 | 80 | 160)}
-        srcSet={flagSrcSet(code)}
+        src={flagUrl(code, s.img)}
+        srcSet={flagSrcSet(code, s.img)}
         alt={name ? `Drapeau ${name}` : ""}
         loading="lazy"
+        decoding="async"
         className={cn("h-full w-full object-cover", radius)}
       />
       {/* Glossy top highlight */}
