@@ -57,10 +57,11 @@ export function Flag3D({ code, name, size = "md", className, rounded = "md" }: P
       title={name}
     >
       <img
-        src={flagUrl(code, s.img as 40 | 80 | 160)}
-        srcSet={flagSrcSet(code)}
+        src={flagUrl(code, s.img)}
+        srcSet={flagSrcSet(code, s.img)}
         alt={name ? `Drapeau ${name}` : ""}
         loading="lazy"
+        decoding="async"
         className={cn("h-full w-full object-cover", radius)}
       />
       {/* Glossy top highlight */}
