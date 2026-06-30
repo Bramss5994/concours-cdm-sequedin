@@ -543,6 +543,40 @@ function MatchesPage() {
     });
   }, [matches]);
 
+  // Poll API-Football toutes les 30s tant qu'un match peut être en direct,
+  // pour rafraîchir scores, temps, statut (HT/ET/P) et buteurs.
+  const qc = useQueryClient();
+  const syncLive = useServerFn(syncLiveNowFn);
+  const hasPotentialLive = useMemo(() => {
+    const now = Date.now();
+    return matches.some((m) => {
+      if (m.finished) return false;
+      const ko = new Date(m.kickoff_at).getTime();
+      return ko - 5 * 60 * 1000 <= now && now <= ko + 3 * 60 * 60 * 1000;
+    });
+  }, [matches]);
+  useEffect(() => {
+    if (!user || !hasPotentialLive) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const r: any = await syncLive();
+        if (!cancelled && r?.ok && (r.updatedMatches > 0 || r.goalUpdates > 0)) {
+          qc.invalidateQueries({ queryKey: ["matches"] });
+        }
+      } catch {
+        // silencieux : pas critique
+      }
+    };
+    tick();
+    const id = setInterval(tick, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [user, hasPotentialLive, syncLive, qc]);
+
+
 
 
 
