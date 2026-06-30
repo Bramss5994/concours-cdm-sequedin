@@ -345,6 +345,61 @@ export const backfillGoalscorersFn = createServerFn({ method: "POST" })
     return runBackfillGoalscorers();
   });
 
+// Super-admin (session Supabase) : édition complète d'un match du tableau final
+export const updateBracketMatchAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        team_a_id: z.string().uuid().nullable().optional(),
+        team_b_id: z.string().uuid().nullable().optional(),
+        score_a: z.number().int().min(0).max(99).nullable().optional(),
+        score_b: z.number().int().min(0).max(99).nullable().optional(),
+        score_a_et: z.number().int().min(0).max(99).nullable().optional(),
+        score_b_et: z.number().int().min(0).max(99).nullable().optional(),
+        score_a_pen: z.number().int().min(0).max(99).nullable().optional(),
+        score_b_pen: z.number().int().min(0).max(99).nullable().optional(),
+        finished: z.boolean().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = {};
+    for (const k of [
+      "team_a_id",
+      "team_b_id",
+      "score_a",
+      "score_b",
+      "score_a_et",
+      "score_b_et",
+      "score_a_pen",
+      "score_b_pen",
+      "finished",
+    ] as const) {
+      if (k in data) patch[k] = (data as Record<string, unknown>)[k];
+    }
+    if (Object.keys(patch).length === 0) return { ok: true };
+    const { error } = await supabaseAdmin.from("matches").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listTeamsForBracketFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertSuperAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("teams")
+      .select("id, name, code")
+      .order("name");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
 // Variants accessibles via la session cookie super-admin (panel /unite/gestion)
 export const syncBracketTeamsAsUnitAdminFn = createServerFn({ method: "POST" })
   .middleware([requireUnitAdmin])
