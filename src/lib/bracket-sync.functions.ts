@@ -382,7 +382,7 @@ export const updateBracketMatchAsSuperFn = createServerFn({ method: "POST" })
       if (k in data) patch[k] = (data as Record<string, unknown>)[k];
     }
     if (Object.keys(patch).length === 0) return { ok: true };
-    const { error } = await supabaseAdmin.from("matches").update(patch).eq("id", data.id);
+    const { error } = await supabaseAdmin.from("matches").update(patch as any).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
