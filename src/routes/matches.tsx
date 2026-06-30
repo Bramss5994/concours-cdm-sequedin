@@ -331,81 +331,221 @@ function MatchesPage() {
         </section>
       )}
 
-      <Tabs defaultValue={stagesPresent[0] || "group"}>
-        <TabsList className="flex flex-wrap h-auto gap-1">
-          {stagesPresent.map((s) => (
-            <TabsTrigger key={s} value={s}>{STAGE_LABELS[s] || s}</TabsTrigger>
-          ))}
+      <Tabs defaultValue="upcoming" className="w-full">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-auto gap-1">
+          <TabsTrigger value="upcoming" className="gap-1"><CalendarClock className="h-4 w-4" />À venir</TabsTrigger>
+          <TabsTrigger value="results" className="gap-1"><ListChecks className="h-4 w-4" />Résultats</TabsTrigger>
+          <TabsTrigger value="standings" className="gap-1"><Table2 className="h-4 w-4" />Classements</TabsTrigger>
+          <TabsTrigger value="scorers" className="gap-1"><Goal className="h-4 w-4" />Buteurs</TabsTrigger>
+          <TabsTrigger value="bracket" className="gap-1"><Network className="h-4 w-4" />Tableau final</TabsTrigger>
         </TabsList>
 
-        {stagesPresent.map((stage) => {
-          const stageMatches = matches
-            .filter((m) => (m.stage || "group") === stage)
-            .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
-
-          // Split: upcoming (predictable or locked-not-finished) vs finished
-          const upcoming = stageMatches.filter((m) => !m.finished);
-          const finished = stageMatches.filter((m) => m.finished);
-
-          // Group upcoming by group letter if group stage
-          if (stage === "group") {
-            const byGroup: Record<string, Match[]> = {};
-            for (const m of upcoming) {
-              const g = m.group_letter || "?";
-              (byGroup[g] ||= []).push(m);
-            }
-            const finByGroup: Record<string, Match[]> = {};
-            for (const m of finished) {
-              const g = m.group_letter || "?";
-              (finByGroup[g] ||= []).push(m);
-            }
-            const letters = Array.from(new Set([...Object.keys(byGroup), ...Object.keys(finByGroup)])).sort();
-
+        {/* À venir */}
+        <TabsContent value="upcoming" className="mt-4 space-y-6">
+          {STAGE_ORDER.map((stage) => {
+            const items = matches
+              .filter((m) => (m.stage || "group") === stage && !m.finished)
+              .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+            if (items.length === 0) return null;
             return (
-              <TabsContent key={stage} value={stage} className="space-y-6 mt-4">
-                {letters.map((g) => (
-                  <section key={g}>
-                    <h3 className="text-lg font-bold mb-2">Groupe {g}</h3>
-                    {(byGroup[g] || []).length > 0 && (
-                      <div className="grid gap-3 sm:grid-cols-2 mb-3">
-                        {(byGroup[g] || []).map((m) => (
-                          <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} />
-                        ))}
-                      </div>
-                    )}
-                    {(finByGroup[g] || []).length > 0 && (
-                      <div className="space-y-2">
-                        {(finByGroup[g] || []).map((m) => <ResultRow key={m.id} m={m} />)}
-                      </div>
-                    )}
-                  </section>
-                ))}
-              </TabsContent>
-            );
-          }
-
-          return (
-            <TabsContent key={stage} value={stage} className="space-y-4 mt-4">
-              {upcoming.length > 0 && (
+              <section key={stage}>
+                <h3 className="text-lg font-bold mb-3">{STAGE_LABELS[stage]}</h3>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {upcoming.map((m) => (
+                  {items.map((m) => (
                     <MatchCard key={m.id} match={m} prediction={predByMatch[m.id]} />
                   ))}
                 </div>
-              )}
-              {finished.length > 0 && (
+              </section>
+            );
+          })}
+          {matches.every((m) => m.finished) && (
+            <div className="text-center text-muted-foreground py-8">Tous les matchs sont terminés.</div>
+          )}
+        </TabsContent>
+
+        {/* Résultats */}
+        <TabsContent value="results" className="mt-4 space-y-6">
+          {STAGE_ORDER.map((stage) => {
+            const items = matches
+              .filter((m) => (m.stage || "group") === stage && m.finished)
+              .sort((a, b) => new Date(b.kickoff_at).getTime() - new Date(a.kickoff_at).getTime());
+            if (items.length === 0) return null;
+            return (
+              <section key={stage}>
+                <h3 className="text-lg font-bold mb-2">{STAGE_LABELS[stage]}</h3>
                 <div className="space-y-2">
-                  <h3 className="text-sm font-semibold text-muted-foreground mt-4">Résultats</h3>
-                  {finished.map((m) => <ResultRow key={m.id} m={m} />)}
+                  {items.map((m) => <ResultRow key={m.id} m={m} />)}
                 </div>
-              )}
-              {upcoming.length === 0 && finished.length === 0 && (
-                <div className="text-center text-muted-foreground py-8">Aucun match.</div>
-              )}
-            </TabsContent>
-          );
-        })}
+              </section>
+            );
+          })}
+        </TabsContent>
+
+        {/* Classements groupes */}
+        <TabsContent value="standings" className="mt-4">
+          <GroupStandings matches={matches} />
+        </TabsContent>
+
+        {/* Buteurs */}
+        <TabsContent value="scorers" className="mt-4">
+          <TopScorersList />
+        </TabsContent>
+
+        {/* Tableau final */}
+        <TabsContent value="bracket" className="mt-4">
+          <BracketView />
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+type Standing = {
+  team_id: string;
+  name: string;
+  code?: string | null;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  points: number;
+};
+
+function GroupStandings({ matches }: { matches: Match[] }) {
+  const byGroup = useMemo(() => {
+    const out: Record<string, Map<string, Standing>> = {};
+    for (const m of matches.filter((x) => (x.stage || "group") === "group")) {
+      const g = m.group_letter || "?";
+      if (!out[g]) out[g] = new Map();
+      const ensure = (id: string | null | undefined, name?: string, code?: string | null) => {
+        if (!id) return null;
+        if (!out[g].has(id)) {
+          out[g].set(id, { team_id: id, name: name || "—", code: code || null, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, points: 0 });
+        }
+        return out[g].get(id)!;
+      };
+      const a = ensure(m.team_a_id, m.team_a?.name, m.team_a?.code);
+      const b = ensure(m.team_b_id, m.team_b?.name, m.team_b?.code);
+      if (!a || !b || m.score_a == null || m.score_b == null || !m.finished) continue;
+      a.played++; b.played++;
+      a.gf += m.score_a; a.ga += m.score_b;
+      b.gf += m.score_b; b.ga += m.score_a;
+      if (m.score_a > m.score_b) { a.wins++; a.points += 3; b.losses++; }
+      else if (m.score_a < m.score_b) { b.wins++; b.points += 3; a.losses++; }
+      else { a.draws++; b.draws++; a.points++; b.points++; }
+    }
+    const result: Record<string, Standing[]> = {};
+    for (const [g, map] of Object.entries(out)) {
+      const arr = Array.from(map.values()).map((s) => ({ ...s, gd: s.gf - s.ga }));
+      arr.sort((x, y) => y.points - x.points || y.gd - x.gd || y.gf - x.gf || x.name.localeCompare(y.name));
+      result[g] = arr;
+    }
+    return result;
+  }, [matches]);
+
+  const letters = Object.keys(byGroup).sort();
+  if (letters.length === 0) return <div className="text-center text-muted-foreground py-8">Aucun classement.</div>;
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {letters.map((g) => (
+        <Card key={g} className="p-3">
+          <h3 className="font-bold mb-2">Groupe {g}</h3>
+          <table className="w-full text-sm">
+            <thead className="text-[10px] uppercase text-muted-foreground">
+              <tr>
+                <th className="text-left px-1">#</th>
+                <th className="text-left px-1">Équipe</th>
+                <th className="px-1">J</th>
+                <th className="px-1">G</th>
+                <th className="px-1">N</th>
+                <th className="px-1">P</th>
+                <th className="px-1">+/-</th>
+                <th className="px-1">Pts</th>
+              </tr>
+            </thead>
+            <tbody>
+              {byGroup[g].map((s, i) => (
+                <tr key={s.team_id} className="border-t">
+                  <td className="px-1 py-1">{i + 1}</td>
+                  <td className="px-1 py-1 flex items-center gap-2">
+                    {s.code && <img src={flagUrl(s.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                    <span className="truncate">{s.name}</span>
+                  </td>
+                  <td className="text-center px-1">{s.played}</td>
+                  <td className="text-center px-1">{s.wins}</td>
+                  <td className="text-center px-1">{s.draws}</td>
+                  <td className="text-center px-1">{s.losses}</td>
+                  <td className="text-center px-1">{s.gd > 0 ? `+${s.gd}` : s.gd}</td>
+                  <td className="text-center px-1 font-bold">{s.points}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function TopScorersList() {
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["top-scorers-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("players")
+        .select("id, name, club, goals, assists, teams:team_id(name, code)")
+        .gt("goals", 0)
+        .order("goals", { ascending: false })
+        .order("assists", { ascending: false })
+        .order("name", { ascending: true })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  if (isLoading) return <div className="text-center text-muted-foreground py-8">Chargement…</div>;
+  if (data.length === 0) return <div className="text-center text-muted-foreground py-8">Aucun but enregistré.</div>;
+
+  return (
+    <Card className="p-3">
+      <h3 className="font-bold mb-3 flex items-center gap-2"><Goal className="h-5 w-5" />Classement des buteurs</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-[10px] uppercase text-muted-foreground">
+            <tr>
+              <th className="text-left px-2 py-1">#</th>
+              <th className="text-left px-2 py-1">Joueur</th>
+              <th className="text-left px-2 py-1">Sélection</th>
+              <th className="text-left px-2 py-1 hidden sm:table-cell">Club</th>
+              <th className="text-center px-2 py-1">Buts</th>
+              <th className="text-center px-2 py-1">Passes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((p: any, i: number) => (
+              <tr key={p.id} className="border-t">
+                <td className="px-2 py-1 font-bold">{i + 1}</td>
+                <td className="px-2 py-1 font-medium">{p.name}</td>
+                <td className="px-2 py-1">
+                  <span className="inline-flex items-center gap-2">
+                    {p.teams?.code && <img src={flagUrl(p.teams.code, 40)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
+                    <span className="truncate">{p.teams?.name || "—"}</span>
+                  </span>
+                </td>
+                <td className="px-2 py-1 text-muted-foreground hidden sm:table-cell truncate max-w-[200px]">{p.club || "—"}</td>
+                <td className="px-2 py-1 text-center font-bold text-primary">{p.goals}</td>
+                <td className="px-2 py-1 text-center">{p.assists || 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
+
