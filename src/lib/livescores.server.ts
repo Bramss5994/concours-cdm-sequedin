@@ -46,6 +46,18 @@ async function apiFetch(path: string): Promise<{ ok: true; json: any } | { ok: f
 
 export async function fetchLiveScores(): Promise<{ fixtures: LiveFixture[]; fetchedAt: string; error: string | null }> {
   const r = await apiFetch(`/fixtures?league=${LEAGUE_ID}&season=${SEASON}`);
+  return mapFixturesResponse(r);
+}
+
+/** Fetches only fixtures currently in-play. Cheaper (small payload, no quota burn). */
+export async function fetchLiveOnly(): Promise<{ fixtures: LiveFixture[]; fetchedAt: string; error: string | null }> {
+  const r = await apiFetch(`/fixtures?live=all&league=${LEAGUE_ID}&season=${SEASON}`);
+  return mapFixturesResponse(r);
+}
+
+function mapFixturesResponse(
+  r: { ok: true; json: any } | { ok: false; error: string },
+): { fixtures: LiveFixture[]; fetchedAt: string; error: string | null } {
   if (!r.ok) return { fixtures: [], fetchedAt: new Date().toISOString(), error: r.error };
   const arr = (r.json.response || []) as Array<{
     fixture: { id: number; date: string; status: { short: string; elapsed: number | null } };
@@ -78,6 +90,7 @@ export async function fetchLiveScores(): Promise<{ fixtures: LiveFixture[]; fetc
   });
   return { fixtures, fetchedAt: new Date().toISOString(), error: null };
 }
+
 
 export async function fetchFixtureEvents(fixtureId: number): Promise<{ goals: GoalEvent[]; error: string | null }> {
   const r = await apiFetch(`/fixtures/events?fixture=${fixtureId}&type=Goal`);
