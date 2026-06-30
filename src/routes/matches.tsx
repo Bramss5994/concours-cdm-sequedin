@@ -13,6 +13,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
+function scoreDisplay(mm: Match): string {
+  if (!mm.finished || mm.score_a == null || mm.score_b == null) return 'vs';
+  let s = `${mm.score_a}-${mm.score_b}`;
+  if (mm.score_a_et != null && mm.score_b_et != null) {
+    s += ` (ap ${mm.score_a_et}-${mm.score_b_et})`;
+  }
+  if (mm.score_a_pen != null && mm.score_b_pen != null) {
+    s += ` (tab ${mm.score_a_pen}-${mm.score_b_pen})`;
+  }
+  return s;
+}
+
+
 // Types complets incluant vos données enrichies
 type Match = { 
   id: string; 
@@ -30,6 +43,10 @@ type Match = {
   finished: boolean; 
   score_a: number | null; 
   score_b: number | null;
+  score_a_et?: number | null;
+  score_b_et?: number | null;
+  score_a_pen?: number | null;
+  score_b_pen?: number | null;
   live_status?: string | null;
   live_score_a?: number | null;
   live_score_b?: number | null;
@@ -292,7 +309,7 @@ function MatchesPage() {
                                         {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
                                         <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
                                       </div>
-                                      <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                                      <div className="font-bold">{scoreDisplay(mm)}</div>
                                       <div className="flex items-center gap-2 min-w-0 justify-end">
                                         <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
                                         {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
@@ -361,7 +378,7 @@ function MatchesPage() {
                                     {mm.team_a?.code && <img src={flagUrl(mm.team_a.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
                                     <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
                                   </div>
-                                  <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                                  <div className="font-bold">{scoreDisplay(mm)}</div>
                                   <div className="flex items-center gap-2 min-w-0 justify-end">
                                     <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
                                     {mm.team_b?.code && <img src={flagUrl(mm.team_b.code, 20)} alt="" className="h-4 w-6 rounded-sm object-cover" />}
@@ -485,7 +502,7 @@ function MatchesPage() {
                                           <div className="truncate font-medium">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
                                         </div>
 
-                                        <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                                        <div className="font-bold">{scoreDisplay(mm)}</div>
 
                                         <div className="flex items-center gap-3 min-w-0 justify-end">
                                           <div className="truncate text-right font-medium">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
@@ -524,7 +541,7 @@ function MatchesPage() {
 
                             <div className="text-center">
                               <div className="text-xs text-muted-foreground hidden sm:block">{mm.kickoff_at ? formatFR(mm.kickoff_at) : '—'}</div>
-                              <div className="font-bold text-lg">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                              <div className="font-bold text-lg">{scoreDisplay(mm)}</div>
                             </div>
 
                             <div className="flex items-center gap-2 min-w-0 justify-end">
@@ -555,7 +572,7 @@ function MatchesPage() {
                     <article key={mm.id} className="rounded-xl border bg-card p-3 shadow-sm">
                       <div className="flex items-center justify-between">
                         <div className="truncate">{mm.team_a?.name || mm.team_a_placeholder || '—'}</div>
-                        <div className="font-bold">{mm.finished && mm.score_a != null && mm.score_b != null ? `${mm.score_a}-${mm.score_b}` : 'vs'}</div>
+                        <div className="font-bold">{scoreDisplay(mm)}</div>
                         <div className="truncate text-right">{mm.team_b?.name || mm.team_b_placeholder || '—'}</div>
                       </div>
                     </article>

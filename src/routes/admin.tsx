@@ -374,10 +374,15 @@ function AdminResults() {
 function ResultRow({ m, onSave }: { m: any; onSave: (id: string, patch: Record<string, any>) => Promise<boolean> }) {
   const [sa, setSa] = useState<string>(m.score_a != null ? String(m.score_a) : "");
   const [sb, setSb] = useState<string>(m.score_b != null ? String(m.score_b) : "");
+  const [saEt, setSaEt] = useState<string>(m.score_a_et != null ? String(m.score_a_et) : "");
+  const [sbEt, setSbEt] = useState<string>(m.score_b_et != null ? String(m.score_b_et) : "");
+  const [saPen, setSaPen] = useState<string>(m.score_a_pen != null ? String(m.score_a_pen) : "");
+  const [sbPen, setSbPen] = useState<string>(m.score_b_pen != null ? String(m.score_b_pen) : "");
   const [fin, setFin] = useState<boolean>(m.finished);
   const [kickoff, setKickoff] = useState<string>(toLocalInput(m.kickoff_at));
   const nameA = m.team_a?.name || m.team_a_placeholder || "?";
   const nameB = m.team_b?.name || m.team_b_placeholder || "?";
+  const isKO = m.stage && !["group"].includes(m.stage);
 
   return (
     <tr className="border-t">
@@ -397,11 +402,27 @@ function ResultRow({ m, onSave }: { m: any; onSave: (id: string, patch: Record<s
         <p className="mt-1 text-[10px] text-muted-foreground">{formatFR(m.kickoff_at)}</p>
       </td>
       <td className="px-3 py-2">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 mb-1">
           <Input type="number" min={0} max={20} value={sa} onChange={(e) => setSa(e.target.value)} className="h-8 w-14 text-center" />
           <span>-</span>
           <Input type="number" min={0} max={20} value={sb} onChange={(e) => setSb(e.target.value)} className="h-8 w-14 text-center" />
         </div>
+        {isKO && (
+          <>
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-[10px] text-muted-foreground w-6">ap</span>
+              <Input type="number" min={0} max={30} value={saEt} onChange={(e) => setSaEt(e.target.value)} className="h-7 w-14 text-center text-xs" placeholder="—" />
+              <span>-</span>
+              <Input type="number" min={0} max={30} value={sbEt} onChange={(e) => setSbEt(e.target.value)} className="h-7 w-14 text-center text-xs" placeholder="—" />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground w-6">tab</span>
+              <Input type="number" min={0} max={30} value={saPen} onChange={(e) => setSaPen(e.target.value)} className="h-7 w-14 text-center text-xs" placeholder="—" />
+              <span>-</span>
+              <Input type="number" min={0} max={30} value={sbPen} onChange={(e) => setSbPen(e.target.value)} className="h-7 w-14 text-center text-xs" placeholder="—" />
+            </div>
+          </>
+        )}
       </td>
       <td className="px-3 py-2 text-center"><Switch checked={fin} onCheckedChange={setFin} /></td>
       <td className="px-3 py-2 text-right">
@@ -409,7 +430,15 @@ function ResultRow({ m, onSave }: { m: any; onSave: (id: string, patch: Record<s
           const a = sa === "" ? null : Number(sa);
           const b = sb === "" ? null : Number(sb);
           if (fin && (a == null || b == null)) { toast.error("Scores requis pour valider"); return; }
-          const patch: any = { score_a: a, score_b: b, finished: fin };
+          const patch: any = {
+            score_a: a,
+            score_b: b,
+            finished: fin,
+            score_a_et: saEt === "" ? null : Number(saEt),
+            score_b_et: sbEt === "" ? null : Number(sbEt),
+            score_a_pen: saPen === "" ? null : Number(saPen),
+            score_b_pen: sbPen === "" ? null : Number(sbPen),
+          };
           const newIso = fromLocalInput(kickoff);
           if (newIso && newIso !== m.kickoff_at) patch.kickoff_at = newIso;
           const ok = await onSave(m.id, patch);
