@@ -303,11 +303,8 @@ function MatchesPage() {
     });
   }, [matches]);
 
-  const stagesPresent = useMemo(() => {
-    const set = new Set<string>();
-    for (const m of matches) set.add(m.stage || "group");
-    return STAGE_ORDER.filter((s) => set.has(s));
-  }, [matches]);
+
+
 
   if (isLoading) {
     return <div className="container mx-auto py-12 text-center text-muted-foreground">Chargement des matchs…</div>;
