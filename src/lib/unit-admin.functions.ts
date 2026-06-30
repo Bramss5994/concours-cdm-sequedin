@@ -405,6 +405,11 @@ export const updateAdminMatchFn = createServerFn({ method: "POST" })
         score_b: z.number().int().min(0).max(50).nullable(),
         finished: z.boolean(),
         kickoff_at: z.string().datetime().optional(),
+        score_a_et: z.number().int().min(0).max(99).nullable().optional(),
+        score_b_et: z.number().int().min(0).max(99).nullable().optional(),
+        score_a_pen: z.number().int().min(0).max(99).nullable().optional(),
+        score_b_pen: z.number().int().min(0).max(99).nullable().optional(),
+        live_status: z.string().max(8).nullable().optional(),
       })
       .parse(input),
   )
@@ -413,6 +418,9 @@ export const updateAdminMatchFn = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: any = { score_a: data.score_a, score_b: data.score_b, finished: data.finished };
     if (data.kickoff_at) patch.kickoff_at = data.kickoff_at;
+    for (const k of ["score_a_et", "score_b_et", "score_a_pen", "score_b_pen", "live_status"] as const) {
+      if (k in data) patch[k] = (data as any)[k];
+    }
     const { error } = await supabaseAdmin.from("matches").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
