@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
@@ -8,11 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { isLocked, formatFR, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
-import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network } from "lucide-react";
+import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network, Pencil } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 import { BracketView } from "@/components/BracketView";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
+import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
+
 
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
