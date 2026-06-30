@@ -312,14 +312,25 @@ function MatchesPage() {
 
   return (
     <div className="container mx-auto py-6 px-3 sm:py-8">
-      <div className="flex items-center gap-3 mb-6">
-        <Trophy className="text-primary h-8 w-8" />
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Pronos Coupe du Monde 2026</h1>
+      {/* Hero WC2026 */}
+      <div className="relative overflow-hidden rounded-2xl border-2 border-amber-400/50 bg-gradient-to-br from-blue-950 via-blue-900 to-red-900 p-5 sm:p-6 mb-6 shadow-xl">
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-400/10 blur-3xl" />
+        <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-red-500/20 blur-3xl" />
+        <div className="relative flex items-center gap-4">
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 shadow-lg ring-2 ring-amber-200">
+            <Trophy className="h-7 w-7 text-amber-950" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] font-black tracking-[0.2em] text-amber-300 uppercase">FIFA World Cup 2026</p>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-amber-50">Pronostics · Coupe du Monde</h1>
+            <p className="text-xs text-amber-200/80 mt-0.5">USA · Canada · Mexique — clôture des pronos 1h avant le coup d'envoi</p>
+          </div>
+        </div>
       </div>
 
       {liveMatches.length > 0 && (
         <section className="mb-6">
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
             <Radio className="h-5 w-5 text-red-600" /> En direct
           </h2>
           <div className="grid gap-2">
@@ -329,13 +340,14 @@ function MatchesPage() {
       )}
 
       <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-auto gap-1">
-          <TabsTrigger value="upcoming" className="gap-1"><CalendarClock className="h-4 w-4" />À venir</TabsTrigger>
-          <TabsTrigger value="results" className="gap-1"><ListChecks className="h-4 w-4" />Résultats</TabsTrigger>
-          <TabsTrigger value="standings" className="gap-1"><Table2 className="h-4 w-4" />Classements</TabsTrigger>
-          <TabsTrigger value="scorers" className="gap-1"><Goal className="h-4 w-4" />Buteurs</TabsTrigger>
-          <TabsTrigger value="bracket" className="gap-1"><Network className="h-4 w-4" />Tableau final</TabsTrigger>
+        <TabsList className="grid grid-cols-2 sm:grid-cols-5 h-auto gap-1 bg-gradient-to-r from-blue-950 to-blue-900 p-1.5 rounded-xl">
+          <TabsTrigger value="upcoming" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><CalendarClock className="h-4 w-4" />À venir</TabsTrigger>
+          <TabsTrigger value="results" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><ListChecks className="h-4 w-4" />Résultats</TabsTrigger>
+          <TabsTrigger value="standings" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><Table2 className="h-4 w-4" />Classements</TabsTrigger>
+          <TabsTrigger value="scorers" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><Goal className="h-4 w-4" />Buteurs</TabsTrigger>
+          <TabsTrigger value="bracket" className="gap-1 data-[state=active]:bg-amber-400 data-[state=active]:text-amber-950 text-amber-100 font-bold"><Network className="h-4 w-4" />Tableau final</TabsTrigger>
         </TabsList>
+
 
         {/* À venir */}
         <TabsContent value="upcoming" className="mt-4 space-y-6">
