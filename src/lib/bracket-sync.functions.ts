@@ -248,7 +248,9 @@ async function runBackfillGoalscorers() {
 
   const { data: matches, error } = await supabaseAdmin
     .from("matches")
-    .select("id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at")
+    .select(
+      "id, api_fixture_id, score_a, score_b, goalscorers, kickoff_at, team_a:teams!matches_team_a_id_fkey(name), team_b:teams!matches_team_b_id_fkey(name)",
+    )
     .eq("finished", true)
     .order("kickoff_at", { ascending: false });
   if (error) return { ok: false, error: error.message, processed: 0, updated: 0, errors: [] as string[] };
@@ -281,6 +283,7 @@ async function runBackfillGoalscorers() {
       continue;
     }
     const fx = fixtureMap.get(m.api_fixture_id);
+    const dbTeams = { a: (m.team_a as any)?.name, b: (m.team_b as any)?.name };
     const payload = dedupeGoals(
       ev.goals.map((g) => ({
         minute: g.minute,
@@ -290,7 +293,7 @@ async function runBackfillGoalscorers() {
         api_player_id: g.apiPlayerId,
         assist: g.assist,
         type: g.type,
-        side: sideOfGoal(g.team, fx),
+        side: sideOfGoal(g.team, dbTeams, fx),
       })),
     );
     const { error: e } = await supabaseAdmin
@@ -307,15 +310,43 @@ async function runBackfillGoalscorers() {
   return { ok: true, processed, updated: updates.length, details: updates, errors };
 }
 
-export function sideOfGoal(team: string, fx?: { home: string; away: string }): "home" | "away" | null {
-  if (!fx) return null;
+/**
+ * Détermine si un but a été marqué par l'équipe A ou B de la base de données.
+ * `dbTeams` = noms DB (team_a, team_b). `apiTeams` (optionnel) = noms côté API
+ * permettant un fallback quand le nom transmis ne matche pas directement la DB
+ * (ex: variantes de traduction). Renvoie "a" | "b" | null.
+ */
+export function sideOfGoal(
+  team: string,
+  dbTeams?: { a?: string | null; b?: string | null },
+  apiTeams?: { home?: string | null; away?: string | null },
+): "a" | "b" | null {
+  if (!dbTeams) return null;
   const t = normalize(team);
-  const h = normalize(fx.home);
-  const a = normalize(fx.away);
-  if (t === h) return "home";
-  if (t === a) return "away";
-  if (h.startsWith(t) || t.startsWith(h)) return "home";
-  if (a.startsWith(t) || t.startsWith(a)) return "away";
+  const matchAgainst = (name?: string | null): boolean => {
+    if (!name) return false;
+    const n = normalize(name);
+    if (!n || !t) return false;
+    if (t === n) return true;
+    return n.startsWith(t) || t.startsWith(n);
+  };
+  const na = dbTeams.a ? normalize(dbTeams.a) : "";
+  const nb = dbTeams.b ? normalize(dbTeams.b) : "";
+  if (matchAgainst(dbTeams.a)) return "a";
+  if (matchAgainst(dbTeams.b)) return "b";
+  // Fallback via API : home -> a si home==dbA, away -> b si away==dbB.
+  if (apiTeams) {
+    const tHome = apiTeams.home ? normalize(apiTeams.home) : "";
+    const tAway = apiTeams.away ? normalize(apiTeams.away) : "";
+    if (tHome && t === tHome) {
+      if (na && (tHome === na || tHome.startsWith(na) || na.startsWith(tHome))) return "a";
+      if (nb && (tHome === nb || tHome.startsWith(nb) || nb.startsWith(tHome))) return "b";
+    }
+    if (tAway && t === tAway) {
+      if (nb && (tAway === nb || tAway.startsWith(nb) || nb.startsWith(tAway))) return "b";
+      if (na && (tAway === na || tAway.startsWith(na) || na.startsWith(tAway))) return "a";
+    }
+  }
   return null;
 }
 
