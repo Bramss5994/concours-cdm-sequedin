@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { syncBracketTeamsFn, backfillGoalscorersFn } from "@/lib/bracket-sync.functions";
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
 
 type Team = { name: string; code?: string | null };
 type Match = {
