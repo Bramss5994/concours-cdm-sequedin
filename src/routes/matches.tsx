@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { isLocked, formatFR, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
-import { Trophy, Lock, Radio } from "lucide-react";
+import { Trophy, Lock, Radio, CalendarClock, ListChecks, Table2, Goal, Network } from "lucide-react";
 import { flagUrl, flagSrcSet } from "@/lib/flag";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
+import { BracketView } from "@/components/BracketView";
+
 
 export const Route = createFileRoute("/matches")({ component: MatchesPage });
 
