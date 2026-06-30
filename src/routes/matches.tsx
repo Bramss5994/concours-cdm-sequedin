@@ -329,7 +329,7 @@ function MatchesPage() {
         </section>
       )}
 
-      <Tabs defaultValue={stagesPresent[stagesPresent.length - 1] || "group"}>
+      <Tabs defaultValue={stagesPresent[0] || "group"}>
         <TabsList className="flex flex-wrap h-auto gap-1">
           {stagesPresent.map((s) => (
             <TabsTrigger key={s} value={s}>{STAGE_LABELS[s] || s}</TabsTrigger>
