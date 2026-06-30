@@ -51,6 +51,10 @@ export async function fetchLiveScores(): Promise<{ fixtures: LiveFixture[]; fetc
     fixture: { id: number; date: string; status: { short: string; elapsed: number | null } };
     teams: { home: { name: string }; away: { name: string } };
     goals: { home: number | null; away: number | null };
+    score?: {
+      extratime?: { home: number | null; away: number | null } | null;
+      penalty?: { home: number | null; away: number | null } | null;
+    };
   }>;
   const fixtures = arr.map((f) => {
     const short = f.fixture.status.short;
@@ -62,6 +66,10 @@ export async function fetchLiveScores(): Promise<{ fixtures: LiveFixture[]; fetc
       elapsed: f.fixture.status.elapsed,
       scoreHome: f.goals.home,
       scoreAway: f.goals.away,
+      scoreHomeET: f.score?.extratime?.home ?? null,
+      scoreAwayET: f.score?.extratime?.away ?? null,
+      scoreHomePEN: f.score?.penalty?.home ?? null,
+      scoreAwayPEN: f.score?.penalty?.away ?? null,
       teamHome: f.teams.home.name,
       teamAway: f.teams.away.name,
       isLive: LIVE_STATUSES.has(short),
