@@ -135,12 +135,21 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           if (
             pick.isFinished &&
             pick.scoreHome !== null &&
-            pick.scoreAway !== null &&
-            !m.finished
+            pick.scoreAway !== null
           ) {
+            const patch: Record<string, unknown> = {
+              score_a: pick.scoreHome,
+              score_b: pick.scoreAway,
+              finished: true,
+              live_status: pick.status,
+              score_a_et: pick.scoreHomeET,
+              score_b_et: pick.scoreAwayET,
+              score_a_pen: pick.scoreHomePEN,
+              score_b_pen: pick.scoreAwayPEN,
+            };
             const { error: e } = await supabaseAdmin
               .from("matches")
-              .update({ score_a: pick.scoreHome, score_b: pick.scoreAway, finished: true })
+              .update(patch)
               .eq("id", m.id);
             if (e) errors.push(`score ${m.id}: ${e.message}`);
             else
@@ -148,7 +157,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
                 id: m.id,
                 score_a: pick.scoreHome,
                 score_b: pick.scoreAway,
-                match: `${pick.teamHome} ${pick.scoreHome}-${pick.scoreAway} ${pick.teamAway}`,
+                match: `${pick.teamHome} ${pick.scoreHome}-${pick.scoreAway} ${pick.teamAway}${pick.status === "PEN" ? ` (t.a.b. ${pick.scoreHomePEN}-${pick.scoreAwayPEN})` : pick.status === "AET" ? " (a.p.)" : ""}`,
               });
           }
         }
