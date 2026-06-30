@@ -386,21 +386,24 @@ function SuperAdminMatchEdit({ m }: { m: Match }) {
 
 function ResultRow({ m }: { m: Match }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
-      <div className="text-xs text-muted-foreground w-28 hidden sm:block">{formatFR(m.kickoff_at)}</div>
-      <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
-        <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
-        <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
+    <div className="rounded-lg border bg-card p-3">
+      <div className="flex items-center gap-3">
+        <div className="text-xs text-muted-foreground w-28 hidden sm:block">{formatFR(m.kickoff_at)}</div>
+        <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+          <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
+          <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
+        </div>
+        <div className="px-2 flex items-center">
+          <FinalScore m={m} />
+          <ExtraTimeBadge m={m} />
+        </div>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Flag3D code={m.team_b?.code} name={teamName(m, "b")} size="sm" />
+          <span className="truncate font-medium">{teamName(m, "b")}</span>
+        </div>
+        <SuperAdminMatchEdit m={m} />
       </div>
-      <div className="px-2 flex items-center">
-        <FinalScore m={m} />
-        <ExtraTimeBadge m={m} />
-      </div>
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        <Flag3D code={m.team_b?.code} name={teamName(m, "b")} size="sm" />
-        <span className="truncate font-medium">{teamName(m, "b")}</span>
-      </div>
-      <SuperAdminMatchEdit m={m} />
+      <ScorersGrid m={m} tone="result" />
     </div>
   );
 }
