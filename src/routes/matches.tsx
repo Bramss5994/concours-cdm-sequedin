@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Button3D } from "@/components/Button3D";
 import { Badge } from "@/components/ui/badge";
 import { isLocked, formatFR, timeUntilLock } from "@/lib/time";
 import { toast } from "sonner";
