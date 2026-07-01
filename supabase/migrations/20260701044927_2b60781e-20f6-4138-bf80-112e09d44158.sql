@@ -1,0 +1,1 @@
+UPDATE public.matches SET api_fixture_id = NULL, goalscorers = '[]'::jsonb, score_a = NULL, score_b = NULL, finished = false, live_status = NULL, live_elapsed = NULL, live_score_a = NULL, live_score_b = NULL, score_a_et = NULL, score_b_et = NULL, score_a_pen = NULL, score_b_pen = NULL WHERE id = '88c904c8-78c3-4a0c-b3a0-4beaede32e84';
