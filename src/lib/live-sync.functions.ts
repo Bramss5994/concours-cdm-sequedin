@@ -67,20 +67,13 @@ export const syncLiveNowFn = createServerFn({ method: "POST" })
       if (!pick) {
         const cands = byKickoff.get(kickoffKeyFromISO(m.kickoff_at));
         if (cands && cands.length > 0) {
-          const na = ((m.team_a as any)?.name || "").toLowerCase();
-          const nb = ((m.team_b as any)?.name || "").toLowerCase();
-          pick =
-            cands.find((c) => {
-              const ha = c.teamHome.toLowerCase();
-              const hb = c.teamAway.toLowerCase();
-              return (
-                (na && (ha.startsWith(na.slice(0, 3)) || na.startsWith(ha.slice(0, 3)))) ||
-                (nb && (hb.startsWith(nb.slice(0, 3)) || nb.startsWith(hb.slice(0, 3))))
-              );
-            }) || cands[0];
+          const na = (m.team_a as any)?.name || "";
+          const nb = (m.team_b as any)?.name || "";
+          pick = pickFixtureByTeams(cands, na, nb) || undefined;
         }
       }
       if (!pick) continue;
+
 
       const patch: any = {
         live_status: pick.status,
