@@ -66,19 +66,16 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           const candidates = byKickoff.get(key);
           if (!candidates || candidates.length === 0) continue;
 
-          const nameA = ((m.team_a as any)?.name || "").toLowerCase();
-          const nameB = ((m.team_b as any)?.name || "").toLowerCase();
-          const pick =
-            candidates.length === 1
-              ? candidates[0]
-              : candidates.find((c) => {
-                  const ha = c.teamHome.toLowerCase();
-                  const hb = c.teamAway.toLowerCase();
-                  return (
-                    (nameA && (ha.startsWith(nameA.slice(0, 3)) || nameA.startsWith(ha.slice(0, 3)))) ||
-                    (nameB && (hb.startsWith(nameB.slice(0, 3)) || nameB.startsWith(hb.slice(0, 3))))
-                  );
-                }) || candidates[0];
+          const nameA = (m.team_a as any)?.name || "";
+          const nameB = (m.team_b as any)?.name || "";
+          // Match strict par NOMS des deux équipes (évite les collisions
+          // entre matchs partageant le même horaire de coup d'envoi).
+          const pick = pickFixtureByTeams(candidates, nameA, nameB);
+          if (!pick) {
+            errors.push(`match ${m.id}: aucun fixture API ne correspond aux équipes (${nameA} vs ${nameB})`);
+            continue;
+          }
+
 
           // 1) sauve l'api_fixture_id si absent
           if (!m.api_fixture_id) {
