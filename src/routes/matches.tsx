@@ -21,6 +21,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
 import { syncLiveNowFn } from "@/lib/live-sync.functions";
+import { syncTopScorersNowFn } from "@/lib/topscorers-sync.functions";
 import { LIVE_STATUS_LABEL } from "@/lib/livescores.shared";
 
 
@@ -808,7 +809,9 @@ function GroupStandings({ matches }: { matches: Match[] }) {
 }
 
 function TopScorersList() {
-  const { data = [], isLoading } = useQuery({
+  const qc = useQueryClient();
+  const syncTop = useServerFn(syncTopScorersNowFn);
+  const { data = [], isLoading, dataUpdatedAt } = useQuery({
     queryKey: ["top-scorers-list"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -822,14 +825,53 @@ function TopScorersList() {
       if (error) throw error;
       return data || [];
     },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
+
+  // Realtime : toute modification de la table players rafraîchit la liste
+  useEffect(() => {
+    const ch = supabase
+      .channel(`players-live-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "players" }, () => {
+        qc.invalidateQueries({ queryKey: ["top-scorers-list"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [qc]);
+
+  // Sync API-Football → base au montage puis toutes les 2 min
+  useEffect(() => {
+    let cancelled = false;
+    const run = () => {
+      syncTop().catch(() => {}).finally(() => {
+        if (!cancelled) qc.invalidateQueries({ queryKey: ["top-scorers-list"] });
+      });
+    };
+    run();
+    const id = setInterval(run, 120_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [qc, syncTop]);
 
   if (isLoading) return <div className="text-center text-muted-foreground py-8">Chargement…</div>;
   if (data.length === 0) return <div className="text-center text-muted-foreground py-8">Aucun but enregistré.</div>;
 
+  const updatedLabel = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "";
+
   return (
     <Card className="p-3">
-      <h3 className="font-bold mb-3 flex items-center gap-2"><Goal className="h-5 w-5" />Classement des buteurs</h3>
+      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+        <h3 className="font-bold flex items-center gap-2"><Goal className="h-5 w-5" />Classement des buteurs</h3>
+        <span className="text-[10px] inline-flex items-center gap-1 text-muted-foreground">
+          <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          Temps réel · {updatedLabel}
+        </span>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-[10px] uppercase text-muted-foreground">
