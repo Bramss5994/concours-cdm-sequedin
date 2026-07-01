@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { kickoffKeyFromISO, type GoalEvent } from "@/lib/livescores.shared";
+import { kickoffKeyFromISO, pickFixtureByTeams, type GoalEvent } from "@/lib/livescores.shared";
+
 
 const MAX_EVENT_FETCHES_PER_RUN = 2;
 const EVENT_FETCH_DELAY_MS = 8_000;
