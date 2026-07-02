@@ -810,53 +810,49 @@ function GroupStandings({ matches }: { matches: Match[] }) {
 
 function TopScorersList() {
   const qc = useQueryClient();
-  const syncTop = useServerFn(syncTopScorersNowFn);
+
+  // Agrège les buteurs à partir des goalscorers de chaque match terminé
   const { data = [], isLoading, dataUpdatedAt } = useQuery({
-    queryKey: ["top-scorers-list"],
+    queryKey: ["top-scorers-from-matches"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("players")
-        .select("id, name, club, goals, assists, teams:team_id(name, code)")
-        .gt("goals", 0)
-        .order("goals", { ascending: false })
-        .order("assists", { ascending: false })
-        .order("name", { ascending: true })
-        .limit(50);
+        .from("matches")
+        .select("id, finished, goalscorers, team_a:teams!matches_team_a_id_fkey(name,code), team_b:teams!matches_team_b_id_fkey(name,code)")
+        .eq("finished", true);
       if (error) throw error;
-      return data || [];
+      type Agg = { name: string; goals: number; teamName: string; teamCode?: string };
+      const map = new Map<string, Agg>();
+      for (const m of (data || []) as any[]) {
+        const gs: GoalScorer[] = Array.isArray(m.goalscorers) ? m.goalscorers : [];
+        for (const g of gs) {
+          if (!g?.player) continue;
+          if (g.type === "own") continue; // csc n'est pas attribué au buteur adverse
+          const side = g.side === "b" ? "b" : g.side === "a" ? "a" : null;
+          const team = side === "b" ? m.team_b : side === "a" ? m.team_a : null;
+          const key = `${g.player.toLowerCase().trim()}|${team?.code || team?.name || ""}`;
+          const cur = map.get(key);
+          if (cur) cur.goals += 1;
+          else map.set(key, { name: g.player, goals: 1, teamName: team?.name || "—", teamCode: team?.code });
+        }
+      }
+      return [...map.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 50);
     },
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
 
-  // Realtime : toute modification de la table players rafraîchit la liste
+  // Realtime : toute mise à jour d'un match rafraîchit la liste
   useEffect(() => {
     const ch = supabase
-      .channel(`players-live-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "players" }, () => {
-        qc.invalidateQueries({ queryKey: ["top-scorers-list"] });
+      .channel(`scorers-from-matches-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
+        qc.invalidateQueries({ queryKey: ["top-scorers-from-matches"] });
       })
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
   }, [qc]);
-
-  // Sync API-Football → base au montage puis toutes les 2 min
-  useEffect(() => {
-    let cancelled = false;
-    const run = () => {
-      syncTop().catch(() => {}).finally(() => {
-        if (!cancelled) qc.invalidateQueries({ queryKey: ["top-scorers-list"] });
-      });
-    };
-    run();
-    const id = setInterval(run, 120_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [qc, syncTop]);
 
   if (isLoading) return <div className="text-center text-muted-foreground py-8">Chargement…</div>;
   if (data.length === 0) return <div className="text-center text-muted-foreground py-8">Aucun but enregistré.</div>;
@@ -879,25 +875,21 @@ function TopScorersList() {
               <th className="text-left px-2 py-1">#</th>
               <th className="text-left px-2 py-1">Joueur</th>
               <th className="text-left px-2 py-1">Sélection</th>
-              <th className="text-left px-2 py-1 hidden sm:table-cell">Club</th>
               <th className="text-center px-2 py-1">Buts</th>
-              <th className="text-center px-2 py-1">Passes</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((p: any, i: number) => (
-              <tr key={p.id} className="border-t">
+            {data.map((p, i) => (
+              <tr key={`${p.name}-${p.teamCode || p.teamName}-${i}`} className="border-t">
                 <td className="px-2 py-1 font-bold">{i + 1}</td>
                 <td className="px-2 py-1 font-medium">{p.name}</td>
                 <td className="px-2 py-1">
                   <span className="inline-flex items-center gap-2">
-                    <Flag3D code={p.teams?.code} name={p.teams?.name} size="xs" />
-                    <span className="truncate">{p.teams?.name || "—"}</span>
+                    <Flag3D code={p.teamCode} name={p.teamName} size="xs" />
+                    <span className="truncate">{p.teamName}</span>
                   </span>
                 </td>
-                <td className="px-2 py-1 text-muted-foreground hidden sm:table-cell truncate max-w-[200px]">{p.club || "—"}</td>
                 <td className="px-2 py-1 text-center font-bold text-primary">{p.goals}</td>
-                <td className="px-2 py-1 text-center">{p.assists || 0}</td>
               </tr>
             ))}
           </tbody>
@@ -906,4 +898,5 @@ function TopScorersList() {
     </Card>
   );
 }
+
 
