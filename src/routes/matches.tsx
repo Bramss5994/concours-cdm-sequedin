@@ -684,12 +684,18 @@ function MatchesPage() {
         <TabsContent value="results" className="mt-4 space-y-6">
           {STAGE_ORDER.map((stage) => {
             const items = matches
-              .filter((m) => (m.stage || "group") === stage && m.finished)
-              .sort((a, b) => new Date(b.kickoff_at).getTime() - new Date(a.kickoff_at).getTime());
+              .filter((m) => {
+                if ((m.stage || "group") !== stage) return false;
+                const hasScore = m.score_a != null && m.score_b != null;
+                return m.finished || hasScore;
+              })
+              .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
             if (items.length === 0) return null;
             return (
               <section key={stage}>
-                <h3 className="text-lg font-bold mb-2">{STAGE_LABELS[stage]}</h3>
+                <h3 className="text-lg font-bold mb-2">
+                  {STAGE_LABELS[stage]} <span className="text-xs font-normal text-muted-foreground">({items.length})</span>
+                </h3>
                 <div className="space-y-2">
                   {items.map((m) => <ResultRow key={m.id} m={m} />)}
                 </div>
