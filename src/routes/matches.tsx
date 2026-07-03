@@ -817,42 +817,40 @@ function GroupStandings({ matches }: { matches: Match[] }) {
 function TopScorersList() {
   const qc = useQueryClient();
 
-  // Agrège les buteurs à partir des goalscorers de chaque match terminé
+  // Source de vérité : la table `players` (gérée par le super admin et
+  // synchronisée automatiquement via l'API-Football). Ainsi, toute
+  // modification manuelle du super admin apparaît immédiatement ici.
   const { data = [], isLoading, dataUpdatedAt } = useQuery({
-    queryKey: ["top-scorers-from-matches"],
+    queryKey: ["top-scorers-players"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("matches")
-        .select("id, finished, goalscorers, team_a:teams!matches_team_a_id_fkey(name,code), team_b:teams!matches_team_b_id_fkey(name,code)")
-        .eq("finished", true);
+        .from("players")
+        .select("id, name, goals, assists, club, team:teams!players_team_id_fkey(name, code)")
+        .gt("goals", 0)
+        .order("goals", { ascending: false })
+        .order("assists", { ascending: false })
+        .order("name", { ascending: true })
+        .limit(100);
       if (error) throw error;
-      type Agg = { name: string; goals: number; teamName: string; teamCode?: string };
-      const map = new Map<string, Agg>();
-      for (const m of (data || []) as any[]) {
-        const gs: GoalScorer[] = Array.isArray(m.goalscorers) ? m.goalscorers : [];
-        for (const g of gs) {
-          if (!g?.player) continue;
-          if (g.type === "own") continue; // csc n'est pas attribué au buteur adverse
-          const side = g.side === "b" ? "b" : g.side === "a" ? "a" : null;
-          const team = side === "b" ? m.team_b : side === "a" ? m.team_a : null;
-          const key = `${g.player.toLowerCase().trim()}|${team?.code || team?.name || ""}`;
-          const cur = map.get(key);
-          if (cur) cur.goals += 1;
-          else map.set(key, { name: g.player, goals: 1, teamName: team?.name || "—", teamCode: team?.code });
-        }
-      }
-      return [...map.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 50);
+      return (data || []) as Array<{
+        id: string;
+        name: string;
+        goals: number;
+        assists: number;
+        club: string | null;
+        team: { name: string; code: string | null } | null;
+      }>;
     },
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
 
-  // Realtime : toute mise à jour d'un match rafraîchit la liste
+  // Realtime : toute mise à jour de la table players rafraîchit la liste
   useEffect(() => {
     const ch = supabase
-      .channel(`scorers-from-matches-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
-        qc.invalidateQueries({ queryKey: ["top-scorers-from-matches"] });
+      .channel(`scorers-players-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "players" }, () => {
+        qc.invalidateQueries({ queryKey: ["top-scorers-players"] });
       })
       .subscribe();
     return () => {
@@ -882,20 +880,25 @@ function TopScorersList() {
               <th className="text-left px-2 py-1">Joueur</th>
               <th className="text-left px-2 py-1">Sélection</th>
               <th className="text-center px-2 py-1">Buts</th>
+              <th className="text-center px-2 py-1 hidden sm:table-cell">Passes</th>
             </tr>
           </thead>
           <tbody>
             {data.map((p, i) => (
-              <tr key={`${p.name}-${p.teamCode || p.teamName}-${i}`} className="border-t">
+              <tr key={p.id} className="border-t">
                 <td className="px-2 py-1 font-bold">{i + 1}</td>
-                <td className="px-2 py-1 font-medium">{p.name}</td>
+                <td className="px-2 py-1 font-medium">
+                  <div className="truncate">{p.name}</div>
+                  {p.club && <div className="text-[10px] text-muted-foreground truncate">{p.club}</div>}
+                </td>
                 <td className="px-2 py-1">
                   <span className="inline-flex items-center gap-2">
-                    <Flag3D code={p.teamCode} name={p.teamName} size="xs" />
-                    <span className="truncate">{p.teamName}</span>
+                    <Flag3D code={p.team?.code} name={p.team?.name} size="xs" />
+                    <span className="truncate">{p.team?.name || "—"}</span>
                   </span>
                 </td>
                 <td className="px-2 py-1 text-center font-bold text-primary">{p.goals}</td>
+                <td className="px-2 py-1 text-center text-muted-foreground hidden sm:table-cell">{p.assists}</td>
               </tr>
             ))}
           </tbody>
