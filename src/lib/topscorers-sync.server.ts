@@ -108,6 +108,19 @@ function addAgg(map: Map<string, Agg>, input: { name: string; apiPlayerId: numbe
   map.set(key, cur);
 }
 
+function chooseCanonicalPlayer(candidates: PlayerRow[], scorer: Agg): PlayerRow | undefined {
+  if (candidates.length === 0) return undefined;
+  return [...candidates].sort((a, b) => {
+    const aTeam = scorer.teamId && a.team_id === scorer.teamId ? 1 : 0;
+    const bTeam = scorer.teamId && b.team_id === scorer.teamId ? 1 : 0;
+    if (aTeam !== bTeam) return bTeam - aTeam;
+    const aExact = sameName(a.name, scorer.name) ? 1 : 0;
+    const bExact = sameName(b.name, scorer.name) ? 1 : 0;
+    if (aExact !== bExact) return bExact - aExact;
+    return b.name.length - a.name.length;
+  })[0];
+}
+
 export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Promise<TopScorersSyncSummary> {
   const { data: matches, error: matchesError } = await supabaseAdmin
     .from("matches")
@@ -145,12 +158,12 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
     .select("id, name, team_id, api_player_id");
   if (playersError) throw new Error(playersError.message);
 
-  const byApiId = new Map<number, PlayerRow>();
+  const byApiId = new Map<number, PlayerRow[]>();
   const byNameAndTeam = new Map<string, PlayerRow>();
   const byName = new Map<string, PlayerRow[]>();
   const byTeam = new Map<string, PlayerRow[]>();
   for (const player of (players || []) as PlayerRow[]) {
-    if (player.api_player_id) byApiId.set(player.api_player_id, player);
+    if (player.api_player_id) byApiId.set(player.api_player_id, [...(byApiId.get(player.api_player_id) || []), player]);
     byNameAndTeam.set(`${norm(player.name)}:${player.team_id ?? "unknown"}`, player);
     const nameKey = norm(player.name);
     byName.set(nameKey, [...(byName.get(nameKey) || []), player]);
@@ -168,7 +181,7 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
       : [];
     const compatibleAllPlayers = (players || []).filter((player: PlayerRow) => namesCompatible(player.name, scorer.name));
     const target =
-      (scorer.apiPlayerId && byApiId.get(scorer.apiPlayerId)) ||
+      (scorer.apiPlayerId && chooseCanonicalPlayer(byApiId.get(scorer.apiPlayerId) || [], scorer)) ||
       (scorer.teamId && byNameAndTeam.get(`${norm(scorer.name)}:${scorer.teamId}`)) ||
       (compatibleTeamPlayers.length === 1 ? compatibleTeamPlayers[0] : undefined) ||
       (byName.get(norm(scorer.name))?.length === 1 ? byName.get(norm(scorer.name))?.[0] : undefined) ||
