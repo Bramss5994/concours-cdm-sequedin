@@ -1,4 +1,4 @@
-import { kickoffKeyFromISO, type GoalEvent, type LiveFixture, type TopScorer } from "./livescores.shared";
+import { kickoffKeyFromISO, type GoalEvent, type LiveFixture } from "./livescores.shared";
 
 const LIVE_STATUSES = new Set(["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "SUSP", "INT"]);
 const FINISHED_STATUSES = new Set(["FT", "AET", "PEN", "AWD", "WO"]);
@@ -122,25 +122,4 @@ export async function fetchFixtureEvents(fixtureId: number): Promise<{ goals: Go
     })
     .filter((g) => g.type !== "missed");
   return { goals, error: null };
-}
-
-export async function fetchTopScorers(): Promise<{ scorers: TopScorer[]; fetchedAt: string; error: string | null }> {
-  const r = await apiFetch(`/players/topscorers?league=${LEAGUE_ID}&season=${SEASON}`);
-  if (!r.ok) return { scorers: [], fetchedAt: new Date().toISOString(), error: r.error };
-  const arr = (r.json.response || []) as Array<{
-    player: { id: number; name: string };
-    statistics: Array<{ team: { name: string }; goals: { total: number | null; assists: number | null } }>;
-  }>;
-  const scorers = arr.map((p) => {
-    const stat = p.statistics?.[0];
-    return {
-      apiPlayerId: p.player.id,
-      name: p.player.name,
-      team: stat?.team?.name || "",
-      club: null,
-      goals: stat?.goals?.total ?? 0,
-      assists: stat?.goals?.assists ?? 0,
-    };
-  });
-  return { scorers, fetchedAt: new Date().toISOString(), error: null };
 }
