@@ -76,6 +76,27 @@ function teamName(m: Match, side: "a" | "b"): string {
   return (side === "a" ? m.team_a_placeholder : m.team_b_placeholder) || "À déterminer";
 }
 
+function ChannelBadges({ match }: { match: { kickoff_at: string } }) {
+  const channels = getChannels(match);
+  return (
+    <span className="inline-flex items-center gap-1">
+      {channels.map((c) => {
+        const src = c.name === "M6" ? m6Logo : beinLogo;
+        return (
+          <span
+            key={c.name}
+            className="inline-flex items-center gap-1 rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-slate-800 ring-1 ring-black/10 shadow-sm"
+            title={`Diffusion : ${c.name}`}
+          >
+            <img src={src} alt={c.name} className="h-3.5 w-auto object-contain" loading="lazy" />
+            <span className="hidden sm:inline">{c.name}</span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 function ExtraTimeBadge({ m }: { m: Match }) {
   const s = (m.live_status || "").toUpperCase();
   const hasPen =
