@@ -1,3 +1,5 @@
+import { teamNameMatches } from "./livescores.shared";
+
 type GoalPayload = {
   player?: string | null;
   assist?: string | null;
@@ -52,11 +54,33 @@ const norm = (s: string) =>
 
 const sameName = (a?: string | null, b?: string | null) => Boolean(a && b && norm(a) === norm(b));
 
+function sameTeamName(a?: string | null, b?: string | null) {
+  if (!a || !b) return false;
+  return sameName(a, b) || teamNameMatches(b, a) || teamNameMatches(a, b);
+}
+
+function namesCompatible(a: string, b: string) {
+  const na = norm(a);
+  const nb = norm(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+
+  const ta = na.split(" ").filter(Boolean);
+  const tb = nb.split(" ").filter(Boolean);
+  const lastA = ta.at(-1);
+  const lastB = tb.at(-1);
+  if (!lastA || !lastB || lastA !== lastB) return false;
+
+  const firstA = ta[0] || "";
+  const firstB = tb[0] || "";
+  return firstA[0] === firstB[0] || firstA.startsWith(firstB) || firstB.startsWith(firstA);
+}
+
 function teamIdForGoal(goal: GoalPayload, match: FinishedMatchRow): string | null {
   if (goal.side === "a") return match.team_a_id;
   if (goal.side === "b") return match.team_b_id;
-  if (sameName(goal.team, match.team_a?.name)) return match.team_a_id;
-  if (sameName(goal.team, match.team_b?.name)) return match.team_b_id;
+  if (sameTeamName(goal.team, match.team_a?.name)) return match.team_a_id;
+  if (sameTeamName(goal.team, match.team_b?.name)) return match.team_b_id;
   return null;
 }
 
@@ -124,11 +148,13 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
   const byApiId = new Map<number, PlayerRow>();
   const byNameAndTeam = new Map<string, PlayerRow>();
   const byName = new Map<string, PlayerRow[]>();
+  const byTeam = new Map<string, PlayerRow[]>();
   for (const player of (players || []) as PlayerRow[]) {
     if (player.api_player_id) byApiId.set(player.api_player_id, player);
     byNameAndTeam.set(`${norm(player.name)}:${player.team_id ?? "unknown"}`, player);
     const nameKey = norm(player.name);
     byName.set(nameKey, [...(byName.get(nameKey) || []), player]);
+    if (player.team_id) byTeam.set(player.team_id, [...(byTeam.get(player.team_id) || []), player]);
   }
 
   const matchedIds = new Set<string>();
@@ -137,10 +163,16 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
   let createdDbPlayers = 0;
 
   for (const scorer of aggregated.values()) {
+    const compatibleTeamPlayers = scorer.teamId
+      ? (byTeam.get(scorer.teamId) || []).filter((player) => namesCompatible(player.name, scorer.name))
+      : [];
+    const compatibleAllPlayers = (players || []).filter((player: PlayerRow) => namesCompatible(player.name, scorer.name));
     const target =
       (scorer.apiPlayerId && byApiId.get(scorer.apiPlayerId)) ||
       (scorer.teamId && byNameAndTeam.get(`${norm(scorer.name)}:${scorer.teamId}`)) ||
-      (byName.get(norm(scorer.name))?.length === 1 ? byName.get(norm(scorer.name))?.[0] : undefined);
+      (compatibleTeamPlayers.length === 1 ? compatibleTeamPlayers[0] : undefined) ||
+      (byName.get(norm(scorer.name))?.length === 1 ? byName.get(norm(scorer.name))?.[0] : undefined) ||
+      (compatibleAllPlayers.length === 1 ? compatibleAllPlayers[0] : undefined);
 
     if (target) {
       matchedIds.add(target.id);
