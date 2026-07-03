@@ -307,7 +307,17 @@ async function runBackfillGoalscorers() {
     updates.push({ id: m.id, count: payload.length });
   }
 
-  return { ok: true, processed, updated: updates.length, details: updates, errors };
+  let scorerSync = null;
+  if (updates.length > 0) {
+    try {
+      const { syncTopScorersFromFinishedMatches } = await import("./topscorers-sync.server");
+      scorerSync = await syncTopScorersFromFinishedMatches(supabaseAdmin);
+    } catch (e) {
+      errors.push(`scorers: ${e instanceof Error ? e.message : "erreur de recalcul"}`);
+    }
+  }
+
+  return { ok: true, processed, updated: updates.length, details: updates, scorerSync, errors };
 }
 
 /**
