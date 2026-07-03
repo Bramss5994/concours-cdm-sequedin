@@ -21,6 +21,9 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
 import { syncLiveNowFn } from "@/lib/live-sync.functions";
+import { getChannels } from "@/lib/broadcast";
+import m6Logo from "@/assets/m6.png";
+import beinLogo from "@/assets/bein.png";
 
 import { LIVE_STATUS_LABEL } from "@/lib/livescores.shared";
 
@@ -71,6 +74,27 @@ function teamName(m: Match, side: "a" | "b"): string {
   const t = side === "a" ? m.team_a : m.team_b;
   if (t?.name) return t.name;
   return (side === "a" ? m.team_a_placeholder : m.team_b_placeholder) || "À déterminer";
+}
+
+function ChannelBadges({ match }: { match: { kickoff_at: string } }) {
+  const channels = getChannels(match);
+  return (
+    <span className="inline-flex items-center gap-1">
+      {channels.map((c) => {
+        const src = c.name === "M6" ? m6Logo : beinLogo;
+        return (
+          <span
+            key={c.name}
+            className="inline-flex items-center gap-1 rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-slate-800 ring-1 ring-black/10 shadow-sm"
+            title={`Diffusion : ${c.name}`}
+          >
+            <img src={src} alt={c.name} className="h-3.5 w-auto object-contain" loading="lazy" />
+            <span className="hidden sm:inline">{c.name}</span>
+          </span>
+        );
+      })}
+    </span>
+  );
 }
 
 function ExtraTimeBadge({ m }: { m: Match }) {
@@ -197,10 +221,13 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
 
   return (
     <Card className="relative overflow-hidden border-primary/20 p-4">
-      <div className="flex justify-between text-xs text-muted-foreground mb-3">
-        <span>{formatFR(match.kickoff_at)}</span>
-        <span className="truncate ml-2">{match.stadium}</span>
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 gap-2">
+        <span className="truncate">{formatFR(match.kickoff_at)}</span>
+        <ChannelBadges match={match} />
       </div>
+      {match.stadium && (
+        <div className="text-[11px] text-muted-foreground truncate mb-2">{match.stadium}</div>
+      )}
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
         <div className="flex flex-col items-center gap-1 text-center">
@@ -388,8 +415,15 @@ function SuperAdminMatchEdit({ m }: { m: Match }) {
 function ResultRow({ m }: { m: Match }) {
   return (
     <div className="rounded-lg border bg-card p-3">
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 gap-2 sm:hidden">
+        <span className="truncate">{formatFR(m.kickoff_at)}</span>
+        <ChannelBadges match={m} />
+      </div>
       <div className="flex items-center gap-3">
-        <div className="text-xs text-muted-foreground w-28 hidden sm:block">{formatFR(m.kickoff_at)}</div>
+        <div className="text-xs text-muted-foreground w-28 hidden sm:flex sm:flex-col sm:gap-1">
+          <span>{formatFR(m.kickoff_at)}</span>
+          <ChannelBadges match={m} />
+        </div>
         <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
           <span className="truncate font-medium text-right">{teamName(m, "a")}</span>
           <Flag3D code={m.team_a?.code} name={teamName(m, "a")} size="sm" />
@@ -817,42 +851,40 @@ function GroupStandings({ matches }: { matches: Match[] }) {
 function TopScorersList() {
   const qc = useQueryClient();
 
-  // Agrège les buteurs à partir des goalscorers de chaque match terminé
+  // Source de vérité : la table `players` (gérée par le super admin et
+  // synchronisée automatiquement via l'API-Football). Ainsi, toute
+  // modification manuelle du super admin apparaît immédiatement ici.
   const { data = [], isLoading, dataUpdatedAt } = useQuery({
-    queryKey: ["top-scorers-from-matches"],
+    queryKey: ["top-scorers-players"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("matches")
-        .select("id, finished, goalscorers, team_a:teams!matches_team_a_id_fkey(name,code), team_b:teams!matches_team_b_id_fkey(name,code)")
-        .eq("finished", true);
+        .from("players")
+        .select("id, name, goals, assists, club, team:teams!players_team_id_fkey(name, code)")
+        .gt("goals", 0)
+        .order("goals", { ascending: false })
+        .order("assists", { ascending: false })
+        .order("name", { ascending: true })
+        .limit(100);
       if (error) throw error;
-      type Agg = { name: string; goals: number; teamName: string; teamCode?: string };
-      const map = new Map<string, Agg>();
-      for (const m of (data || []) as any[]) {
-        const gs: GoalScorer[] = Array.isArray(m.goalscorers) ? m.goalscorers : [];
-        for (const g of gs) {
-          if (!g?.player) continue;
-          if (g.type === "own") continue; // csc n'est pas attribué au buteur adverse
-          const side = g.side === "b" ? "b" : g.side === "a" ? "a" : null;
-          const team = side === "b" ? m.team_b : side === "a" ? m.team_a : null;
-          const key = `${g.player.toLowerCase().trim()}|${team?.code || team?.name || ""}`;
-          const cur = map.get(key);
-          if (cur) cur.goals += 1;
-          else map.set(key, { name: g.player, goals: 1, teamName: team?.name || "—", teamCode: team?.code });
-        }
-      }
-      return [...map.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 50);
+      return (data || []) as Array<{
+        id: string;
+        name: string;
+        goals: number;
+        assists: number;
+        club: string | null;
+        team: { name: string; code: string | null } | null;
+      }>;
     },
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
 
-  // Realtime : toute mise à jour d'un match rafraîchit la liste
+  // Realtime : toute mise à jour de la table players rafraîchit la liste
   useEffect(() => {
     const ch = supabase
-      .channel(`scorers-from-matches-${Math.random().toString(36).slice(2, 8)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
-        qc.invalidateQueries({ queryKey: ["top-scorers-from-matches"] });
+      .channel(`scorers-players-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "players" }, () => {
+        qc.invalidateQueries({ queryKey: ["top-scorers-players"] });
       })
       .subscribe();
     return () => {
@@ -882,20 +914,25 @@ function TopScorersList() {
               <th className="text-left px-2 py-1">Joueur</th>
               <th className="text-left px-2 py-1">Sélection</th>
               <th className="text-center px-2 py-1">Buts</th>
+              <th className="text-center px-2 py-1 hidden sm:table-cell">Passes</th>
             </tr>
           </thead>
           <tbody>
             {data.map((p, i) => (
-              <tr key={`${p.name}-${p.teamCode || p.teamName}-${i}`} className="border-t">
+              <tr key={p.id} className="border-t">
                 <td className="px-2 py-1 font-bold">{i + 1}</td>
-                <td className="px-2 py-1 font-medium">{p.name}</td>
+                <td className="px-2 py-1 font-medium">
+                  <div className="truncate">{p.name}</div>
+                  {p.club && <div className="text-[10px] text-muted-foreground truncate">{p.club}</div>}
+                </td>
                 <td className="px-2 py-1">
                   <span className="inline-flex items-center gap-2">
-                    <Flag3D code={p.teamCode} name={p.teamName} size="xs" />
-                    <span className="truncate">{p.teamName}</span>
+                    <Flag3D code={p.team?.code} name={p.team?.name} size="xs" />
+                    <span className="truncate">{p.team?.name || "—"}</span>
                   </span>
                 </td>
                 <td className="px-2 py-1 text-center font-bold text-primary">{p.goals}</td>
+                <td className="px-2 py-1 text-center text-muted-foreground hidden sm:table-cell">{p.assists}</td>
               </tr>
             ))}
           </tbody>
