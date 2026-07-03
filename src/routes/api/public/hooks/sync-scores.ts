@@ -88,11 +88,13 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
 
           // 2) buteurs : uniquement lorsqu'un match vient de se terminer, avec
           //    un plafond strict par exécution pour éviter la limite API.
-          const hasGoalscorers =
-            Array.isArray((m as any).goalscorers) && (m as any).goalscorers.length > 0;
+          const storedGoalEvents = Array.isArray((m as any).goalscorers)
+            ? (m as any).goalscorers.filter((g: any) => g?.type !== "missed").length
+            : 0;
+          const expectedGoalEvents = (pick.scoreHome ?? 0) + (pick.scoreAway ?? 0);
           // Retente tant que les buteurs ne sont pas peuplés, même si le match
           // est déjà marqué finished (les fetches sont plafonnés par run).
-          const needsFinalEvents = pick.isFinished && !hasGoalscorers;
+          const needsFinalEvents = pick.isFinished && expectedGoalEvents > storedGoalEvents;
           const needEvents = needsFinalEvents && eventFetches < MAX_EVENT_FETCHES_PER_RUN;
           if (needEvents) {
             eventFetches += 1;

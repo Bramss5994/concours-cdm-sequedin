@@ -854,56 +854,54 @@ function GroupStandings({ matches }: { matches: Match[] }) {
 function TopScorersList() {
   const qc = useQueryClient();
 
-  // Source de vérité : les buteurs (`goalscorers`) enregistrés sur chaque
-  // match terminé, tels que récupérés depuis l'API-Football. À chaque fin
-  // de match, le classement se met à jour automatiquement.
+  // Source de vérité : la table `players`, recalculée automatiquement depuis
+  // les `goalscorers` de tous les matchs terminés.
   const { data = [], isLoading, dataUpdatedAt } = useQuery({
-    queryKey: ["top-scorers-from-matches"],
+    queryKey: ["top-scorers-from-players"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("matches")
-        .select("id, finished, goalscorers, team_a:teams!matches_team_a_id_fkey(name,code), team_b:teams!matches_team_b_id_fkey(name,code)")
-        .eq("finished", true);
+        .from("players")
+        .select("id, name, goals, assists, api_player_id, team_id, teams:team_id(name,code)")
+        .gt("goals", 0)
+        .order("goals", { ascending: false })
+        .order("assists", { ascending: false })
+        .order("name", { ascending: true })
+        .limit(100);
       if (error) throw error;
 
-      type Agg = { name: string; goals: number; teamName: string; teamCode?: string | null };
-      const map = new Map<string, Agg>();
-      for (const m of (data || []) as any[]) {
-        const gs: GoalScorer[] = Array.isArray(m.goalscorers) ? m.goalscorers : [];
-        for (const g of gs) {
-          if (!g?.player) continue;
-          if (g.type === "own") continue; // csc non attribué au buteur adverse
-          // Résolution robuste du côté (a/b) même si `side` est absent, en
-          // comparant `team` (nom du buteur) aux noms d'équipes du match.
-          const side = resolveGoalSide(g, m as Match);
-          const team = side === "a" ? m.team_a : side === "b" ? m.team_b : null;
-          const teamKey = team?.code || team?.name || "";
-          const key = `${g.player.toLowerCase().trim()}|${teamKey}`;
-          const cur = map.get(key);
-          if (cur) cur.goals += 1;
-          else
-            map.set(key, {
-              name: g.player,
-              goals: 1,
-              teamName: team?.name || "—",
-              teamCode: team?.code || null,
-            });
+      const byPlayer = new Map<string, { id: string; name: string; goals: number; assists: number; teamName: string; teamCode: string | null }>();
+      for (const p of (data || []) as any[]) {
+        const teamName = p.teams?.name || "—";
+        const teamCode = p.teams?.code || null;
+        const key = p.api_player_id ? `api:${p.api_player_id}` : `name:${normalizeName(p.name)}:${teamCode || teamName}`;
+        const current = byPlayer.get(key);
+        const next = {
+          id: p.id,
+          name: p.name,
+          goals: p.goals || 0,
+          assists: p.assists || 0,
+          teamName,
+          teamCode,
+        };
+        if (!current || next.goals > current.goals || (next.goals === current.goals && next.name.length > current.name.length)) {
+          byPlayer.set(key, next);
         }
       }
-      return [...map.values()]
-        .sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name))
-        .slice(0, 100);
+      return [...byPlayer.values()].sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name));
     },
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
 
-  // Realtime : toute mise à jour d'un match (score / buteurs) rafraîchit la liste
+  // Realtime : toute mise à jour de joueur ou de match rafraîchit la liste.
   useEffect(() => {
     const ch = supabase
-      .channel(`scorers-from-matches-${Math.random().toString(36).slice(2, 8)}`)
+      .channel(`scorers-from-players-${Math.random().toString(36).slice(2, 8)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "players" }, () => {
+        qc.invalidateQueries({ queryKey: ["top-scorers-from-players"] });
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
-        qc.invalidateQueries({ queryKey: ["top-scorers-from-matches"] });
+        qc.invalidateQueries({ queryKey: ["top-scorers-from-players"] });
       })
       .subscribe();
     return () => {
