@@ -27,15 +27,6 @@ export type GoalEvent = {
   type: "goal" | "penalty" | "own" | "missed";
 };
 
-export type TopScorer = {
-  apiPlayerId: number;
-  name: string;
-  team: string;
-  club: string | null;
-  goals: number;
-  assists: number;
-};
-
 export function kickoffKeyFromISO(iso: string): string {
   const d = new Date(iso);
   d.setSeconds(0, 0);
