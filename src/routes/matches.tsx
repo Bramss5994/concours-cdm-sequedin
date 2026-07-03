@@ -221,10 +221,13 @@ function MatchCard({ match, prediction }: { match: Match; prediction?: Predictio
 
   return (
     <Card className="relative overflow-hidden border-primary/20 p-4">
-      <div className="flex justify-between text-xs text-muted-foreground mb-3">
-        <span>{formatFR(match.kickoff_at)}</span>
-        <span className="truncate ml-2">{match.stadium}</span>
+      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3 gap-2">
+        <span className="truncate">{formatFR(match.kickoff_at)}</span>
+        <ChannelBadges match={match} />
       </div>
+      {match.stadium && (
+        <div className="text-[11px] text-muted-foreground truncate mb-2">{match.stadium}</div>
+      )}
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 mb-4">
         <div className="flex flex-col items-center gap-1 text-center">
