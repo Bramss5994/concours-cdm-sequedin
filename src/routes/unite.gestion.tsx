@@ -56,7 +56,11 @@ import {
 import {
   listPlayersAsUnitAdminFn,
   updatePlayerStatsAsUnitAdminFn,
+  listTeamsAsUnitAdminFn,
+  createPlayerAsUnitAdminFn,
+  deletePlayerAsUnitAdminFn,
 } from "@/lib/players-admin.functions";
+import { syncTopScorersNowFn } from "@/lib/topscorers-sync.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
