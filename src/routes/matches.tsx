@@ -933,25 +933,20 @@ function TopScorersList() {
               <th className="text-left px-2 py-1">Joueur</th>
               <th className="text-left px-2 py-1">Sélection</th>
               <th className="text-center px-2 py-1">Buts</th>
-              <th className="text-center px-2 py-1 hidden sm:table-cell">Passes</th>
             </tr>
           </thead>
           <tbody>
             {data.map((p, i) => (
-              <tr key={p.id} className="border-t">
+              <tr key={`${p.name}-${p.teamCode || p.teamName}-${i}`} className="border-t">
                 <td className="px-2 py-1 font-bold">{i + 1}</td>
-                <td className="px-2 py-1 font-medium">
-                  <div className="truncate">{p.name}</div>
-                  {p.club && <div className="text-[10px] text-muted-foreground truncate">{p.club}</div>}
-                </td>
+                <td className="px-2 py-1 font-medium truncate">{p.name}</td>
                 <td className="px-2 py-1">
                   <span className="inline-flex items-center gap-2">
-                    <Flag3D code={p.team?.code} name={p.team?.name} size="xs" />
-                    <span className="truncate">{p.team?.name || "—"}</span>
+                    <Flag3D code={p.teamCode} name={p.teamName} size="xs" />
+                    <span className="truncate">{p.teamName}</span>
                   </span>
                 </td>
                 <td className="px-2 py-1 text-center font-bold text-primary">{p.goals}</td>
-                <td className="px-2 py-1 text-center text-muted-foreground hidden sm:table-cell">{p.assists}</td>
               </tr>
             ))}
           </tbody>
