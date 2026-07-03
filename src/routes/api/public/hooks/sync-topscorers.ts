@@ -80,7 +80,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
           const target = (s.apiPlayerId && byApiId.get(s.apiPlayerId)) || byName.get(norm(s.name));
           if (!target) continue;
           matchedIds.add(target.id);
-          const patch: Record<string, unknown> = { goals: s.goals, assists: s.assists };
+          const patch: { goals: number; assists: number; api_player_id?: number } = { goals: s.goals, assists: s.assists };
           if (s.apiPlayerId) patch.api_player_id = s.apiPlayerId;
           const { error } = await supabaseAdmin.from("players").update(patch).eq("id", target.id);
           if (error) errors.push(`${target.name}: ${error.message}`);
