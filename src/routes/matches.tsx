@@ -22,8 +22,11 @@ import { isSequedinSuperAdminFn } from "@/lib/super-admin.functions";
 import { updateBracketMatchAsSuperFn } from "@/lib/bracket-sync.functions";
 import { syncLiveNowFn } from "@/lib/live-sync.functions";
 import { getChannels } from "@/lib/broadcast";
-import m6Logo from "@/assets/m6.png";
-import beinLogo from "@/assets/bein.png";
+import m6Asset from "@/assets/m6.png.asset.json";
+import beinAsset from "@/assets/bein.png.asset.json";
+
+const m6Logo = m6Asset.url;
+const beinLogo = beinAsset.url;
 
 import { LIVE_STATUS_LABEL } from "@/lib/livescores.shared";
 
