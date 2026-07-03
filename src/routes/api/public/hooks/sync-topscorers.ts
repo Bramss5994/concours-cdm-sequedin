@@ -2,12 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 /**
  * Agent IA "mise à jour des buteurs".
- * Endpoint public déclenché par pg_cron 1×/jour pendant le tournoi.
+ * Endpoint public déclenché par pg_cron.
  *
- * Récupère le classement des meilleurs buteurs CDM 2026 via API-Football
- * et met à jour les colonnes `goals`, `assists` et `api_player_id` de la
- * table `players` (matching par nom normalisé, fallback insensible aux
- * accents et à la casse).
+ * Agrège les buteurs à partir des `goalscorers` des matchs terminés
+ * (source alimentée par API-Football `/fixtures/events`) et met à jour
+ * la table `players` (goals/assists). N'appelle plus l'endpoint payant
+ * `/players/topscorers`.
  *
  * Sécurité : header apikey = clé publique backend.
  */
@@ -25,19 +25,12 @@ export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { fetchTopScorers } = await import("@/lib/livescores.server");
 
-        const top = await fetchTopScorers();
-        if (top.error) {
-          return Response.json({ ok: false, error: top.error }, { status: 502 });
-        }
-
-        const { data: dbPlayers, error: dbErr } = await supabaseAdmin
-          .from("players")
-          .select("id, name, api_player_id");
-        if (dbErr) {
-          return Response.json({ ok: false, error: dbErr.message }, { status: 500 });
-        }
+        const { data: matches, error: mErr } = await supabaseAdmin
+          .from("matches")
+          .select("goalscorers")
+          .eq("finished", true);
+        if (mErr) return Response.json({ ok: false, error: mErr.message }, { status: 500 });
 
         const norm = (s: string) =>
           s
@@ -47,7 +40,31 @@ export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
             .replace(/[^a-z0-9]+/g, " ")
             .trim();
 
-        // Index par api_player_id et par nom normalisé
+        type Agg = { name: string; apiPlayerId: number | null; goals: number; assists: number };
+        const agg = new Map<string, Agg>();
+        for (const m of (matches || []) as any[]) {
+          const gs = Array.isArray(m.goalscorers) ? m.goalscorers : [];
+          for (const g of gs) {
+            if (!g?.player) continue;
+            if (g.type === "own") continue;
+            const key = g.api_player_id ? `id:${g.api_player_id}` : `n:${norm(g.player)}`;
+            const cur = agg.get(key) || { name: g.player, apiPlayerId: g.api_player_id ?? null, goals: 0, assists: 0 };
+            cur.goals += 1;
+            agg.set(key, cur);
+            if (g.assist) {
+              const akey = `n:${norm(g.assist)}`;
+              const acur = agg.get(akey) || { name: g.assist, apiPlayerId: null, goals: 0, assists: 0 };
+              acur.assists += 1;
+              agg.set(akey, acur);
+            }
+          }
+        }
+
+        const { data: dbPlayers, error: dbErr } = await supabaseAdmin
+          .from("players")
+          .select("id, name, api_player_id");
+        if (dbErr) return Response.json({ ok: false, error: dbErr.message }, { status: 500 });
+
         const byApiId = new Map<number, { id: string; name: string }>();
         const byName = new Map<string, { id: string; name: string }>();
         for (const p of dbPlayers || []) {
@@ -59,27 +76,17 @@ export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
         const errors: string[] = [];
         const matchedIds = new Set<string>();
 
-        for (const s of top.scorers) {
-          let target = byApiId.get(s.apiPlayerId);
-          if (!target) {
-            target = byName.get(norm(s.name));
-          }
+        for (const s of agg.values()) {
+          const target = (s.apiPlayerId && byApiId.get(s.apiPlayerId)) || byName.get(norm(s.name));
           if (!target) continue;
-
           matchedIds.add(target.id);
-          const { error } = await supabaseAdmin
-            .from("players")
-            .update({
-              api_player_id: s.apiPlayerId,
-              goals: s.goals,
-              assists: s.assists,
-            })
-            .eq("id", target.id);
+          const patch: { goals: number; assists: number; api_player_id?: number } = { goals: s.goals, assists: s.assists };
+          if (s.apiPlayerId) patch.api_player_id = s.apiPlayerId;
+          const { error } = await supabaseAdmin.from("players").update(patch).eq("id", target.id);
           if (error) errors.push(`${target.name}: ${error.message}`);
           else updates.push({ player: target.name, goals: s.goals, assists: s.assists });
         }
 
-        // Reset goals=0 for players not in the top scorer list (so old data doesn't stick)
         if (matchedIds.size > 0) {
           const { error } = await supabaseAdmin
             .from("players")
@@ -91,7 +98,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-topscorers")({
 
         return Response.json({
           ok: true,
-          fetchedScorers: top.scorers.length,
+          aggregatedScorers: agg.size,
           matchedDbPlayers: updates.length,
           updates,
           errors,
