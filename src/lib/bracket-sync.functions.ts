@@ -268,9 +268,11 @@ async function runBackfillGoalscorers() {
   let processed = 0;
 
   for (const m of matches || []) {
-    const hasGoals = Array.isArray(m.goalscorers) && (m.goalscorers as any[]).length > 0;
+    const storedGoals = Array.isArray(m.goalscorers)
+      ? (m.goalscorers as any[]).filter((g) => g?.type !== "missed").length
+      : 0;
     const expectedGoals = (m.score_a ?? 0) + (m.score_b ?? 0);
-    if (hasGoals || expectedGoals === 0 || !m.api_fixture_id) continue;
+    if (expectedGoals === 0 || storedGoals >= expectedGoals || !m.api_fixture_id) continue;
     if (processed >= MAX_PER_RUN) {
       errors.push(`${m.id}: reporté (limite ${MAX_PER_RUN}/run)`);
       continue;
