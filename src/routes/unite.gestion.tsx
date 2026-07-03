@@ -761,19 +761,35 @@ type PlayerRow = {
   assists: number;
   api_player_id: number | null;
   team_id: string;
+  position: string;
   teams: { name: string; code: string } | null;
 };
+
+type TeamRow = { id: string; name: string; code: string };
 
 function ScorersTab() {
   const qc = useQueryClient();
   const listFn = useServerFn(listPlayersAsUnitAdminFn);
+  const listTeamsFn = useServerFn(listTeamsAsUnitAdminFn);
+  const syncApiFn = useServerFn(syncTopScorersNowFn);
+  const createFn = useServerFn(createPlayerAsUnitAdminFn);
+  const deleteFn = useServerFn(deletePlayerAsUnitAdminFn);
+
   const [search, setSearch] = useState("");
   const [onlyScorers, setOnlyScorers] = useState(true);
   const [teamFilter, setTeamFilter] = useState<string>("all");
+  const [syncing, setSyncing] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [delTarget, setDelTarget] = useState<PlayerRow | null>(null);
 
   const { data: players = [], isLoading } = useQuery({
     queryKey: ["super-players"],
     queryFn: () => listFn() as unknown as Promise<PlayerRow[]>,
+  });
+
+  const { data: teamsAll = [] } = useQuery({
+    queryKey: ["super-teams"],
+    queryFn: () => listTeamsFn() as unknown as Promise<TeamRow[]>,
   });
 
   const teams = useMemo(() => {
@@ -792,28 +808,67 @@ function ScorersTab() {
 
   const totalGoals = useMemo(() => players.reduce((s, p) => s + (p.goals || 0), 0), [players]);
 
+  async function runSync() {
+    setSyncing(true);
+    try {
+      const res: any = await syncApiFn();
+      if (res?.ok) {
+        toast.success(`API : ${res.updated} buteur(s) mis à jour`);
+        qc.invalidateQueries({ queryKey: ["super-players"] });
+      } else {
+        toast.error(res?.error || "Échec de la synchro API");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur synchro");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!delTarget) return;
+    try {
+      await deleteFn({ data: { id: delTarget.id } });
+      toast.success(`${delTarget.name} supprimé`);
+      setDelTarget(null);
+      qc.invalidateQueries({ queryKey: ["super-players"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur suppression");
+    }
+  }
+
   return (
     <div className="mt-4 space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Target className="h-4 w-4" /> Classement des buteurs — Édition manuelle
+            <Target className="h-4 w-4" /> Classement des buteurs — Édition
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Modifiez ici le nombre de buts et de passes décisives si l'API ne synchronise pas correctement.
-            Les changements sont immédiatement visibles sur la page Matchs &gt; Buteurs.
+            Modifiez le nombre de buts/passes, ajoutez un buteur manuellement, ou déclenchez la
+            synchronisation API-Football (aussi exécutée automatiquement 1×/jour).
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={runSync} disabled={syncing}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Synchro…" : "Synchroniser l'API"}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => setAddOpen(true)}>
+              <ShieldPlus className="h-3.5 w-3.5 mr-1" />
+              Ajouter un buteur
+            </Button>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Input
               placeholder="Rechercher un joueur, un club, une équipe…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 max-w-sm"
+              className="h-9 flex-1 min-w-[180px]"
             />
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent className="max-h-72">
                 <SelectItem value="all">Toutes les équipes</SelectItem>
                 {teams.map(([id, name]) => (
@@ -826,7 +881,7 @@ function ScorersTab() {
               Buteurs uniquement
             </label>
             <div className="ml-auto text-xs text-muted-foreground">
-              {filtered.length} joueur(s) · {totalGoals} but(s) au total
+              {filtered.length} joueur(s) · {totalGoals} but(s)
             </div>
           </div>
 
@@ -835,28 +890,63 @@ function ScorersTab() {
           ) : filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground italic">Aucun joueur correspondant.</p>
           ) : (
-            <div className="rounded-lg border overflow-hidden">
-              <div className="grid grid-cols-[1fr_140px_90px_90px_90px] gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/40">
-                <div>Joueur</div>
-                <div>Équipe</div>
-                <div className="text-center">Buts</div>
-                <div className="text-center">Passes</div>
-                <div></div>
-              </div>
-              <ul className="max-h-[60vh] overflow-y-auto">
-                {filtered.map((p) => (
-                  <PlayerEditRow key={p.id} p={p} onSaved={() => qc.invalidateQueries({ queryKey: ["super-players"] })} />
-                ))}
-              </ul>
-            </div>
+            <ul className="max-h-[65vh] overflow-y-auto rounded-lg border divide-y">
+              {filtered.map((p) => (
+                <PlayerEditRow
+                  key={p.id}
+                  p={p}
+                  onSaved={() => qc.invalidateQueries({ queryKey: ["super-players"] })}
+                  onDelete={() => setDelTarget(p)}
+                />
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>
+
+      <AddPlayerDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        teams={teamsAll}
+        onCreated={async (data) => {
+          try {
+            await createFn({ data });
+            toast.success(`${data.name} ajouté`);
+            setAddOpen(false);
+            qc.invalidateQueries({ queryKey: ["super-players"] });
+          } catch (e: any) {
+            toast.error(e?.message ?? "Erreur création");
+          }
+        }}
+      />
+
+      <AlertDialog open={!!delTarget} onOpenChange={(v) => !v && setDelTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer {delTarget?.name} ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est définitive. Les pronostics « soulier d'or » sur ce joueur seront invalidés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function PlayerEditRow({ p, onSaved }: { p: PlayerRow; onSaved: () => void }) {
+function PlayerEditRow({
+  p,
+  onSaved,
+  onDelete,
+}: {
+  p: PlayerRow;
+  onSaved: () => void;
+  onDelete: () => void;
+}) {
   const updateFn = useServerFn(updatePlayerStatsAsUnitAdminFn);
   const [goals, setGoals] = useState(p.goals);
   const [assists, setAssists] = useState(p.assists);
@@ -881,42 +971,156 @@ function PlayerEditRow({ p, onSaved }: { p: PlayerRow; onSaved: () => void }) {
     }
   }
 
+  const flag = p.teams?.code ? `https://flagcdn.com/w40/${p.teams.code}.png` : null;
+
   return (
-    <li className="grid grid-cols-[1fr_140px_90px_90px_90px] gap-2 items-center px-3 py-2 border-t hover:bg-muted/30">
-      <div className="min-w-0">
+    <li className="flex flex-wrap items-center gap-2 px-3 py-2 hover:bg-muted/30">
+      {flag && (
+        <img
+          src={flag}
+          alt=""
+          className="h-5 w-7 shrink-0 rounded-sm object-cover ring-1 ring-border"
+        />
+      )}
+      <div className="min-w-0 flex-1 basis-[160px]">
         <div className="truncate text-sm font-semibold">{p.name}</div>
-        {p.club && <div className="truncate text-[11px] text-muted-foreground">{p.club}</div>}
+        <div className="truncate text-[11px] text-muted-foreground">
+          {p.teams?.name ?? "—"}{p.club ? ` · ${p.club}` : ""}
+        </div>
       </div>
-      <div className="text-xs truncate">{p.teams?.name ?? "—"}</div>
-      <div className="flex justify-center">
+      <div className="flex items-center gap-1 shrink-0">
+        <label className="text-[10px] uppercase tracking-wide text-muted-foreground">B</label>
         <Input
           type="number"
           min={0}
           max={99}
           value={goals}
           onChange={(e) => setGoals(Math.max(0, Number(e.target.value) || 0))}
-          className="h-8 w-16 text-center"
+          className="h-8 w-14 text-center"
         />
-      </div>
-      <div className="flex justify-center">
+        <label className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">PD</label>
         <Input
           type="number"
           min={0}
           max={99}
           value={assists}
           onChange={(e) => setAssists(Math.max(0, Number(e.target.value) || 0))}
-          className="h-8 w-16 text-center"
+          className="h-8 w-14 text-center"
         />
       </div>
-      <div className="flex justify-end">
+      <div className="flex items-center gap-1 shrink-0">
         <Button size="sm" variant={dirty ? "default" : "ghost"} disabled={!dirty || busy} onClick={save}>
-          <Save className="h-3.5 w-3.5 mr-1" />
-          {busy ? "…" : "OK"}
+          <Save className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onDelete} title="Supprimer">
+          <Trash2 className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </div>
     </li>
   );
 }
+
+function AddPlayerDialog({
+  open,
+  onOpenChange,
+  teams,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  teams: TeamRow[];
+  onCreated: (data: {
+    team_id: string;
+    name: string;
+    club: string;
+    position: "GK" | "DF" | "MF" | "FW";
+    goals: number;
+    assists: number;
+  }) => void;
+}) {
+  const [teamId, setTeamId] = useState("");
+  const [name, setName] = useState("");
+  const [club, setClub] = useState("");
+  const [position, setPosition] = useState<"GK" | "DF" | "MF" | "FW">("FW");
+  const [goals, setGoals] = useState(1);
+  const [assists, setAssists] = useState(0);
+
+  useEffect(() => {
+    if (!open) {
+      setTeamId("");
+      setName("");
+      setClub("");
+      setPosition("FW");
+      setGoals(1);
+      setAssists(0);
+    }
+  }, [open]);
+
+  const canSubmit = teamId && name.trim().length >= 2;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Ajouter un buteur</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium">Équipe</label>
+            <Select value={teamId} onValueChange={setTeamId}>
+              <SelectTrigger className="h-9 mt-1"><SelectValue placeholder="Choisir une équipe" /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                {teams.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-xs font-medium">Nom du joueur</label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="ex : Kylian Mbappé" className="mt-1 h-9" />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Club (optionnel)</label>
+            <Input value={club} onChange={(e) => setClub(e.target.value)} placeholder="ex : Real Madrid" className="mt-1 h-9" />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-xs font-medium">Poste</label>
+              <Select value={position} onValueChange={(v) => setPosition(v as any)}>
+                <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FW">Attaquant</SelectItem>
+                  <SelectItem value="MF">Milieu</SelectItem>
+                  <SelectItem value="DF">Défenseur</SelectItem>
+                  <SelectItem value="GK">Gardien</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Buts</label>
+              <Input type="number" min={0} max={99} value={goals} onChange={(e) => setGoals(Math.max(0, Number(e.target.value) || 0))} className="mt-1 h-9 text-center" />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Passes D.</label>
+              <Input type="number" min={0} max={99} value={assists} onChange={(e) => setAssists(Math.max(0, Number(e.target.value) || 0))} className="mt-1 h-9 text-center" />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+          <Button
+            disabled={!canSubmit}
+            onClick={() => onCreated({ team_id: teamId, name: name.trim(), club: club.trim(), position, goals, assists })}
+          >
+            Ajouter
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 /* ----------------------- UNIT ADMINS ----------------------- */
 
