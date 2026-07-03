@@ -861,7 +861,7 @@ function TopScorersList() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("players")
-        .select("id, name, goals, assists, team_id, teams:team_id(name,code)")
+        .select("id, name, goals, assists, api_player_id, team_id, teams:team_id(name,code)")
         .gt("goals", 0)
         .order("goals", { ascending: false })
         .order("assists", { ascending: false })
@@ -869,14 +869,25 @@ function TopScorersList() {
         .limit(100);
       if (error) throw error;
 
-      return ((data || []) as any[]).map((p) => ({
-        id: p.id,
-        name: p.name,
-        goals: p.goals || 0,
-        assists: p.assists || 0,
-        teamName: p.teams?.name || "—",
-        teamCode: p.teams?.code || null,
-      }));
+      const byPlayer = new Map<string, { id: string; name: string; goals: number; assists: number; teamName: string; teamCode: string | null }>();
+      for (const p of (data || []) as any[]) {
+        const teamName = p.teams?.name || "—";
+        const teamCode = p.teams?.code || null;
+        const key = p.api_player_id ? `api:${p.api_player_id}` : `name:${normalizeName(p.name)}:${teamCode || teamName}`;
+        const current = byPlayer.get(key);
+        const next = {
+          id: p.id,
+          name: p.name,
+          goals: p.goals || 0,
+          assists: p.assists || 0,
+          teamName,
+          teamCode,
+        };
+        if (!current || next.goals > current.goals || (next.goals === current.goals && next.name.length > current.name.length)) {
+          byPlayer.set(key, next);
+        }
+      }
+      return [...byPlayer.values()].sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name));
     },
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
