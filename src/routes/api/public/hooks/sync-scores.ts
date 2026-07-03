@@ -161,6 +161,16 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           }
         }
 
+        let scorerSync = null;
+        if (goalUpdates.length > 0) {
+          try {
+            const { syncTopScorersFromFinishedMatches } = await import("@/lib/topscorers-sync.server");
+            scorerSync = await syncTopScorersFromFinishedMatches(supabaseAdmin);
+          } catch (e) {
+            errors.push(`scorers: ${e instanceof Error ? e.message : "erreur de recalcul"}`);
+          }
+        }
+
         return Response.json({
           ok: true,
           checkedFixtures: live.fixtures.length,
@@ -170,6 +180,7 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           goalUpdates: goalUpdates.length,
           eventFetches,
           scoreDetails: scoreUpdates,
+          scorerSync,
           errors,
           syncedAt: new Date().toISOString(),
         });

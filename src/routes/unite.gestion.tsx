@@ -771,7 +771,7 @@ function ScorersTab() {
   const qc = useQueryClient();
   const listFn = useServerFn(listPlayersAsUnitAdminFn);
   const listTeamsFn = useServerFn(listTeamsAsUnitAdminFn);
-  const syncApiFn = useServerFn(syncTopScorersNowFn);
+  const syncScorersFn = useServerFn(syncTopScorersNowFn);
   const createFn = useServerFn(createPlayerAsUnitAdminFn);
   const deleteFn = useServerFn(deletePlayerAsUnitAdminFn);
 
@@ -811,12 +811,12 @@ function ScorersTab() {
   async function runSync() {
     setSyncing(true);
     try {
-      const res: any = await syncApiFn();
+      const res: any = await syncScorersFn();
       if (res?.ok) {
-        toast.success(`API : ${res.updated} buteur(s) mis à jour`);
+        toast.success(`${res.updated} joueur(s) mis à jour · ${res.created ?? 0} ajouté(s) · ${res.reset ?? 0} remis à zéro`);
         qc.invalidateQueries({ queryKey: ["super-players"] });
       } else {
-        toast.error(res?.error || "Échec de la synchro API");
+        toast.error(res?.error || "Échec du recalcul des buteurs");
       }
     } catch (e: any) {
       toast.error(e?.message ?? "Erreur synchro");
@@ -845,15 +845,15 @@ function ScorersTab() {
             <Target className="h-4 w-4" /> Classement des buteurs — Édition
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Modifiez le nombre de buts/passes, ajoutez un buteur manuellement, ou déclenchez la
-            synchronisation API-Football (aussi exécutée automatiquement 1×/jour).
+            Modifiez le nombre de buts/passes, ajoutez un buteur manuellement, ou recalculez le
+            classement depuis les buts renseignés sur les matchs terminés.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" onClick={runSync} disabled={syncing}>
               <RefreshCw className={`h-3.5 w-3.5 mr-1 ${syncing ? "animate-spin" : ""}`} />
-              {syncing ? "Synchro…" : "Synchroniser l'API"}
+              {syncing ? "Recalcul…" : "Recalculer depuis les matchs"}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => setAddOpen(true)}>
               <ShieldPlus className="h-3.5 w-3.5 mr-1" />

@@ -117,6 +117,15 @@ export const syncLiveNowFn = createServerFn({ method: "POST" })
       }
     }
 
+    if (goalUpdates > 0) {
+      try {
+        const { syncTopScorersFromFinishedMatches } = await import("./topscorers-sync.server");
+        await syncTopScorersFromFinishedMatches(supabaseAdmin);
+      } catch {
+        // La synchro live ne doit pas bloquer l'affichage si le recalcul échoue.
+      }
+    }
+
     return {
       ok: true,
       liveFixtures: live.fixtures.length,
