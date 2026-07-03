@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireUnitAdmin } from "./unit-admin.functions";
 
 export type TopScorersSyncResult = {
   ok: boolean;
@@ -12,12 +12,10 @@ export type TopScorersSyncResult = {
 /**
  * Synchronise le classement des buteurs à partir des `goalscorers` des matchs
  * terminés (source alimentée par API-Football `/fixtures/events`).
- * N'appelle plus l'endpoint payant `/players/topscorers` → plus d'erreur
- * "unauthorized". Les colonnes `goals`/`assists`/`api_player_id` de la table
- * `players` sont mises à jour par matching nom normalisé / api_player_id.
+ * Auth : session unit-admin (panel /unite), pas Supabase Auth.
  */
 export const syncTopScorersNowFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireUnitAdmin])
   .handler(async (): Promise<TopScorersSyncResult> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
