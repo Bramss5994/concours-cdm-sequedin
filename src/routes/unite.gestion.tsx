@@ -46,6 +46,10 @@ import {
   resetUnitAdminPwdAsSuperFn,
   toggleUnitAdminAsSuperFn,
   deleteUnitAdminAsSuperFn,
+  listAllProfilesForSuperFn,
+  getPredictionAsSuperFn,
+  upsertPredictionAsSuperFn,
+  deletePredictionAsSuperFn,
 } from "@/lib/unit-admin.functions";
 import {
   syncBracketTeamsAsUnitAdminFn,
