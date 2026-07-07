@@ -708,4 +708,84 @@ export const deleteUserTopScorerPickFn = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/* -------------------- SUPER ADMIN — Pronos manuels -------------------- */
+
+export const listAllProfilesForSuperFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .handler(async ({ context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, prenom, num_paie, depot, active")
+      .order("prenom");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const getPredictionAsSuperFn = createServerFn({ method: "GET" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z.object({ userId: z.string().uuid(), matchId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("predictions")
+      .select("user_id, match_id, score_a, score_b, points, exact_score, good_winner, updated_at")
+      .eq("user_id", data.userId)
+      .eq("match_id", data.matchId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const upsertPredictionAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        matchId: z.string().uuid(),
+        scoreA: z.number().int().min(0).max(50),
+        scoreB: z.number().int().min(0).max(50),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("predictions")
+      .upsert(
+        {
+          user_id: data.userId,
+          match_id: data.matchId,
+          score_a: data.scoreA,
+          score_b: data.scoreB,
+        },
+        { onConflict: "user_id,match_id" },
+      );
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.rpc("recompute_match_points", { _match_id: data.matchId });
+    return { ok: true };
+  });
+
+export const deletePredictionAsSuperFn = createServerFn({ method: "POST" })
+  .middleware([requireUnitAdmin])
+  .inputValidator((input) =>
+    z.object({ userId: z.string().uuid(), matchId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    assertSuper(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("predictions")
+      .delete()
+      .eq("user_id", data.userId)
+      .eq("match_id", data.matchId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
 
