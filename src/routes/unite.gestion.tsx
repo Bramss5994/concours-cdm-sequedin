@@ -46,6 +46,10 @@ import {
   resetUnitAdminPwdAsSuperFn,
   toggleUnitAdminAsSuperFn,
   deleteUnitAdminAsSuperFn,
+  listAllProfilesForSuperFn,
+  getPredictionAsSuperFn,
+  upsertPredictionAsSuperFn,
+  deletePredictionAsSuperFn,
 } from "@/lib/unit-admin.functions";
 import {
   syncBracketTeamsAsUnitAdminFn,
@@ -118,12 +122,14 @@ function GestionPage() {
           <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           <TabsTrigger value="scorers">Buteurs</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
+          <TabsTrigger value="manual-preds">Pronos manuels</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
         <TabsContent value="bracket"><BracketTab /></TabsContent>
         <TabsContent value="scorers"><ScorersTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
+        <TabsContent value="manual-preds"><ManualPredsTab /></TabsContent>
       </Tabs>
     </div>
   );
@@ -1350,3 +1356,218 @@ function UnitAdminsTab() {
     </div>
   );
 }
+
+/* ----------------------- MANUAL PREDICTIONS ----------------------- */
+
+function ManualPredsTab() {
+  const fetchProfiles = useServerFn(listAllProfilesForSuperFn);
+  const fetchMatches = useServerFn(listAdminMatchesFn);
+  const fetchExisting = useServerFn(getPredictionAsSuperFn);
+  const upsert = useServerFn(upsertPredictionAsSuperFn);
+  const del = useServerFn(deletePredictionAsSuperFn);
+  const qc = useQueryClient();
+
+  const profilesQ = useQuery({ queryKey: ["all-profiles-super"], queryFn: () => fetchProfiles() });
+  const matchesQ = useQuery({ queryKey: ["admin-matches"], queryFn: () => fetchMatches() });
+
+  const [userId, setUserId] = useState<string>("");
+  const [matchId, setMatchId] = useState<string>("");
+  const [scoreA, setScoreA] = useState<string>("");
+  const [scoreB, setScoreB] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const existingQ = useQuery({
+    queryKey: ["manual-pred", userId, matchId],
+    queryFn: () => fetchExisting({ data: { userId, matchId } }),
+    enabled: !!userId && !!matchId,
+  });
+
+  useEffect(() => {
+    if (existingQ.data) {
+      setScoreA(String(existingQ.data.score_a));
+      setScoreB(String(existingQ.data.score_b));
+    } else if (userId && matchId && existingQ.isFetched) {
+      setScoreA("");
+      setScoreB("");
+    }
+  }, [existingQ.data, existingQ.isFetched, userId, matchId]);
+
+  const filteredProfiles = useMemo(() => {
+    const list = (profilesQ.data ?? []) as any[];
+    const q = search.trim().toLowerCase();
+    const arr = q
+      ? list.filter(
+          (p) =>
+            (p.prenom ?? "").toLowerCase().includes(q) ||
+            (p.num_paie ?? "").toLowerCase().includes(q) ||
+            (p.depot ?? "").toLowerCase().includes(q),
+        )
+      : list;
+    return arr.slice(0, 200);
+  }, [profilesQ.data, search]);
+
+  const matches = (matchesQ.data ?? []) as any[];
+
+  function labelMatch(m: any) {
+    const a = m.team_a?.name ?? m.team_a_placeholder ?? "?";
+    const b = m.team_b?.name ?? m.team_b_placeholder ?? "?";
+    return `${formatFR(m.kickoff_at)} — ${a} vs ${b}${m.finished ? " ✓" : ""}`;
+  }
+
+  async function handleSave() {
+    if (!userId || !matchId) {
+      toast.error("Sélectionne un participant et un match");
+      return;
+    }
+    const a = Number(scoreA);
+    const b = Number(scoreB);
+    if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0) {
+      toast.error("Scores invalides");
+      return;
+    }
+    setSaving(true);
+    try {
+      await upsert({ data: { userId, matchId, scoreA: a, scoreB: b } });
+      toast.success("Pronostic enregistré");
+      qc.invalidateQueries({ queryKey: ["manual-pred", userId, matchId] });
+      qc.invalidateQueries({ queryKey: ["super-stats"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!userId || !matchId) return;
+    if (!confirm("Supprimer ce pronostic ?")) return;
+    try {
+      await del({ data: { userId, matchId } });
+      toast.success("Pronostic supprimé");
+      setScoreA("");
+      setScoreB("");
+      qc.invalidateQueries({ queryKey: ["manual-pred", userId, matchId] });
+      qc.invalidateQueries({ queryKey: ["super-stats"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  const selectedProfile = (profilesQ.data ?? []).find((p: any) => p.id === userId) as any;
+  const selectedMatch = matches.find((m) => m.id === matchId);
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="text-base">Saisir un pronostic pour un participant</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Bypass du verrou horaire. Les points sont recalculés automatiquement si le match est terminé.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <label className="mb-1 block text-xs font-medium">Participant</label>
+          <Input
+            placeholder="Rechercher (prénom, n° paie, unité)…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mb-2"
+          />
+          <Select value={userId} onValueChange={setUserId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir un participant" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredProfiles.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.prenom} — {p.num_paie} ({p.depot}){p.active ? "" : " · inactif"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedProfile && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {selectedProfile.prenom} · {selectedProfile.num_paie} · {selectedProfile.depot}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium">Match</label>
+          <Select value={matchId} onValueChange={setMatchId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir un match" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[50vh]">
+              {matches.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {labelMatch(m)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedMatch?.finished && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Résultat : {selectedMatch.score_a} - {selectedMatch.score_b}
+            </p>
+          )}
+        </div>
+
+        {userId && matchId && (
+          <div className="rounded-md border p-3">
+            <p className="mb-2 text-xs text-muted-foreground">
+              {existingQ.data ? "Pronostic existant — modification" : "Nouveau pronostic"}
+            </p>
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs font-medium">
+                  {selectedMatch?.team_a?.name ?? selectedMatch?.team_a_placeholder ?? "Équipe A"}
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={scoreA}
+                  onChange={(e) => setScoreA(e.target.value)}
+                />
+              </div>
+              <span className="pb-2 text-muted-foreground">-</span>
+              <div className="flex-1">
+                <label className="mb-1 block text-xs font-medium">
+                  {selectedMatch?.team_b?.name ?? selectedMatch?.team_b_placeholder ?? "Équipe B"}
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={scoreB}
+                  onChange={(e) => setScoreB(e.target.value)}
+                />
+              </div>
+            </div>
+            {existingQ.data && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Points actuels : {existingQ.data.points}
+                {existingQ.data.exact_score ? " · score exact" : ""}
+                {existingQ.data.good_winner ? " · bon vainqueur" : ""}
+              </p>
+            )}
+            <div className="mt-3 flex gap-2">
+              <Button onClick={handleSave} disabled={saving} size="sm">
+                <Save className="mr-1 h-4 w-4" />
+                {saving ? "Enregistrement…" : "Enregistrer"}
+              </Button>
+              {existingQ.data && (
+                <Button onClick={handleDelete} variant="outline" size="sm">
+                  <Trash2 className="mr-1 h-4 w-4" /> Supprimer
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
