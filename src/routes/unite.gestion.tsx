@@ -122,12 +122,14 @@ function GestionPage() {
           <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           <TabsTrigger value="scorers">Buteurs</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
+          <TabsTrigger value="manual-preds">Pronos manuels</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
         <TabsContent value="bracket"><BracketTab /></TabsContent>
         <TabsContent value="scorers"><ScorersTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
+        <TabsContent value="manual-preds"><ManualPredsTab /></TabsContent>
       </Tabs>
     </div>
   );
