@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy, Target, Save } from "lucide-react";
+import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy, Target, Save, Megaphone } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { formatFR } from "@/lib/time";
 import {
