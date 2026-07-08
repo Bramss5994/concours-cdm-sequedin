@@ -175,6 +175,12 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
   const errors: string[] = [];
   let createdDbPlayers = 0;
 
+  // On accumule d'abord les patchs par joueur cible pour ne pas s'écraser
+  // (un même joueur peut apparaître à la fois comme buteur et passeur → 2 aggs
+  // distincts qui ciblent la même ligne DB).
+  const patchesByTarget = new Map<string, { target: PlayerRow; goals: number; assists: number; apiPlayerId: number | null }>();
+  const insertAggs: Agg[] = [];
+
   for (const scorer of aggregated.values()) {
     const compatibleTeamPlayers = scorer.teamId
       ? (byTeam.get(scorer.teamId) || []).filter((player) => namesCompatible(player.name, scorer.name))
@@ -188,15 +194,11 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
       (compatibleAllPlayers.length === 1 ? compatibleAllPlayers[0] : undefined);
 
     if (target) {
-      matchedIds.add(target.id);
-      const patch: { goals: number; assists: number; api_player_id?: number } = {
-        goals: scorer.goals,
-        assists: scorer.assists,
-      };
-      if (scorer.apiPlayerId && !target.api_player_id) patch.api_player_id = scorer.apiPlayerId;
-      const { error } = await supabaseAdmin.from("players").update(patch).eq("id", target.id);
-      if (error) errors.push(`${target.name}: ${error.message}`);
-      else updates.push({ player: target.name, goals: scorer.goals, assists: scorer.assists, created: false });
+      const cur = patchesByTarget.get(target.id) || { target, goals: 0, assists: 0, apiPlayerId: null };
+      cur.goals += scorer.goals;
+      cur.assists += scorer.assists;
+      if (!cur.apiPlayerId && scorer.apiPlayerId) cur.apiPlayerId = scorer.apiPlayerId;
+      patchesByTarget.set(target.id, cur);
       continue;
     }
 
@@ -204,7 +206,19 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
       errors.push(`${scorer.name}: équipe introuvable sur les buts du match`);
       continue;
     }
+    insertAggs.push(scorer);
+  }
 
+  for (const { target, goals, assists, apiPlayerId } of patchesByTarget.values()) {
+    matchedIds.add(target.id);
+    const patch: { goals: number; assists: number; api_player_id?: number } = { goals, assists };
+    if (apiPlayerId && !target.api_player_id) patch.api_player_id = apiPlayerId;
+    const { error } = await supabaseAdmin.from("players").update(patch).eq("id", target.id);
+    if (error) errors.push(`${target.name}: ${error.message}`);
+    else updates.push({ player: target.name, goals, assists, created: false });
+  }
+
+  for (const scorer of insertAggs) {
     const { data: inserted, error } = await supabaseAdmin
       .from("players")
       .insert({
@@ -227,6 +241,7 @@ export async function syncTopScorersFromFinishedMatches(supabaseAdmin: any): Pro
       updates.push({ player: inserted.name, goals: scorer.goals, assists: scorer.assists, created: true });
     }
   }
+
 
   let resetDbPlayers = 0;
   let resetQuery = supabaseAdmin.from("players").update({ goals: 0, assists: 0 });
