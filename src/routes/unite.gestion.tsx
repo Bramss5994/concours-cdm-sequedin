@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy, Target, Save } from "lucide-react";
+import { ArrowLeft, KeyRound, ShieldPlus, Trash2, RefreshCw, Trophy, Target, Save, Megaphone } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { formatFR } from "@/lib/time";
 import {
@@ -65,6 +65,12 @@ import {
   deletePlayerAsUnitAdminFn,
 } from "@/lib/players-admin.functions";
 import { syncTopScorersNowFn } from "@/lib/topscorers-sync.functions";
+import {
+  listAnnouncementsAsSuperFn,
+  createAnnouncementAsSuperFn,
+  toggleAnnouncementAsSuperFn,
+  deleteAnnouncementAsSuperFn,
+} from "@/lib/announcements.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
@@ -116,13 +122,14 @@ function GestionPage() {
       </div>
 
       <Tabs defaultValue="stats" className="mt-4">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="matches">Matchs</TabsTrigger>
           <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           <TabsTrigger value="scorers">Buteurs</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
           <TabsTrigger value="manual-preds">Pronos manuels</TabsTrigger>
+          <TabsTrigger value="announcements">Annonces</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
@@ -130,6 +137,7 @@ function GestionPage() {
         <TabsContent value="scorers"><ScorersTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
         <TabsContent value="manual-preds"><ManualPredsTab /></TabsContent>
+        <TabsContent value="announcements"><AnnouncementsTab /></TabsContent>
       </Tabs>
     </div>
   );
@@ -1568,6 +1576,128 @@ function ManualPredsTab() {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function AnnouncementsTab() {
+  const qc = useQueryClient();
+  const list = useServerFn(listAnnouncementsAsSuperFn);
+  const create = useServerFn(createAnnouncementAsSuperFn);
+  const toggle = useServerFn(toggleAnnouncementAsSuperFn);
+  const del = useServerFn(deleteAnnouncementAsSuperFn);
+
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const q = useQuery({
+    queryKey: ["announcements-admin"],
+    queryFn: () => list() as Promise<Array<{ id: string; title: string; body: string; active: boolean; created_at: string }>>,
+  });
+
+  async function handleCreate() {
+    if (!title.trim() || !body.trim()) {
+      toast.error("Titre et message obligatoires");
+      return;
+    }
+    setBusy(true);
+    try {
+      await create({ data: { title: title.trim(), body: body.trim() } });
+      setTitle("");
+      setBody("");
+      toast.success("Annonce envoyée à tous les pronostiqueurs");
+      await qc.invalidateQueries({ queryKey: ["announcements-admin"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleToggle(id: string, active: boolean) {
+    try {
+      await toggle({ data: { id, active } });
+      await qc.invalidateQueries({ queryKey: ["announcements-admin"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Supprimer cette annonce définitivement ?")) return;
+    try {
+      await del({ data: { id } });
+      await qc.invalidateQueries({ queryKey: ["announcements-admin"] });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erreur");
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Nouvelle annonce</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label className="text-xs font-medium">Titre</label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder="Ex. Nouveau règlement" />
+          </div>
+          <div>
+            <label className="text-xs font-medium">Message</label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              maxLength={4000}
+              rows={5}
+              className="w-full rounded-md border bg-background p-2 text-sm"
+              placeholder="Message affiché en plein écran à tous les pronostiqueurs connectés."
+            />
+          </div>
+          <Button onClick={handleCreate} disabled={busy}>
+            <Megaphone className="mr-1 h-4 w-4" /> Publier à tous
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            L'annonce apparaît en modal chez chaque pronostiqueur à sa prochaine visite. Il doit cocher « J'ai lu » pour la fermer.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Annonces publiées</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {q.isLoading && <div className="text-sm text-muted-foreground">Chargement…</div>}
+          {q.data && q.data.length === 0 && (
+            <div className="text-sm text-muted-foreground">Aucune annonce.</div>
+          )}
+          <div className="space-y-3">
+            {q.data?.map((a) => (
+              <div key={a.id} className="rounded-md border p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-medium">{a.title}</div>
+                    <div className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{a.body}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{formatFR(a.created_at)}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span>{a.active ? "Active" : "Inactive"}</span>
+                      <Switch checked={a.active} onCheckedChange={(v) => handleToggle(a.id, v)} />
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(a.id)}>
+                      <Trash2 className="mr-1 h-4 w-4" /> Supprimer
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
