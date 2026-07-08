@@ -111,6 +111,7 @@ function RootComponent() {
           </footer>
         </div>
         <QuickVoteFab />
+        <AnnouncementModal />
         <Toaster richColors position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
