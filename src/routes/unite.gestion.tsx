@@ -65,6 +65,12 @@ import {
   deletePlayerAsUnitAdminFn,
 } from "@/lib/players-admin.functions";
 import { syncTopScorersNowFn } from "@/lib/topscorers-sync.functions";
+import {
+  listAnnouncementsAsSuperFn,
+  createAnnouncementAsSuperFn,
+  toggleAnnouncementAsSuperFn,
+  deleteAnnouncementAsSuperFn,
+} from "@/lib/announcements.functions";
 
 export const Route = createFileRoute("/unite/gestion")({
   component: GestionPage,
