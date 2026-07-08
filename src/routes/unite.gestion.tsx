@@ -122,13 +122,14 @@ function GestionPage() {
       </div>
 
       <Tabs defaultValue="stats" className="mt-4">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="stats">Statistiques</TabsTrigger>
           <TabsTrigger value="matches">Matchs</TabsTrigger>
           <TabsTrigger value="bracket">Tableau final</TabsTrigger>
           <TabsTrigger value="scorers">Buteurs</TabsTrigger>
           <TabsTrigger value="unit-admins">Admins d'unité</TabsTrigger>
           <TabsTrigger value="manual-preds">Pronos manuels</TabsTrigger>
+          <TabsTrigger value="announcements">Annonces</TabsTrigger>
         </TabsList>
         <TabsContent value="stats"><StatsTab /></TabsContent>
         <TabsContent value="matches"><MatchesTab /></TabsContent>
@@ -136,6 +137,7 @@ function GestionPage() {
         <TabsContent value="scorers"><ScorersTab /></TabsContent>
         <TabsContent value="unit-admins"><UnitAdminsTab /></TabsContent>
         <TabsContent value="manual-preds"><ManualPredsTab /></TabsContent>
+        <TabsContent value="announcements"><AnnouncementsTab /></TabsContent>
       </Tabs>
     </div>
   );
