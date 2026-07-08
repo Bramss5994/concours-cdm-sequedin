@@ -9,6 +9,7 @@ import shareIcon from "../assets/icon-512.png.asset.json";
 import { AuthProvider } from "@/lib/auth";
 import { Nav } from "@/components/Nav";
 import { QuickVoteFab } from "@/components/QuickVoteFab";
+import { AnnouncementModal } from "@/components/AnnouncementModal";
 import { Toaster } from "@/components/ui/sonner";
 import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
