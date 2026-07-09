@@ -436,7 +436,7 @@ export type Database = {
           final_locked_at: string | null
           final_team_id: string | null
           initial_locked_at: string | null
-          initial_team_id: string
+          initial_team_id: string | null
           updated_at: string
           user_id: string
         }
@@ -445,7 +445,7 @@ export type Database = {
           final_locked_at?: string | null
           final_team_id?: string | null
           initial_locked_at?: string | null
-          initial_team_id: string
+          initial_team_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -454,7 +454,7 @@ export type Database = {
           final_locked_at?: string | null
           final_team_id?: string | null
           initial_locked_at?: string | null
-          initial_team_id?: string
+          initial_team_id?: string | null
           updated_at?: string
           user_id?: string
         }
