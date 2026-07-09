@@ -69,27 +69,18 @@ export function WinnerTeamPicker() {
     },
   });
 
-  // Choix initial toujours ouvert pour tous les inscrits.
-
+  // Fenêtre de re-vote : jusqu'au 9 juillet 2026 20h (Paris). Choix initial fermé.
+  const REVOTE_DEADLINE = new Date("2026-07-09T18:00:00Z");
 
   const state = useMemo(() => {
     const teamById = new Map(teams.map((t) => [t.id, t]));
-    const firstKick = matches.reduce<string | null>(
-      (acc, m) => (acc === null || m.kickoff_at < acc ? m.kickoff_at : acc),
-      null,
-    );
     const koMatches = matches.filter((m) => m.stage !== "group");
-    const firstKo = koMatches.reduce<string | null>(
-      (acc, m) => (acc === null || m.kickoff_at < acc ? m.kickoff_at : acc),
-      null,
-    );
     const groupsAllFinished =
       matches.some((m) => m.stage === "group") &&
       matches.filter((m) => m.stage === "group").every((m) => m.finished);
     const now = Date.now();
-    const initialOpen = true;
-    const revoteOpen =
-      groupsAllFinished && (!firstKo || now < new Date(firstKo).getTime());
+    const initialOpen = false;
+    const revoteOpen = now < REVOTE_DEADLINE.getTime();
 
     const finalMatch = matches.find((m) => m.stage === "final" && m.finished);
     const champion = finalMatch?.winner_team_id ?? null;
@@ -112,8 +103,7 @@ export function WinnerTeamPicker() {
       groupsAllFinished,
       champion,
       isEliminatedInGroups,
-      firstKick,
-      firstKo,
+      revoteDeadline: REVOTE_DEADLINE,
     };
   }, [teams, matches]);
 
@@ -196,7 +186,7 @@ export function WinnerTeamPicker() {
         </p>
         <p className="mt-2 flex items-start gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-xs font-medium text-amber-700 dark:text-amber-300">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Choix initial modifiable à tout moment pour tous les inscrits.
+          Choix initial fermé. Re-vote ouvert jusqu'au 9 juillet 2026 à 20h.
         </p>
 
 
@@ -264,11 +254,9 @@ export function WinnerTeamPicker() {
                 Choix après phases de groupes
               </div>
               {state.revoteOpen ? (
-                <Badge variant="secondary" className="text-xs">Ouvert</Badge>
-              ) : state.groupsAllFinished ? (
-                <Badge variant="outline" className="text-xs"><Lock className="mr-1 h-3 w-3" />Fermé</Badge>
+                <Badge variant="secondary" className="text-xs">Ouvert jusqu'au 9 juillet 20h</Badge>
               ) : (
-                <Badge variant="outline" className="text-xs">Disponible après les groupes</Badge>
+                <Badge variant="outline" className="text-xs"><Lock className="mr-1 h-3 w-3" />Fermé</Badge>
               )}
             </div>
 
