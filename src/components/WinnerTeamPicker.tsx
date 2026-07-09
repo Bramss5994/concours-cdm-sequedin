@@ -150,6 +150,7 @@ export function WinnerTeamPicker() {
 
   const initialTeam = pick?.initial_team_id ? state.teamById.get(pick.initial_team_id) : null;
   const finalTeam = pick?.final_team_id ? state.teamById.get(pick.final_team_id) : null;
+  const finalSelection = draftFinal ?? pick?.final_team_id ?? pick?.initial_team_id ?? undefined;
   const initialEliminated = state.isEliminatedInGroups(pick?.initial_team_id);
 
   // Bonus estimation
@@ -196,9 +197,74 @@ export function WinnerTeamPicker() {
           Choix initial fermé. Re-vote ouvert jusqu'au 9 juillet 2026 à 20h.
         </p>
 
+        {/* FINAL PICK (re-vote) — ouvert à tous, y compris sans choix initial */}
+        <div className="mt-4 rounded-md border border-primary/25 bg-primary/5 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {pick ? "Choix après phases de groupes" : "Mon choix du vainqueur"}
+            </div>
+            {state.revoteOpen ? (
+              <Badge variant="secondary" className="text-xs">Ouvert jusqu'au 9 juillet 20h</Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs"><Lock className="mr-1 h-3 w-3" />Fermé</Badge>
+            )}
+          </div>
+
+          {!pick && state.revoteOpen && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Vous n'avez pas fait de choix initial. Vous pouvez tout de même voter pour le vainqueur (+5 pts si votre équipe est championne).
+            </p>
+          )}
+
+          {finalTeam && (
+            <div className="mt-2 flex items-center gap-2">
+              <img
+                src={`https://flagcdn.com/w40/${finalTeam.code}.png`}
+                alt=""
+                className="h-5 w-7 rounded-sm object-cover ring-1 ring-border"
+              />
+              <span className="font-medium">{finalTeam.name}</span>
+              {pick?.initial_team_id ? (
+                pick.final_team_id === pick.initial_team_id ? (
+                  <Badge variant="secondary" className="text-[10px]">Confirmée (+5 si championne)</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px]">Changée (10 perdus, +5 si championne)</Badge>
+                )
+              ) : (
+                <Badge variant="secondary" className="text-[10px]">+5 si championne</Badge>
+              )}
+            </div>
+          )}
+
+          {state.revoteOpen && (
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Select
+                value={finalSelection}
+                onValueChange={setDraftFinal}
+              >
+                <SelectTrigger className="sm:flex-1">
+                  <SelectValue placeholder={pick ? "Confirmer ou changer" : "Choisir une équipe"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {teams.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name} {pick?.initial_team_id === t.id ? "· (mon choix initial)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                onClick={() => finalSelection && saveFinal.mutate(finalSelection)}
+                disabled={!finalSelection || finalSelection === pick?.final_team_id || saveFinal.isPending}
+              >
+                Enregistrer
+              </Button>
+            </div>
+          )}
+        </div>
 
         {/* INITIAL PICK */}
-        <div className="mt-4 rounded-md border bg-card/50 p-3">
+        <div className="mt-3 rounded-md border bg-card/50 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Choix initial
@@ -248,72 +314,6 @@ export function WinnerTeamPicker() {
                 disabled={!draftInitial || draftInitial === pick?.initial_team_id || saveInitial.isPending}
               >
                 {pick ? "Modifier" : "Enregistrer"}
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* FINAL PICK (re-vote) — ouvert à tous, y compris sans choix initial */}
-        <div className="mt-3 rounded-md border bg-card/50 p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {pick ? "Choix après phases de groupes" : "Mon choix du vainqueur"}
-            </div>
-            {state.revoteOpen ? (
-              <Badge variant="secondary" className="text-xs">Ouvert jusqu'au 9 juillet 20h</Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs"><Lock className="mr-1 h-3 w-3" />Fermé</Badge>
-            )}
-          </div>
-
-          {!pick && state.revoteOpen && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Vous n'avez pas fait de choix initial. Vous pouvez tout de même voter pour le vainqueur (+5 pts si votre équipe est championne).
-            </p>
-          )}
-
-          {finalTeam && (
-            <div className="mt-2 flex items-center gap-2">
-              <img
-                src={`https://flagcdn.com/w40/${finalTeam.code}.png`}
-                alt=""
-                className="h-5 w-7 rounded-sm object-cover ring-1 ring-border"
-              />
-              <span className="font-medium">{finalTeam.name}</span>
-              {pick?.initial_team_id ? (
-                pick.final_team_id === pick.initial_team_id ? (
-                  <Badge variant="secondary" className="text-[10px]">Confirmée (+5 si championne)</Badge>
-                ) : (
-                  <Badge variant="outline" className="text-[10px]">Changée (10 perdus, +5 si championne)</Badge>
-                )
-              ) : (
-                <Badge variant="secondary" className="text-[10px]">+5 si championne</Badge>
-              )}
-            </div>
-          )}
-
-          {state.revoteOpen && (
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <Select
-                value={draftFinal ?? pick?.final_team_id ?? pick?.initial_team_id ?? undefined}
-                onValueChange={setDraftFinal}
-              >
-                <SelectTrigger className="sm:flex-1">
-                  <SelectValue placeholder={pick ? "Confirmer ou changer" : "Choisir une équipe"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {teams.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name} {pick?.initial_team_id === t.id ? "· (mon choix initial)" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={() => draftFinal && saveFinal.mutate(draftFinal)}
-                disabled={!draftFinal || draftFinal === pick?.final_team_id || saveFinal.isPending}
-              >
-                Enregistrer
               </Button>
             </div>
           )}
