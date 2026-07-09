@@ -64,20 +64,25 @@ function mapFixturesResponse(
     teams: { home: { name: string }; away: { name: string } };
     goals: { home: number | null; away: number | null };
     score?: {
+      fulltime?: { home: number | null; away: number | null } | null;
       extratime?: { home: number | null; away: number | null } | null;
       penalty?: { home: number | null; away: number | null } | null;
     };
   }>;
   const fixtures = arr.map((f) => {
     const short = f.fixture.status.short;
+    // Le pronostic se joue sur les 90 min + arrêts de jeu :
+    // on privilégie donc score.fulltime (temps réglementaire) sur goals (qui inclut prolongations/tab).
+    const regHome = f.score?.fulltime?.home ?? f.goals.home;
+    const regAway = f.score?.fulltime?.away ?? f.goals.away;
     return {
       kickoffKey: kickoffKeyFromISO(f.fixture.date),
       apiFixtureId: f.fixture.id,
       status: short,
       statusLabel: STATUS_LABEL[short] || short,
       elapsed: f.fixture.status.elapsed,
-      scoreHome: f.goals.home,
-      scoreAway: f.goals.away,
+      scoreHome: regHome,
+      scoreAway: regAway,
       scoreHomeET: f.score?.extratime?.home ?? null,
       scoreAwayET: f.score?.extratime?.away ?? null,
       scoreHomePEN: f.score?.penalty?.home ?? null,
