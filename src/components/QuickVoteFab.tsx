@@ -47,7 +47,7 @@ export function QuickVoteFab() {
 
   const revoteOpen = Date.now() < new Date("2026-07-09T18:00:00Z").getTime();
   const missingWinner = revoteOpen ? !winnerPick?.final_team_id : false;
-  const missingScorer = !scorerPick?.player_id;
+  const missingScorer = false;
   const missingCount = (missingWinner ? 1 : 0) + (missingScorer ? 1 : 0);
 
   return (
