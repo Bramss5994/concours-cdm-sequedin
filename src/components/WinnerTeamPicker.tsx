@@ -69,27 +69,18 @@ export function WinnerTeamPicker() {
     },
   });
 
-  // Choix initial toujours ouvert pour tous les inscrits.
-
+  // Fenêtre de re-vote : jusqu'au 9 juillet 2026 20h (Paris). Choix initial fermé.
+  const REVOTE_DEADLINE = new Date("2026-07-09T18:00:00Z");
 
   const state = useMemo(() => {
     const teamById = new Map(teams.map((t) => [t.id, t]));
-    const firstKick = matches.reduce<string | null>(
-      (acc, m) => (acc === null || m.kickoff_at < acc ? m.kickoff_at : acc),
-      null,
-    );
     const koMatches = matches.filter((m) => m.stage !== "group");
-    const firstKo = koMatches.reduce<string | null>(
-      (acc, m) => (acc === null || m.kickoff_at < acc ? m.kickoff_at : acc),
-      null,
-    );
     const groupsAllFinished =
       matches.some((m) => m.stage === "group") &&
       matches.filter((m) => m.stage === "group").every((m) => m.finished);
     const now = Date.now();
-    const initialOpen = true;
-    const revoteOpen =
-      groupsAllFinished && (!firstKo || now < new Date(firstKo).getTime());
+    const initialOpen = false;
+    const revoteOpen = now < REVOTE_DEADLINE.getTime();
 
     const finalMatch = matches.find((m) => m.stage === "final" && m.finished);
     const champion = finalMatch?.winner_team_id ?? null;
@@ -112,8 +103,7 @@ export function WinnerTeamPicker() {
       groupsAllFinished,
       champion,
       isEliminatedInGroups,
-      firstKick,
-      firstKo,
+      revoteDeadline: REVOTE_DEADLINE,
     };
   }, [teams, matches]);
 
