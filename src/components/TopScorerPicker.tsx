@@ -139,9 +139,9 @@ export function TopScorerPicker() {
           Choisissez le joueur qui sera meilleur buteur de la Coupe du Monde 2026.
           +10 pts bonus si vous trouvez juste.
         </p>
-        <p className="mt-2 flex items-start gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Choix modifiable à tout moment pour tous les inscrits.
+        <p className="mt-2 flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 p-2 text-xs font-medium text-destructive">
+          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          Les pronostics Soulier d'Or sont désormais fermés.
         </p>
 
 
