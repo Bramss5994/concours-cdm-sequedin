@@ -138,15 +138,26 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             pick.scoreHome !== null &&
             pick.scoreAway !== null
           ) {
+            // Détermine l'orientation : le home API peut correspondre à team_a
+            // ou team_b en base. On aligne les scores sur l'ordre en base
+            // pour éviter de sauver des scores inversés.
+            const { teamNameMatches } = await import("@/lib/livescores.shared");
+            const homeIsA = teamNameMatches(nameA, pick.teamHome);
+            const scoreA = homeIsA ? pick.scoreHome : pick.scoreAway;
+            const scoreB = homeIsA ? pick.scoreAway : pick.scoreHome;
+            const scoreAET = homeIsA ? pick.scoreHomeET : pick.scoreAwayET;
+            const scoreBET = homeIsA ? pick.scoreAwayET : pick.scoreHomeET;
+            const scoreAPEN = homeIsA ? pick.scoreHomePEN : pick.scoreAwayPEN;
+            const scoreBPEN = homeIsA ? pick.scoreAwayPEN : pick.scoreHomePEN;
             const patch = {
-              score_a: pick.scoreHome,
-              score_b: pick.scoreAway,
+              score_a: scoreA,
+              score_b: scoreB,
               finished: true,
               live_status: pick.status,
-              score_a_et: pick.scoreHomeET,
-              score_b_et: pick.scoreAwayET,
-              score_a_pen: pick.scoreHomePEN,
-              score_b_pen: pick.scoreAwayPEN,
+              score_a_et: scoreAET,
+              score_b_et: scoreBET,
+              score_a_pen: scoreAPEN,
+              score_b_pen: scoreBPEN,
             } as const;
             const { error: e } = await supabaseAdmin
               .from("matches")
@@ -156,9 +167,9 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
             else
               scoreUpdates.push({
                 id: m.id,
-                score_a: pick.scoreHome,
-                score_b: pick.scoreAway,
-                match: `${pick.teamHome} ${pick.scoreHome}-${pick.scoreAway} ${pick.teamAway}${pick.status === "PEN" ? ` (t.a.b. ${pick.scoreHomePEN}-${pick.scoreAwayPEN})` : pick.status === "AET" ? " (a.p.)" : ""}`,
+                score_a: scoreA,
+                score_b: scoreB,
+                match: `${nameA} ${scoreA}-${scoreB} ${nameB}${pick.status === "PEN" ? ` (t.a.b. ${scoreAPEN}-${scoreBPEN})` : pick.status === "AET" ? " (a.p.)" : ""}`,
               });
           }
         }

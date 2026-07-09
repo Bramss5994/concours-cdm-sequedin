@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { kickoffKeyFromISO, pickFixtureByTeams } from "./livescores.shared";
+import { kickoffKeyFromISO, pickFixtureByTeams, teamNameMatches } from "./livescores.shared";
 
 export type LiveSyncResult = {
   ok: boolean;
@@ -75,16 +75,26 @@ export const syncLiveNowFn = createServerFn({ method: "POST" })
       if (!pick) continue;
 
 
+      // Aligne l'orientation API → base : home API n'est pas toujours team_a.
+      const na = (m.team_a as any)?.name || "";
+      const homeIsA = teamNameMatches(na, pick.teamHome);
+      const sHome = pick.scoreHome, sAway = pick.scoreAway;
+      const sHomeET = pick.scoreHomeET, sAwayET = pick.scoreAwayET;
+      const sHomePEN = pick.scoreHomePEN, sAwayPEN = pick.scoreAwayPEN;
       const patch: any = {
         live_status: pick.status,
         live_elapsed: pick.elapsed,
-        live_score_a: pick.scoreHome,
-        live_score_b: pick.scoreAway,
+        live_score_a: homeIsA ? sHome : sAway,
+        live_score_b: homeIsA ? sAway : sHome,
       };
-      if (pick.scoreHomeET != null) patch.score_a_et = pick.scoreHomeET;
-      if (pick.scoreAwayET != null) patch.score_b_et = pick.scoreAwayET;
-      if (pick.scoreHomePEN != null) patch.score_a_pen = pick.scoreHomePEN;
-      if (pick.scoreAwayPEN != null) patch.score_b_pen = pick.scoreAwayPEN;
+      if (sHomeET != null || sAwayET != null) {
+        patch.score_a_et = homeIsA ? sHomeET : sAwayET;
+        patch.score_b_et = homeIsA ? sAwayET : sHomeET;
+      }
+      if (sHomePEN != null || sAwayPEN != null) {
+        patch.score_a_pen = homeIsA ? sHomePEN : sAwayPEN;
+        patch.score_b_pen = homeIsA ? sAwayPEN : sHomePEN;
+      }
       if (!m.api_fixture_id) patch.api_fixture_id = pick.apiFixtureId;
 
       const { error: e } = await supabaseAdmin.from("matches").update(patch).eq("id", m.id);
