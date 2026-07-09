@@ -254,11 +254,9 @@ export function WinnerTeamPicker() {
                 Choix après phases de groupes
               </div>
               {state.revoteOpen ? (
-                <Badge variant="secondary" className="text-xs">Ouvert</Badge>
-              ) : state.groupsAllFinished ? (
-                <Badge variant="outline" className="text-xs"><Lock className="mr-1 h-3 w-3" />Fermé</Badge>
+                <Badge variant="secondary" className="text-xs">Ouvert jusqu'au 9 juillet 20h</Badge>
               ) : (
-                <Badge variant="outline" className="text-xs">Disponible après les groupes</Badge>
+                <Badge variant="outline" className="text-xs"><Lock className="mr-1 h-3 w-3" />Fermé</Badge>
               )}
             </div>
 
