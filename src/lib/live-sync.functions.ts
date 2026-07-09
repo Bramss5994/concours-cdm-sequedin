@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { kickoffKeyFromISO, pickFixtureByTeams } from "./livescores.shared";
+import { kickoffKeyFromISO, pickFixtureByTeams, teamNameMatches } from "./livescores.shared";
 
 export type LiveSyncResult = {
   ok: boolean;
