@@ -125,15 +125,22 @@ export function WinnerTeamPicker() {
 
   const saveFinal = useMutation({
     mutationFn: async (teamId: string) => {
-      const { error } = await supabase
-        .from("winner_predictions")
-        .update({ final_team_id: teamId })
-        .eq("user_id", user!.id);
-      if (error) throw error;
+      if (pick) {
+        const { error } = await supabase
+          .from("winner_predictions")
+          .update({ final_team_id: teamId })
+          .eq("user_id", user!.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("winner_predictions")
+          .insert({ user_id: user!.id, final_team_id: teamId } as any);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["winner-prediction"] });
-      toast.success("Choix après phase de groupes enregistré !");
+      toast.success("Choix enregistré !");
       setDraftFinal(undefined);
     },
     onError: (e: any) => toast.error(e.message),
