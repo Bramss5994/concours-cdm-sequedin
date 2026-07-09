@@ -80,7 +80,7 @@ export function TopScorerPicker() {
 
   const teamById = useMemo(() => new Map(teams.map((t) => [t.id, t])), [teams]);
 
-  const open = true;
+  const open = false;
 
 
   const filtered = useMemo(() => {
