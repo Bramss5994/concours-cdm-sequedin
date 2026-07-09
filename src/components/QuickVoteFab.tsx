@@ -22,7 +22,7 @@ export function QuickVoteFab() {
     queryFn: async () => {
       const { data } = await supabase
         .from("winner_predictions")
-        .select("initial_team_id")
+        .select("initial_team_id, final_team_id")
         .eq("user_id", user!.id)
         .maybeSingle();
       return data;
@@ -45,7 +45,8 @@ export function QuickVoteFab() {
   if (!user) return null;
   if (path.startsWith("/auth") || path.startsWith("/reset-password") || path.startsWith("/unite")) return null;
 
-  const missingWinner = !winnerPick?.initial_team_id;
+  const revoteOpen = Date.now() < new Date("2026-07-09T18:00:00Z").getTime();
+  const missingWinner = revoteOpen ? !winnerPick?.final_team_id : false;
   const missingScorer = !scorerPick?.player_id;
   const missingCount = (missingWinner ? 1 : 0) + (missingScorer ? 1 : 0);
 
@@ -81,7 +82,7 @@ export function QuickVoteFab() {
             <Vote className="h-5 w-5 text-primary" /> Mes votes spéciaux
           </SheetTitle>
           <p className="text-xs text-muted-foreground">
-            Modifiables à tout moment — pensez à enregistrer vos choix !
+            Équipe gagnante ouverte jusqu'à 20h — pensez à enregistrer vos choix !
           </p>
         </SheetHeader>
 
