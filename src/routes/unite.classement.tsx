@@ -45,6 +45,7 @@ function UniteClassementPage() {
   const navigate = useNavigate();
   const fetchSession = useServerFn(getUnitAdminSession);
   const fetchBoard = useServerFn(getUnitLeaderboardFn);
+  useRealtimeSync();
 
   const sessionQ = useQuery({
     queryKey: ["unit-admin-session"],
@@ -61,6 +62,9 @@ function UniteClassementPage() {
     queryKey: ["unit-admin-leaderboard"],
     queryFn: () => fetchBoard(),
     enabled: !!sessionQ.data,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
+    staleTime: 0,
   });
 
   const isSuper = (sessionQ.data as any)?.isSuper;
