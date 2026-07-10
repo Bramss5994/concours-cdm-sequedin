@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trophy, Medal } from "lucide-react";
 import { getUnitAdminSession, getUnitLeaderboardFn } from "@/lib/unit-admin.functions";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 export const Route = createFileRoute("/unite/classement")({
   component: UniteClassementPage,
