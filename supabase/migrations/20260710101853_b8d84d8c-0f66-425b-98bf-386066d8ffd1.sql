@@ -1,0 +1,1 @@
+UPDATE public.matches SET finished = finished WHERE finished = true AND score_a IS NOT NULL AND score_b IS NOT NULL;
