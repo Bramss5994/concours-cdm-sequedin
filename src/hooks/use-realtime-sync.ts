@@ -15,10 +15,16 @@ export function useRealtimeSync() {
         qc.invalidateQueries({ queryKey: ["matches"] });
         qc.invalidateQueries({ queryKey: ["leaderboard-data"] });
         qc.invalidateQueries({ queryKey: ["predictions"] });
+        qc.invalidateQueries({ queryKey: ["unit-admin-leaderboard"] });
+        qc.invalidateQueries({ queryKey: ["unit-admin-participants"] });
+        qc.invalidateQueries({ queryKey: ["super-stats"] });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "predictions" }, () => {
         qc.invalidateQueries({ queryKey: ["predictions"] });
         qc.invalidateQueries({ queryKey: ["leaderboard-data"] });
+        qc.invalidateQueries({ queryKey: ["unit-admin-leaderboard"] });
+        qc.invalidateQueries({ queryKey: ["unit-admin-participants"] });
+        qc.invalidateQueries({ queryKey: ["super-stats"] });
       })
       .subscribe();
     return () => {

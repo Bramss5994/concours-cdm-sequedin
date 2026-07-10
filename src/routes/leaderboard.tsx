@@ -55,6 +55,9 @@ function Leaderboard() {
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["leaderboard-data"],
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
+    staleTime: 0,
     queryFn: async () => {
       const [{ data: profiles }, predictions, { data: matches }, { data: winnerBoard }, { data: scorerBoard }] = await Promise.all([
         supabase.rpc("get_public_profiles"),

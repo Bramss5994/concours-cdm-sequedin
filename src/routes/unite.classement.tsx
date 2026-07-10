@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trophy, Medal } from "lucide-react";
 import { getUnitAdminSession, getUnitLeaderboardFn } from "@/lib/unit-admin.functions";
+import { useRealtimeSync } from "@/hooks/use-realtime-sync";
 
 export const Route = createFileRoute("/unite/classement")({
   component: UniteClassementPage,
@@ -44,6 +45,7 @@ function UniteClassementPage() {
   const navigate = useNavigate();
   const fetchSession = useServerFn(getUnitAdminSession);
   const fetchBoard = useServerFn(getUnitLeaderboardFn);
+  useRealtimeSync();
 
   const sessionQ = useQuery({
     queryKey: ["unit-admin-session"],
@@ -60,6 +62,9 @@ function UniteClassementPage() {
     queryKey: ["unit-admin-leaderboard"],
     queryFn: () => fetchBoard(),
     enabled: !!sessionQ.data,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
+    staleTime: 0,
   });
 
   const isSuper = (sessionQ.data as any)?.isSuper;
