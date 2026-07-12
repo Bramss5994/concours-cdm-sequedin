@@ -91,7 +91,11 @@ export const Route = createFileRoute("/api/public/hooks/sync-scores")({
           const storedGoalEvents = Array.isArray((m as any).goalscorers)
             ? (m as any).goalscorers.filter((g: any) => g?.type !== "missed").length
             : 0;
-          const expectedGoalEvents = (pick.scoreHome ?? 0) + (pick.scoreAway ?? 0);
+          const expectedGoalEvents =
+            (pick.scoreHome ?? 0) +
+            (pick.scoreAway ?? 0) +
+            (pick.scoreHomeET ?? 0) +
+            (pick.scoreAwayET ?? 0);
           // Retente tant que les buteurs ne sont pas peuplés, même si le match
           // est déjà marqué finished (les fetches sont plafonnés par run).
           const needsFinalEvents = pick.isFinished && expectedGoalEvents > storedGoalEvents;
