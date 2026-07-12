@@ -1,0 +1,1 @@
+UPDATE public.matches SET goalscorers = '[]'::jsonb WHERE id = '58f95558-13ad-482c-8878-742993053c59';
