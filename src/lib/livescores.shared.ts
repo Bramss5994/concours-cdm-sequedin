@@ -111,6 +111,9 @@ const TEAM_ALIASES: Record<string, string[]> = {
   "nigeria": ["nigeria"],
   "ghana": ["ghana"],
   "cameroun": ["cameroon"],
+  "tchequie": ["czech republic", "czechia"],
+  "ouzbekistan": ["uzbekistan"],
+  "bosnie herzegovine": ["bosnia and herzegovina", "bosnia herzegovina", "bosnia"],
 };
 
 function normalizeTeam(s: string): string {
