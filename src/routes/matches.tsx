@@ -107,7 +107,9 @@ function ExtraTimeBadge({ m }: { m: Match }) {
     (m.score_a_pen != null && m.score_b_pen != null);
   const hasEt =
     s === "AET" ||
-    (m.score_a_et != null && m.score_b_et != null);
+    s === "PEN" ||
+    (m.score_a_et != null && m.score_b_et != null) ||
+    (m.score_a_pen != null && m.score_b_pen != null);
   if (hasPen) {
     return (
       <Badge variant="outline" className="ml-2 border-amber-500/60 text-amber-700 bg-amber-50">
@@ -128,9 +130,23 @@ function ExtraTimeBadge({ m }: { m: Match }) {
 
 function FinalScore({ m }: { m: Match }) {
   if (m.score_a == null || m.score_b == null) return <span className="text-muted-foreground">—</span>;
+  const hasEt = m.score_a_et != null && m.score_b_et != null;
+  const finalA = hasEt ? m.score_a + (m.score_a_et ?? 0) : m.score_a;
+  const finalB = hasEt ? m.score_b + (m.score_b_et ?? 0) : m.score_b;
+  const hasPen = m.score_a_pen != null && m.score_b_pen != null;
   return (
     <span className="font-mono font-bold tabular-nums">
-      {m.score_a} - {m.score_b}
+      {finalA} - {finalB}
+      {hasEt && (
+        <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+          (temps rég. {m.score_a}-{m.score_b})
+        </span>
+      )}
+      {hasPen && (
+        <span className="ml-1 text-[10px] font-normal text-amber-700">
+          t.a.b. {m.score_a_pen}-{m.score_b_pen}
+        </span>
+      )}
     </span>
   );
 }
