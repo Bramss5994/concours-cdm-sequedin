@@ -9,69 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as MatchesRouteImport } from './routes/matches'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as ReglementRouteImport } from './routes/reglement'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as TopScorerRouteImport } from './routes/top-scorer'
-import { Route as UniteRouteImport } from './routes/unite'
 import { Route as WinnerBoardRouteImport } from './routes/winner-board'
-import { Route as UniteClassementRouteImport } from './routes/unite.classement'
-import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
-import { Route as UniteLoginRouteImport } from './routes/unite.login'
-import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
-import { Route as UniteTopScorerRouteImport } from './routes/unite.top-scorer'
+import { Route as UniteRouteImport } from './routes/unite'
+import { Route as TopScorerRouteImport } from './routes/top-scorer'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ReglementRouteImport } from './routes/reglement'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MatchesRouteImport } from './routes/matches'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as UniteWinnerBoardRouteImport } from './routes/unite.winner-board'
-import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
+import { Route as UniteTopScorerRouteImport } from './routes/unite.top-scorer'
+import { Route as UniteMatchsRouteImport } from './routes/unite.matchs'
+import { Route as UniteLoginRouteImport } from './routes/unite.login'
+import { Route as UniteGestionRouteImport } from './routes/unite.gestion'
+import { Route as UniteClassementRouteImport } from './routes/unite.classement'
 import { Route as ApiPublicHooksSyncTopscorersRouteImport } from './routes/api/public/hooks/sync-topscorers'
+import { Route as ApiPublicHooksSyncScoresRouteImport } from './routes/api/public/hooks/sync-scores'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatchesRoute = MatchesRouteImport.update({
-  id: '/matches',
-  path: '/matches',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReglementRoute = ReglementRouteImport.update({
-  id: '/reglement',
-  path: '/reglement',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TopScorerRoute = TopScorerRouteImport.update({
-  id: '/top-scorer',
-  path: '/top-scorer',
+const WinnerBoardRoute = WinnerBoardRouteImport.update({
+  id: '/winner-board',
+  path: '/winner-board',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UniteRoute = UniteRouteImport.update({
@@ -79,29 +39,54 @@ const UniteRoute = UniteRouteImport.update({
   path: '/unite',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WinnerBoardRoute = WinnerBoardRouteImport.update({
-  id: '/winner-board',
-  path: '/winner-board',
+const TopScorerRoute = TopScorerRouteImport.update({
+  id: '/top-scorer',
+  path: '/top-scorer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UniteClassementRoute = UniteClassementRouteImport.update({
-  id: '/classement',
-  path: '/classement',
-  getParentRoute: () => UniteRoute,
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const UniteGestionRoute = UniteGestionRouteImport.update({
-  id: '/gestion',
-  path: '/gestion',
-  getParentRoute: () => UniteRoute,
+const ReglementRoute = ReglementRouteImport.update({
+  id: '/reglement',
+  path: '/reglement',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const UniteLoginRoute = UniteLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => UniteRoute,
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const UniteMatchsRoute = UniteMatchsRouteImport.update({
-  id: '/matchs',
-  path: '/matchs',
+const MatchesRoute = MatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UniteWinnerBoardRoute = UniteWinnerBoardRouteImport.update({
+  id: '/winner-board',
+  path: '/winner-board',
   getParentRoute: () => UniteRoute,
 } as any)
 const UniteTopScorerRoute = UniteTopScorerRouteImport.update({
@@ -109,21 +94,36 @@ const UniteTopScorerRoute = UniteTopScorerRouteImport.update({
   path: '/top-scorer',
   getParentRoute: () => UniteRoute,
 } as any)
-const UniteWinnerBoardRoute = UniteWinnerBoardRouteImport.update({
-  id: '/winner-board',
-  path: '/winner-board',
+const UniteMatchsRoute = UniteMatchsRouteImport.update({
+  id: '/matchs',
+  path: '/matchs',
   getParentRoute: () => UniteRoute,
 } as any)
-const ApiPublicHooksSyncScoresRoute =
-  ApiPublicHooksSyncScoresRouteImport.update({
-    id: '/api/public/hooks/sync-scores',
-    path: '/api/public/hooks/sync-scores',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const UniteLoginRoute = UniteLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => UniteRoute,
+} as any)
+const UniteGestionRoute = UniteGestionRouteImport.update({
+  id: '/gestion',
+  path: '/gestion',
+  getParentRoute: () => UniteRoute,
+} as any)
+const UniteClassementRoute = UniteClassementRouteImport.update({
+  id: '/classement',
+  path: '/classement',
+  getParentRoute: () => UniteRoute,
+} as any)
 const ApiPublicHooksSyncTopscorersRoute =
   ApiPublicHooksSyncTopscorersRouteImport.update({
     id: '/api/public/hooks/sync-topscorers',
     path: '/api/public/hooks/sync-topscorers',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksSyncScoresRoute =
+  ApiPublicHooksSyncScoresRouteImport.update({
+    id: '/api/public/hooks/sync-scores',
+    path: '/api/public/hooks/sync-scores',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -275,67 +275,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/matches': {
-      id: '/matches'
-      path: '/matches'
-      fullPath: '/matches'
-      preLoaderRoute: typeof MatchesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reglement': {
-      id: '/reglement'
-      path: '/reglement'
-      fullPath: '/reglement'
-      preLoaderRoute: typeof ReglementRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/top-scorer': {
-      id: '/top-scorer'
-      path: '/top-scorer'
-      fullPath: '/top-scorer'
-      preLoaderRoute: typeof TopScorerRouteImport
+    '/winner-board': {
+      id: '/winner-board'
+      path: '/winner-board'
+      fullPath: '/winner-board'
+      preLoaderRoute: typeof WinnerBoardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/unite': {
@@ -345,39 +289,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UniteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/winner-board': {
-      id: '/winner-board'
-      path: '/winner-board'
-      fullPath: '/winner-board'
-      preLoaderRoute: typeof WinnerBoardRouteImport
+    '/top-scorer': {
+      id: '/top-scorer'
+      path: '/top-scorer'
+      fullPath: '/top-scorer'
+      preLoaderRoute: typeof TopScorerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/unite/classement': {
-      id: '/unite/classement'
-      path: '/classement'
-      fullPath: '/unite/classement'
-      preLoaderRoute: typeof UniteClassementRouteImport
-      parentRoute: typeof UniteRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/unite/gestion': {
-      id: '/unite/gestion'
-      path: '/gestion'
-      fullPath: '/unite/gestion'
-      preLoaderRoute: typeof UniteGestionRouteImport
-      parentRoute: typeof UniteRoute
+    '/reglement': {
+      id: '/reglement'
+      path: '/reglement'
+      fullPath: '/reglement'
+      preLoaderRoute: typeof ReglementRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/unite/login': {
-      id: '/unite/login'
-      path: '/login'
-      fullPath: '/unite/login'
-      preLoaderRoute: typeof UniteLoginRouteImport
-      parentRoute: typeof UniteRoute
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/unite/matchs': {
-      id: '/unite/matchs'
-      path: '/matchs'
-      fullPath: '/unite/matchs'
-      preLoaderRoute: typeof UniteMatchsRouteImport
+    '/matches': {
+      id: '/matches'
+      path: '/matches'
+      fullPath: '/matches'
+      preLoaderRoute: typeof MatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unite/winner-board': {
+      id: '/unite/winner-board'
+      path: '/winner-board'
+      fullPath: '/unite/winner-board'
+      preLoaderRoute: typeof UniteWinnerBoardRouteImport
       parentRoute: typeof UniteRoute
     }
     '/unite/top-scorer': {
@@ -387,25 +366,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UniteTopScorerRouteImport
       parentRoute: typeof UniteRoute
     }
-    '/unite/winner-board': {
-      id: '/unite/winner-board'
-      path: '/winner-board'
-      fullPath: '/unite/winner-board'
-      preLoaderRoute: typeof UniteWinnerBoardRouteImport
+    '/unite/matchs': {
+      id: '/unite/matchs'
+      path: '/matchs'
+      fullPath: '/unite/matchs'
+      preLoaderRoute: typeof UniteMatchsRouteImport
       parentRoute: typeof UniteRoute
     }
-    '/api/public/hooks/sync-scores': {
-      id: '/api/public/hooks/sync-scores'
-      path: '/api/public/hooks/sync-scores'
-      fullPath: '/api/public/hooks/sync-scores'
-      preLoaderRoute: typeof ApiPublicHooksSyncScoresRouteImport
-      parentRoute: typeof rootRouteImport
+    '/unite/login': {
+      id: '/unite/login'
+      path: '/login'
+      fullPath: '/unite/login'
+      preLoaderRoute: typeof UniteLoginRouteImport
+      parentRoute: typeof UniteRoute
+    }
+    '/unite/gestion': {
+      id: '/unite/gestion'
+      path: '/gestion'
+      fullPath: '/unite/gestion'
+      preLoaderRoute: typeof UniteGestionRouteImport
+      parentRoute: typeof UniteRoute
+    }
+    '/unite/classement': {
+      id: '/unite/classement'
+      path: '/classement'
+      fullPath: '/unite/classement'
+      preLoaderRoute: typeof UniteClassementRouteImport
+      parentRoute: typeof UniteRoute
     }
     '/api/public/hooks/sync-topscorers': {
       id: '/api/public/hooks/sync-topscorers'
       path: '/api/public/hooks/sync-topscorers'
       fullPath: '/api/public/hooks/sync-topscorers'
       preLoaderRoute: typeof ApiPublicHooksSyncTopscorersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/sync-scores': {
+      id: '/api/public/hooks/sync-scores'
+      path: '/api/public/hooks/sync-scores'
+      fullPath: '/api/public/hooks/sync-scores'
+      preLoaderRoute: typeof ApiPublicHooksSyncScoresRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
