@@ -208,7 +208,7 @@ function ReglementPage() {
 
       <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
         <Button asChild size="lg">
-          <Link to="/auth" search={{ tab: "signup" }}>S'inscrire au concours</Link>
+          <Link to="/auth" search={{ tab: "signup", depot: undefined }}>S'inscrire au concours</Link>
         </Button>
         <Button asChild variant="outline" size="lg">
           <Link to="/matches">Voir les matchs</Link>
