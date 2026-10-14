@@ -137,7 +137,7 @@ function Profile() {
   if (!user) return (
     <div className="container mx-auto max-w-md px-4 py-10 text-center">
       <p>Vous devez être connecté·e pour voir votre profil.</p>
-      <Button asChild className="mt-4"><Link to="/auth">Se connecter</Link></Button>
+      <Button asChild className="mt-4"><Link to="/auth" search={{ tab: "login", depot: undefined }}>Se connecter</Link></Button>
     </div>
   );
 

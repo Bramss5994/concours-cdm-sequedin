@@ -54,7 +54,7 @@ export function Nav() {
           ) : (
             <div className="flex items-center gap-1">
               <Button asChild size="sm">
-                <Link to="/auth"><LogIn className="h-4 w-4" /> Se connecter</Link>
+                <Link to="/auth" search={{ tab: "login", depot: undefined }}><LogIn className="h-4 w-4" /> Se connecter</Link>
               </Button>
             </div>
           )}
@@ -86,7 +86,7 @@ export function Nav() {
             ) : (
               <div className="flex flex-col gap-1">
                 <Button asChild>
-                  <Link to="/auth" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Se connecter</Link>
+                  <Link to="/auth" search={{ tab: "login", depot: undefined }} onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Se connecter</Link>
                 </Button>
               </div>
             )}
